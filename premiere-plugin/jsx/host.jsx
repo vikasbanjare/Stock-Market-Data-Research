@@ -1,0 +1,488 @@
+/*
+ * CutPilot — ExtendScript host (runs inside Premiere Pro).
+ * All entry points are CP_* functions that take a single JSON string and
+ * return a JSON string shaped {ok:true, ...} or {ok:false, error:"..."}.
+ *
+ * ExtendScript is ES3 and has no JSON object — a minimal polyfill is below.
+ * The QE DOM (app.enableQE) is undocumented but is the only way to razor
+ * and ripple-delete; everything QE-based is wrapped defensively and the
+ * panel offers a fully supported "rebuild" mode as the safe default.
+ */
+
+/* eslint-disable */
+
+var CP_TICKS_PER_SECOND = 254016000000; // Premiere's fixed tick rate
+
+// ---------------------------------------------------------------- JSON ----
+if (typeof JSON === 'undefined') { JSON = {}; }
+if (typeof JSON.stringify !== 'function') {
+  JSON.stringify = function (v) {
+    function esc(s) {
+      return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+              .replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t');
+    }
+    function go(x) {
+      var i, k, parts;
+      if (x === null || x === undefined) return 'null';
+      var t = typeof x;
+      if (t === 'number') return isFinite(x) ? String(x) : 'null';
+      if (t === 'boolean') return String(x);
+      if (t === 'string') return '"' + esc(x) + '"';
+      if (x instanceof Array) {
+        parts = [];
+        for (i = 0; i < x.length; i++) parts.push(go(x[i]));
+        return '[' + parts.join(',') + ']';
+      }
+      parts = [];
+      for (k in x) {
+        if (x.hasOwnProperty(k) && typeof x[k] !== 'function') {
+          parts.push('"' + esc(k) + '":' + go(x[k]));
+        }
+      }
+      return '{' + parts.join(',') + '}';
+    }
+    return go(v);
+  };
+}
+if (typeof JSON.parse !== 'function') {
+  JSON.parse = function (s) {
+    // Data only ever comes from our own panel, never from outside sources.
+    return eval('(' + s + ')');
+  };
+}
+
+// ------------------------------------------------------------- helpers ----
+function CP_ok(obj) {
+  obj = obj || {};
+  obj.ok = true;
+  return JSON.stringify(obj);
+}
+
+function CP_fail(msg) {
+  return JSON.stringify({ ok: false, error: String(msg) });
+}
+
+function CP_timeFromSeconds(sec) {
+  var t = new Time();
+  t.seconds = sec;
+  return t;
+}
+
+function CP_ticksFromSeconds(sec) {
+  return String(Math.round(sec * CP_TICKS_PER_SECOND));
+}
+
+function CP_activeSequence() {
+  if (!app.project || !app.project.activeSequence) {
+    throw new Error('No active sequence. Open a sequence in the timeline first.');
+  }
+  return app.project.activeSequence;
+}
+
+function CP_sequenceFps(seq) {
+  // seq.timebase is ticks-per-frame as a string
+  var tb = parseFloat(seq.timebase);
+  if (!tb || tb <= 0) return 25;
+  return CP_TICKS_PER_SECOND / tb;
+}
+
+/* Format seconds as a QE-compatible timecode string. */
+function CP_timecode(sec, fps, dropFrame) {
+  var sep = dropFrame ? ';' : ':';
+  var totalFrames = Math.round(sec * fps);
+  var fRate = Math.round(fps);
+  var ff = totalFrames % fRate;
+  var totalSec = Math.floor(totalFrames / fRate);
+  var ss = totalSec % 60;
+  var mm = Math.floor(totalSec / 60) % 60;
+  var hh = Math.floor(totalSec / 3600);
+  function p(n) { return (n < 10 ? '0' : '') + n; }
+  return p(hh) + sep + p(mm) + sep + p(ss) + sep + p(ff);
+}
+
+// -------------------------------------------------------------- probes ----
+function CP_ping() {
+  return CP_ok({ app: app.appName, version: app.version });
+}
+
+function CP_getEnv() {
+  try {
+    var seq = CP_activeSequence();
+    var fps = CP_sequenceFps(seq);
+    return CP_ok({
+      projectName: app.project.name,
+      sequenceName: seq.name,
+      fps: fps,
+      videoTracks: seq.videoTracks.numTracks,
+      audioTracks: seq.audioTracks.numTracks,
+      endSeconds: parseFloat(seq.end) / CP_TICKS_PER_SECOND
+    });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+/*
+ * Find the first selected clip in the active sequence (video first, then
+ * audio) and return everything the panel needs to map media-relative
+ * silence times onto the sequence.
+ */
+function CP_getSelectedClip() {
+  try {
+    var seq = CP_activeSequence();
+    var found = null;
+    var groups = [seq.videoTracks, seq.audioTracks];
+    for (var g = 0; g < groups.length && !found; g++) {
+      for (var t = 0; t < groups[g].numTracks && !found; t++) {
+        var track = groups[g][t];
+        for (var i = 0; i < track.clips.numItems; i++) {
+          var clip = track.clips[i];
+          if (clip.isSelected()) {
+            var pItem = clip.projectItem;
+            found = {
+              name: clip.name,
+              mediaPath: pItem ? pItem.getMediaPath() : null,
+              trackType: g === 0 ? 'video' : 'audio',
+              trackIndex: t,
+              seqStart: clip.start.seconds,
+              seqEnd: clip.end.seconds,
+              inPoint: clip.inPoint.seconds,
+              outPoint: clip.outPoint.seconds,
+              nodeId: pItem ? pItem.nodeId : null
+            };
+            break;
+          }
+        }
+      }
+    }
+    if (!found) return CP_fail('No clip selected. Select the clip to analyze in the timeline.');
+    if (!found.mediaPath) return CP_fail('Selected clip has no media path (offline or synthetic clip).');
+    return CP_ok({ clip: found });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+// ------------------------------------------------------------- markers ----
+/*
+ * Dry-run: drop a sequence marker over every detected silence so the user
+ * can audition before cutting. argsJson: {ranges:[{start,end}], label}
+ */
+function CP_addMarkers(argsJson) {
+  try {
+    var args = JSON.parse(argsJson);
+    var seq = CP_activeSequence();
+    var n = 0;
+    for (var i = 0; i < args.ranges.length; i++) {
+      var r = args.ranges[i];
+      var m = seq.markers.createMarker(r.start);
+      m.name = (args.label || 'Silence') + ' ' + (i + 1);
+      m.end = r.end;
+      try { m.setColorByIndex(1); } catch (eColor) {}
+      n++;
+    }
+    return CP_ok({ created: n });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+function CP_clearCutPilotMarkers(argsJson) {
+  try {
+    var args = JSON.parse(argsJson || '{}');
+    var label = args.label || 'Silence';
+    var seq = CP_activeSequence();
+    var doomed = [];
+    var m = seq.markers.getFirstMarker();
+    while (m) {
+      if (m.name && m.name.indexOf(label) === 0) doomed.push(m);
+      m = seq.markers.getNextMarker(m);
+    }
+    for (var i = 0; i < doomed.length; i++) seq.markers.deleteMarker(doomed[i]);
+    return CP_ok({ removed: doomed.length });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+// ------------------------------------------------------------- backups ----
+function CP_backupSequence() {
+  try {
+    var seq = CP_activeSequence();
+    seq.clone(); // duplicates the sequence in the project panel
+    return CP_ok({ backedUp: seq.name });
+  } catch (e) { return CP_fail('Could not clone sequence: ' + e.message); }
+}
+
+// -------------------------------------------------- in-place QE cutting ----
+function CP_qeSequence() {
+  app.enableQE();
+  var qseq = qe.project.getActiveSequence();
+  if (!qseq) throw new Error('QE could not access the active sequence.');
+  return qseq;
+}
+
+function CP_razorAllTracksAt(qseq, sec, fps, dropFrame) {
+  var tc = CP_timecode(sec, fps, dropFrame);
+  var t, track;
+  for (t = 0; t < qseq.numVideoTracks; t++) {
+    track = qseq.getVideoTrackAt(t);
+    try { track.razor(tc); } catch (e1) {}
+  }
+  for (t = 0; t < qseq.numAudioTracks; t++) {
+    track = qseq.getAudioTrackAt(t);
+    try { track.razor(tc); } catch (e2) {}
+  }
+}
+
+function CP_deleteClipsInRange(qseq, startSec, endSec, ripple) {
+  var eps = 0.001;
+  var removed = 0;
+  var groups = [
+    { count: qseq.numVideoTracks, get: function (i) { return qseq.getVideoTrackAt(i); } },
+    { count: qseq.numAudioTracks, get: function (i) { return qseq.getAudioTrackAt(i); } }
+  ];
+  for (var g = 0; g < groups.length; g++) {
+    for (var t = 0; t < groups[g].count; t++) {
+      var track = groups[g].get(t);
+      for (var i = track.numItems - 1; i >= 0; i--) {
+        var item = track.getItemAt(i);
+        if (!item || item.type === 'Empty') continue;
+        var s = item.start.secs, e = item.end.secs;
+        if (s >= startSec - eps && e <= endSec + eps) {
+          try {
+            item.remove(ripple ? 1 : 0, 0);
+            removed++;
+          } catch (eRem) {}
+        }
+      }
+    }
+  }
+  return removed;
+}
+
+/* Ripple-close remaining gaps on the timeline (QE exposes gaps as 'Empty'). */
+function CP_closeGaps(qseq) {
+  var closed = 0;
+  for (var t = 0; t < qseq.numVideoTracks; t++) {
+    var track = qseq.getVideoTrackAt(t);
+    for (var i = track.numItems - 1; i >= 0; i--) {
+      var item = track.getItemAt(i);
+      if (item && item.type === 'Empty') {
+        try { item.remove(1, 0); closed++; } catch (e) {}
+      }
+    }
+  }
+  return closed;
+}
+
+/*
+ * In-place silence cutting via QE razor + delete.
+ * argsJson: { ranges:[{start,end}] (sequence seconds), closeGaps:bool,
+ *             backup:bool, dropFrame:bool }
+ * Ranges are processed last-to-first so earlier timings stay valid.
+ */
+function CP_razorRipple(argsJson) {
+  try {
+    var args = JSON.parse(argsJson);
+    var seq = CP_activeSequence();
+    var fps = CP_sequenceFps(seq);
+    if (args.backup) { try { seq.clone(); } catch (eB) {} }
+
+    var qseq = CP_qeSequence();
+    var ranges = args.ranges.slice().sort(function (a, b) { return b.start - a.start; });
+    var removed = 0;
+    for (var i = 0; i < ranges.length; i++) {
+      CP_razorAllTracksAt(qseq, ranges[i].end, fps, !!args.dropFrame);
+      CP_razorAllTracksAt(qseq, ranges[i].start, fps, !!args.dropFrame);
+      removed += CP_deleteClipsInRange(qseq, ranges[i].start, ranges[i].end, false);
+    }
+    var closed = 0;
+    if (args.closeGaps) closed = CP_closeGaps(qseq);
+    return CP_ok({ removedClips: removed, closedGaps: closed, cuts: ranges.length });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+// ------------------------------------------------- safe rebuild cutting ----
+function CP_findProjectItemByNodeId(root, nodeId) {
+  for (var i = 0; i < root.children.numItems; i++) {
+    var child = root.children[i];
+    if (child.nodeId === nodeId) return child;
+    if (child.type === 2 /* BIN */) {
+      var hit = CP_findProjectItemByNodeId(child, nodeId);
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
+/*
+ * Safe mode: build a brand-new sequence containing only the keep-segments
+ * of the selected clip's source media. Fully supported API, original
+ * sequence untouched.
+ * argsJson: { nodeId, keeps:[{start,end}] (media-relative seconds), name }
+ */
+function CP_rebuildTrimmed(argsJson) {
+  try {
+    var args = JSON.parse(argsJson);
+    var pItem = CP_findProjectItemByNodeId(app.project.rootItem, args.nodeId);
+    if (!pItem) return CP_fail('Could not find the source project item.');
+
+    var seqName = args.name || ('CutPilot Trim ' + new Date().getTime());
+    var newSeq = app.project.createNewSequenceFromClips(seqName, [pItem]);
+    if (!newSeq) return CP_fail('Could not create the trimmed sequence.');
+
+    // The sequence now holds the full clip once; clear it, then append keeps.
+    app.enableQE();
+    var qseq = qe.project.getActiveSequence();
+    for (var t = 0; t < qseq.numVideoTracks; t++) {
+      var tr = qseq.getVideoTrackAt(t);
+      for (var i = tr.numItems - 1; i >= 0; i--) {
+        var it = tr.getItemAt(i);
+        if (it && it.type !== 'Empty') { try { it.remove(0, 0); } catch (e0) {} }
+      }
+    }
+    for (t = 0; t < qseq.numAudioTracks; t++) {
+      var tra = qseq.getAudioTrackAt(t);
+      for (i = tra.numItems - 1; i >= 0; i--) {
+        var ita = tra.getItemAt(i);
+        if (ita && ita.type !== 'Empty') { try { ita.remove(0, 0); } catch (e1) {} }
+      }
+    }
+
+    var vTrack = newSeq.videoTracks[0];
+    var aTrack = newSeq.audioTracks[0];
+    var cursor = 0;
+    var placed = 0;
+    for (i = 0; i < args.keeps.length; i++) {
+      var k = args.keeps[i];
+      try {
+        pItem.setInPoint(CP_ticksFromSeconds(k.start), 4);
+        pItem.setOutPoint(CP_ticksFromSeconds(k.end), 4);
+        if (vTrack) vTrack.overwriteClip(pItem, cursor);
+        else if (aTrack) aTrack.overwriteClip(pItem, cursor);
+        cursor += (k.end - k.start);
+        placed++;
+      } catch (eIns) {}
+    }
+    try { pItem.clearInPoint(4); } catch (ec1) {}
+    try { pItem.clearOutPoint(4); } catch (ec2) {}
+
+    return CP_ok({ sequence: seqName, segmentsPlaced: placed, finalDuration: cursor });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+// ------------------------------------------------------------- multicam ----
+/*
+ * Apply an angle plan to stacked camera tracks: for every plan segment,
+ * the chosen camera's clips stay enabled on their track and the same time
+ * range is disabled on every other camera track.
+ * argsJson: { plan:[{start,end,angle}], numAngles }
+ */
+function CP_applyMulticamPlan(argsJson) {
+  try {
+    var args = JSON.parse(argsJson);
+    var seq = CP_activeSequence();
+    var n = Math.min(args.numAngles, seq.videoTracks.numTracks);
+    var toggled = 0;
+
+    for (var t = 0; t < n; t++) {
+      var track = seq.videoTracks[t];
+      for (var i = 0; i < track.clips.numItems; i++) {
+        var clip = track.clips[i];
+        var mid = (clip.start.seconds + clip.end.seconds) / 2;
+        for (var p = 0; p < args.plan.length; p++) {
+          var segp = args.plan[p];
+          if (mid >= segp.start && mid < segp.end) {
+            var shouldDisable = (segp.angle !== t);
+            try {
+              if (clip.disabled !== shouldDisable) {
+                clip.disabled = shouldDisable;
+                toggled++;
+              }
+            } catch (eDis) {}
+            break;
+          }
+        }
+      }
+    }
+    return CP_ok({ toggled: toggled, tracksUsed: n });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+// ------------------------------------------------------------- captions ----
+/*
+ * Import an SRT file and attach it to the active sequence as a caption
+ * track (Premiere 22+). argsJson: { srtPath }
+ */
+function CP_importSrtCaptions(argsJson) {
+  try {
+    var args = JSON.parse(argsJson);
+    var seq = CP_activeSequence();
+
+    var before = app.project.rootItem.children.numItems;
+    var imported = app.project.importFiles([args.srtPath], true, app.project.rootItem, false);
+    if (!imported) return CP_fail('Premiere could not import the SRT file: ' + args.srtPath);
+
+    // The new item lands at the end of the root bin.
+    var item = null;
+    for (var i = app.project.rootItem.children.numItems - 1; i >= 0; i--) {
+      var cand = app.project.rootItem.children[i];
+      var mp = null;
+      try { mp = cand.getMediaPath(); } catch (eMp) {}
+      if (mp && mp.toLowerCase() === args.srtPath.toLowerCase()) { item = cand; break; }
+    }
+    if (!item && app.project.rootItem.children.numItems > before) {
+      item = app.project.rootItem.children[app.project.rootItem.children.numItems - 1];
+    }
+    if (!item) return CP_fail('SRT imported but the project item could not be located.');
+
+    if (typeof seq.createCaptionTrack !== 'function') {
+      return CP_fail('This Premiere version has no createCaptionTrack scripting API (needs 22.0+). The SRT is imported — drag it onto the timeline manually.');
+    }
+    var okCt = seq.createCaptionTrack(item, 0);
+    return CP_ok({ captionTrackCreated: okCt !== false });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+/*
+ * Insert one MOGRT per caption cue and push the cue text (and basic style
+ * params when the template exposes them) into the graphic.
+ * argsJson: { mogrtPath, cues:[{start,end,text}], videoTrack, audioTrack }
+ */
+function CP_insertMogrtCaptions(argsJson) {
+  try {
+    var args = JSON.parse(argsJson);
+    var seq = CP_activeSequence();
+    var vTrack = args.videoTrack != null ? args.videoTrack : seq.videoTracks.numTracks - 1;
+    var aTrack = args.audioTrack != null ? args.audioTrack : 0;
+    var inserted = 0, textSet = 0;
+    var errors = [];
+
+    for (var i = 0; i < args.cues.length; i++) {
+      var cue = args.cues[i];
+      var clip = null;
+      try {
+        clip = seq.importMGT(args.mogrtPath, CP_ticksFromSeconds(cue.start), vTrack, aTrack);
+      } catch (eImp) {
+        errors.push('cue ' + i + ': ' + eImp.message);
+        continue;
+      }
+      if (!clip) { errors.push('cue ' + i + ': importMGT returned nothing'); continue; }
+      inserted++;
+
+      try { clip.end = CP_timeFromSeconds(cue.end); } catch (eEnd) {}
+
+      try {
+        var comp = clip.getMGTComponent();
+        if (comp) {
+          for (var pIdx = 0; pIdx < comp.properties.numItems; pIdx++) {
+            var prop = comp.properties[pIdx];
+            var dn = String(prop.displayName || '').toLowerCase();
+            if (dn.indexOf('text') !== -1 || dn.indexOf('source') !== -1) {
+              try { prop.setValue(cue.text, true); textSet++; break; } catch (eSet) {}
+            }
+          }
+        }
+      } catch (eComp) {}
+    }
+    return CP_ok({
+      inserted: inserted,
+      textSet: textSet,
+      failed: args.cues.length - inserted,
+      sampleErrors: errors.slice(0, 3)
+    });
+  } catch (e) { return CP_fail(e.message); }
+}

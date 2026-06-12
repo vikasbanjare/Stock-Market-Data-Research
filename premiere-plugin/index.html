@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CutPilot</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <div class="brand">✂ CutPilot</div>
+    <div id="env-status" class="env-status">connecting…</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="silence">Silence</button>
+    <button class="tab" data-tab="multicam">Multicam</button>
+    <button class="tab" data-tab="captions">Captions</button>
+    <button class="tab" data-tab="settings">Settings</button>
+  </nav>
+
+  <!-- ============================== SILENCE ============================== -->
+  <section id="tab-silence" class="tab-page active">
+    <p class="hint">Select the talking-head clip in your timeline, then analyze.
+       Pauses and dead air are detected from the audio; you choose what gets cut.</p>
+
+    <div class="grid2">
+      <label>Threshold (dB)
+        <input type="number" id="opt-threshold" value="-40" step="1" max="0" min="-90">
+      </label>
+      <label>Min pause (s)
+        <input type="number" id="opt-minsilence" value="0.6" step="0.1" min="0.1">
+      </label>
+      <label>Padding (s)
+        <input type="number" id="opt-padding" value="0.12" step="0.02" min="0">
+      </label>
+      <label>Min keep (s)
+        <input type="number" id="opt-minkeep" value="0.25" step="0.05" min="0">
+      </label>
+    </div>
+
+    <button id="btn-analyze" class="primary">Analyze selected clip</button>
+    <div id="analyze-progress" class="progress hidden"></div>
+
+    <div id="results" class="hidden">
+      <div id="stats" class="stats"></div>
+      <div class="row">
+        <button id="btn-markers">Preview as markers</button>
+        <button id="btn-clear-markers" class="ghost">Clear markers</button>
+      </div>
+      <div id="silence-list" class="seg-list"></div>
+      <label class="check"><input type="checkbox" id="opt-backup" checked> Back up sequence first (clone)</label>
+      <label class="check"><input type="checkbox" id="opt-closegaps" checked> Close gaps after deleting</label>
+      <div class="row">
+        <button id="btn-rebuild" class="primary">Rebuild trimmed sequence (safe)</button>
+        <button id="btn-cut" class="danger">Cut in place (QE)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== MULTICAM ============================= -->
+  <section id="tab-multicam" class="tab-page">
+    <p class="hint">Stack each camera on its own video track (V1, V2, …) with audio
+       synced, run a silence analysis, then let CutPilot switch angles at every cut.</p>
+
+    <div class="grid2">
+      <label>Camera tracks
+        <input type="number" id="mc-angles" value="2" min="1" max="8">
+      </label>
+      <label>Switch every N cuts
+        <input type="number" id="mc-hold" value="1" min="1" max="10">
+      </label>
+      <label>Mode
+        <select id="mc-mode">
+          <option value="rotate">Rotate A→B→C</option>
+          <option value="pingpong">Ping-pong A→B→A</option>
+          <option value="random">Random (no repeats)</option>
+          <option value="weighted">Hero cam + cutaways</option>
+        </select>
+      </label>
+      <label>Min segment to switch (s)
+        <input type="number" id="mc-minseg" value="1.0" step="0.25" min="0">
+      </label>
+    </div>
+
+    <button id="btn-mc-plan" class="primary">Build angle plan</button>
+    <div id="mc-plan-view" class="seg-list hidden"></div>
+    <button id="btn-mc-apply" class="danger hidden">Apply plan (enable/disable tracks)</button>
+  </section>
+
+  <!-- ============================== CAPTIONS ============================= -->
+  <section id="tab-captions" class="tab-page">
+    <p class="hint">Generate your transcript with Premiere's Speech-to-Text
+       (Window → Text → Export captions as SRT), or load any SRT here.</p>
+
+    <div class="row">
+      <button id="btn-load-srt">Load SRT…</button>
+      <span id="srt-status" class="dim">no file loaded</span>
+    </div>
+
+    <label>Style preset
+      <select id="cap-preset"></select>
+    </label>
+    <div id="preset-card" class="preset-card"></div>
+
+    <div class="grid2">
+      <label>Words per cue
+        <input type="number" id="cap-words" value="1" min="0" max="8">
+        <small class="dim">0 = keep full sentences</small>
+      </label>
+      <label class="check" style="align-self:end">
+        <input type="checkbox" id="cap-upper"> UPPERCASE
+      </label>
+    </div>
+
+    <div class="row">
+      <button id="btn-cap-native" class="primary">Create caption track (native)</button>
+    </div>
+    <details>
+      <summary>Animated captions via MOGRT</summary>
+      <p class="hint">Point to a .mogrt text template (one text field). CutPilot inserts
+         one per cue and fills in the words — the template provides the animation.</p>
+      <div class="row">
+        <button id="btn-mogrt-pick">Choose .mogrt…</button>
+        <span id="mogrt-status" class="dim">none</span>
+      </div>
+      <button id="btn-cap-mogrt" class="primary">Insert animated captions</button>
+    </details>
+  </section>
+
+  <!-- ============================== SETTINGS ============================= -->
+  <section id="tab-settings" class="tab-page">
+    <label>ffmpeg path (optional — faster analysis, more formats)
+      <div class="row">
+        <input type="text" id="set-ffmpeg" placeholder="/usr/local/bin/ffmpeg or C:\ffmpeg\bin\ffmpeg.exe">
+        <button id="btn-ffmpeg-pick" class="ghost">…</button>
+      </div>
+    </label>
+    <label class="check"><input type="checkbox" id="set-dropframe"> Sequence uses drop-frame timecode (29.97/59.94)</label>
+    <button id="btn-save-settings" class="primary">Save settings</button>
+    <p class="hint">CutPilot v0.1.0 — silence cutting, multicam angle switching,
+       trend-styled captions. See README for the roadmap.</p>
+  </section>
+
+  <footer><div id="log" class="log"></div></footer>
+
+  <script src="js/lib/cep-bridge.js"></script>
+  <script src="js/silence.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/captions.js"></script>
+  <script src="js/multicam.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
