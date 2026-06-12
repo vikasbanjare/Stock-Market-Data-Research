@@ -5,9 +5,11 @@
  * Pure functions, unit-testable in Node.
  */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.CPCaptions = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  var lib = factory();
+  // CEP panels with --enable-nodejs have BOTH `module` and `window` — register in both.
+  if (typeof module === 'object' && module.exports) module.exports = lib;
+  if (root) root.CPCaptions = lib;
+})(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
 
   /* "00:01:02,345" -> seconds */

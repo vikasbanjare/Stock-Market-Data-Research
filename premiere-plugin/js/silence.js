@@ -4,9 +4,12 @@
  * All times are in seconds relative to the analyzed media.
  */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.CPSilence = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  var lib = factory();
+  // CEP panels with --enable-nodejs have BOTH `module` and `window`, so
+  // register in both places (module-only broke the panel: "CPSilence is not defined").
+  if (typeof module === 'object' && module.exports) module.exports = lib;
+  if (root) root.CPSilence = lib;
+})(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
 
   function dbToLinear(db) {

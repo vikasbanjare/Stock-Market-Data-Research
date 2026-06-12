@@ -9,9 +9,11 @@
  * pipes them through CPSilence.refineSilences().
  */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.CPAudio = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  var lib = factory();
+  // CEP panels with --enable-nodejs have BOTH `module` and `window` — register in both.
+  if (typeof module === 'object' && module.exports) module.exports = lib;
+  if (root) root.CPAudio = lib;
+})(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
 
   function nodeRequire(mod) {

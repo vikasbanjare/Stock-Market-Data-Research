@@ -6,9 +6,11 @@
  * Pure functions, unit-testable in Node.
  */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.CPMulticam = factory();
-})(typeof self !== 'undefined' ? self : this, function () {
+  var lib = factory();
+  // CEP panels with --enable-nodejs have BOTH `module` and `window` — register in both.
+  if (typeof module === 'object' && module.exports) module.exports = lib;
+  if (root) root.CPMulticam = lib;
+})(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
 
   /* Deterministic PRNG so "random" plans are reproducible per seed. */
