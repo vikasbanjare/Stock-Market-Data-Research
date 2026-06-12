@@ -27,7 +27,20 @@ the feature roadmap behind this design.
 - Optional but recommended: an `ffmpeg` binary for fast silence analysis on
   long files and exotic codecs (set the path in the Settings tab).
 
-## Install (development / unsigned)
+## Easy install (no technical steps)
+
+1. Download this repository as a ZIP (green **Code** button → Download ZIP)
+   and unzip it.
+2. Open the `premiere-plugin` folder and run the installer:
+   - **Windows:** double-click `install-windows.bat`
+   - **Mac:** right-click `install-mac.command` → Open
+     (or run `bash install-mac.command` in Terminal)
+3. Restart Premiere Pro and open **Window → Extensions → CutPilot**.
+
+The installer enables CEP debug mode and copies the panel into Premiere's
+extensions folder for you. Prefer doing it by hand? See below.
+
+## Manual install (development / unsigned)
 
 CEP refuses unsigned panels unless debug mode is on:
 
