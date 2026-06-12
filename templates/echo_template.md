@@ -89,6 +89,7 @@ durable.
 | <Stock 3> | <00.00%> | <00.00%> | <00.00%> |
 | <Stock 4> | <00.00%> | <00.00%> | <00.00%> |
 | <Stock 5> | <00.00%> | <00.00%> | <00.00%> |
+| <Stock 6> | <00.00%> | <00.00%> | <00.00%> |
 
 ### Falling delivery volume (Last week vs Prev month)
 
@@ -99,6 +100,7 @@ durable.
 | <Stock 3> | <00.00%> | <00.00%> | <00.00%> |
 | <Stock 4> | <00.00%> | <00.00%> | <00.00%> |
 | <Stock 5> | <00.00%> | <00.00%> | <00.00%> |
+| <Stock 6> | <00.00%> | <00.00%> | <00.00%> |
 
 <1–2 paragraphs explaining the biggest delivery-volume spikes/drops
 (block deals, stake sales, news events), stock names in **bold**.>
@@ -109,13 +111,17 @@ With a significant share of daily market volumes, our clients have real
 influence on the markets. These are the stocks that saw the most action
 on our platform in the past week:
 
-| Delivery — Most bought | Delivery — Most sold | Pay Later (MTF) — Most bought | Pay Later (MTF) — Most sold |
-|---|---|---|---|
-| <Stock> | <Stock> | <Stock> | <Stock> |
-| <Stock> | <Stock> | <Stock> | <Stock> |
-| <Stock> | <Stock> | <Stock> | <Stock> |
-| <Stock> | <Stock> | <Stock> | <Stock> |
-| <Stock> | <Stock> | <Stock> | <Stock> |
+| Delivery | Pay Later (MTF) |
+|---|---|
+| <Stock> | <Stock> |
+| <Stock> | <Stock> |
+| <Stock> | <Stock> |
+| <Stock> | <Stock> |
+| <Stock> | <Stock> |
+
+<!-- Published shape (29 Jun–5 Jul issue): one 5-row list per product,
+no most-bought/most-sold split. If the user's upload separates bought
+vs sold, confirm with the user which list goes in before publishing. -->
 
 *Note: The stocks given in the table above are only for informational
 purposes and are not recommendations.*
@@ -123,8 +129,6 @@ purposes and are not recommendations.*
 ## FIIs vs DIIs
 
 <1–2 sentences on the week's FII/DII pattern.>
-
-**Last week**
 
 | (In ₹ crore) | Cash (provisional) | Index Futures | Stock Futures | Index Options | Stock Options |
 |---|---|---|---|---|---|
@@ -201,7 +205,11 @@ tone, this week's trend specifically.>
 
 ## Upcoming Events (<Xth Month> to <Yth Month>)
 
-**Macroeconomic events & Earnings**
+**Macroeconomic events**
+
+<!-- Header becomes "Macroeconomic events & Earnings" when earnings rows
+are included (results season). The published 29 Jun–5 Jul issue had no
+earnings that week and used the short header. -->
 
 | Date | Event |
 |---|---|

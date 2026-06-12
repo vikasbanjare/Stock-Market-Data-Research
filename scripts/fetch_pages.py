@@ -75,6 +75,25 @@ URLS = {
 }
 
 
+# Screener pages above are JS shells; the table rows come from this API.
+# One JSON per live screener is saved alongside the HTML.
+SCREENER_API = "https://trendlyne.com/fundamentals/tl-all-in-one-screener-data-get/"
+SCREENER_QUERIES = {
+    # name: (screenpk, groupName, sort order for week_changeP)
+    "n100_gainers": (677797, "NIFTY100", "DESC"),
+    "n100_losers": (677798, "NIFTY100", "ASC"),
+    "n200_52w_high": (674839, "NIFTY200", "DESC"),
+}
+
+
+def screener_json_url(screenpk: int, group_name: str, order: str) -> str:
+    return (
+        f"{SCREENER_API}?screenpk={screenpk}&groupType=index"
+        f"&groupName={group_name}&page=1&perPageCount=100"
+        f"&sortBy=week_changeP&order={order}"
+    )
+
+
 def earnings_calendar_url(run_date: dt.date) -> str:
     """Trendlyne results calendar for the upcoming Mon-Fri (Nifty 50)."""
     next_monday = run_date + dt.timedelta(days=(7 - run_date.weekday()))
@@ -87,33 +106,47 @@ def earnings_calendar_url(run_date: dt.date) -> str:
     )
 
 
-def fetch_via_curl(name: str, url: str, out_dir: pathlib.Path) -> str | None:
+def body_ok(body: str, ext: str) -> bool:
+    """A 200 response can still be a WAF/HTML error page; JSON endpoints
+    must actually return JSON."""
+    if "Host not in allowlist" in body:
+        return False
+    if ext == "json":
+        return body.lstrip().startswith(("{", "["))
+    return True
+
+
+def fetch_via_curl(name: str, url: str, out_dir: pathlib.Path,
+                   ext: str = "html") -> str | None:
     """Fallback for hosts that reject python-requests outright (Trendlyne's
     WAF intermittently 405s one client while serving the other). Downloads
     to a temp path so a failure never clobbers a good copy from an earlier
     run."""
-    target = out_dir / f"{name}.html"
-    tmp = out_dir / f".{name}.html.curl"
+    target = out_dir / f"{name}.{ext}"
+    tmp = out_dir / f".{name}.{ext}.curl"
     cmd = [
         "curl", "-sS", "-L", "--max-time", "45",
         "-A", HEADERS["User-Agent"],
         "-H", f"Accept-Language: {HEADERS['Accept-Language']}",
-        "-o", str(tmp), "-w", "%{http_code}", url,
     ]
+    if ext == "json":
+        cmd += ["-H", "X-Requested-With: XMLHttpRequest"]
+    cmd += ["-o", str(tmp), "-w", "%{http_code}", url]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     except (subprocess.SubprocessError, OSError):
         proc = None
     if proc and proc.stdout.strip() == "200" and tmp.exists():
         body = tmp.read_text(encoding="utf-8", errors="replace")
-        if "Host not in allowlist" not in body:
+        if body_ok(body, ext):
             tmp.replace(target)
             return f"OK via curl ({len(body):,} bytes)"
     tmp.unlink(missing_ok=True)
     return None
 
 
-def fetch(session: requests.Session, name: str, url: str, out_dir: pathlib.Path) -> str:
+def fetch(session: requests.Session, name: str, url: str,
+          out_dir: pathlib.Path, ext: str = "html") -> str:
     for attempt, delay in enumerate((0, 3, 8), start=1):
         if delay:
             time.sleep(delay)
@@ -123,13 +156,13 @@ def fetch(session: requests.Session, name: str, url: str, out_dir: pathlib.Path)
             status = f"ERROR {type(exc).__name__}"
         else:
             body = resp.text
-            if resp.status_code == 200 and "Host not in allowlist" not in body:
-                (out_dir / f"{name}.html").write_text(body, encoding="utf-8")
+            if resp.status_code == 200 and body_ok(body, ext):
+                (out_dir / f"{name}.{ext}").write_text(body, encoding="utf-8")
                 return f"OK ({len(body):,} bytes)"
             if "Host not in allowlist" in body:
                 return "BLOCKED: domain not in environment network allowlist"
             status = f"HTTP {resp.status_code}"
-        curl_status = fetch_via_curl(name, url, out_dir)
+        curl_status = fetch_via_curl(name, url, out_dir, ext)
         if curl_status:
             return curl_status
     return f"FAILED after {attempt} attempts: {status}"
@@ -154,6 +187,17 @@ def main() -> int:
         results[name] = fetch(session, name, url, out_dir)
         print(f"{results[name]:<55} {name}")
         time.sleep(1)  # be polite between hosts
+
+    # The screener pages are JS shells; save the actual table data too.
+    api_session = requests.Session()
+    api_session.headers["X-Requested-With"] = "XMLHttpRequest"
+    for name, (screenpk, group, order) in SCREENER_QUERIES.items():
+        json_name = f"{name}_data"
+        url = screener_json_url(screenpk, group, order)
+        urls[json_name] = url
+        results[json_name] = fetch(api_session, json_name, url, out_dir, ext="json")
+        print(f"{results[json_name]:<55} {json_name}")
+        time.sleep(1)
 
     failures = {n: s for n, s in results.items() if not s.startswith("OK")}
     print(f"\nSaved to {out_dir}")

@@ -9,10 +9,19 @@ command document.
 |---|---|
 | Nifty 50, Sensex, Bank Nifty — Friday close + weekly % | NSE/BSE closes; cross-check via Trendlyne or reputable news. Weekly % = this Friday close vs previous Friday close. |
 
+Self-check: the printed weekly % must recompute exactly from the two
+Friday closes. Published issues are not a calibration source — the
+29 Jun–5 Jul 2025 issue printed Sensex −0.41% when its own closes
+(84,058.90 → 83,432.89) give −0.74%.
+
 ## Market breadth (all stocks)
 - Total gainers: https://trendlyne.com/fundamentals/stock-screener/692095/top-gainers-all/
 - Total losers: https://trendlyne.com/fundamentals/stock-screener/692099/top-losers-all/
 - Use the total result counts, not the row data.
+- **DEAD as of Jun 2026 (genuine 404s — screeners deleted on Trendlyne).**
+  Ask the user for replacement screener URLs from the team's Trendlyne
+  account (screener search requires login); until then the counts are a
+  `[FILL IN]` placeholder. Never substitute an approximation.
 
 ## Top weekly gainers & losers (Nifty 100) + delivery volume
 - Gainers: https://trendlyne.com/fundamentals/stock-screener/677797/top-gainers-stocks-with-delivery-volume/index/NIFTY100/nifty-100/
@@ -22,16 +31,36 @@ command document.
 - Columns published: stock name, % weekly change, delivery volume in past
   week vs prev month (as a multiple, e.g. `1.5X`).
 
+### Extracting screener tables (the pages are JS shells)
+The screener `.html` pages contain no table rows — the data loads from
+a JSON API that `fetch_pages.py` also saves as `<name>.json`:
+
+    https://trendlyne.com/fundamentals/tl-all-in-one-screener-data-get/
+      ?screenpk=<id>&groupType=index&groupName=<NIFTY100|NIFTY200|...>
+      &page=1&perPageCount=100&sortBy=week_changeP&order=<DESC|ASC>
+
+Useful response fields: `body.tableHeaders` / `body.tableData`
+(`week_changeP`, `delivery_5day_avg_vol`, `delivery_30day_avg_vol`, and
+the week-vs-month delivery multiple as the `tlcusparam_*` column) and
+`body.totalCount`. The group must be one the screener was built for.
+
 ## 52-week high / low in the past week (Nifty 200)
 - Highs: https://trendlyne.com/fundamentals/stock-screener/674839/stocks-that-hit-their-52-week-high-in-the-past-week/index/NIFTY200/nifty-200/
 - Lows: https://trendlyne.com/fundamentals/stock-screener/674842/stocks-that-hit-their-52-week-low-in-the-past-week/index/NIFTY200/nifty-200/
+  - **DEAD as of Jun 2026 (genuine 404).** Ask the user for the
+    replacement screener URL; `[FILL IN]` until then.
 - Publish full name lists; flag lifetime highs separately when known.
 
 ## Delivery-volume movers (Nifty 500)
 - Rising: https://trendlyne.com/fundamentals/stock-screener/670507/rising-delivery-percentage-weekly-average-monthly-average/index/NIFTY500/nifty-500/
-  - Sort `weekvolovermonth %` descending ("9 to 1") → first 5.
+  - Sort `weekvolovermonth %` descending ("9 to 1") → first 6.
 - Falling: https://trendlyne.com/fundamentals/stock-screener/678211/falling-delivery-percentage-weekly-average-monthly-average/index/NIFTY500/nifty-500/
-  - Sort `weekvolovermonth %` ascending ("1 to 9") → first 5.
+  - Sort `weekvolovermonth %` ascending ("1 to 9") → first 6.
+- **Both DEAD as of Jun 2026 (genuine 404s).** Ask the user for
+  replacement screener URLs; `[FILL IN]` until then.
+- The published table has SIX rows each (29 Jun–5 Jul issue), sorted by
+  the week-vs-month delivery-volume multiple, which is not itself a
+  printed column.
 - Columns: avg delivery volume % (week), avg month delivery volume %,
   avg 6-month delivery volume %.
 
@@ -51,6 +80,12 @@ Year-to-date:
 Always state the data cut-off note (FII F&O vs DII F&O availability dates
 usually differ).
 
+Extraction: every FII/DII page embeds all of its tables (daily
+past-month, monthly back to 2014, yearly) as `data-jsondata` attributes
+in the saved HTML — any one saved page carries the full set. "Last week"
+= sum of the Mon–Fri daily rows that exist; YTD = Jan–prior-month
+monthly rows + current month's daily rows up to the Friday.
+
 ## Commodities
 `new` = latest close from the live page. `old` = previous Friday's close
 from the historical-data page (8th row when pulled right after Friday's
@@ -68,7 +103,9 @@ close; verify by date, not row position). Weekly % = `new/old − 1`.
 Same old/new method (historical-data page → previous Friday's row; verify
 by date). **Published weekly % is from the rupee's perspective:
 positive = rupee strengthened = `old/new − 1` (inverse of the raw pair
-move).**
+move).** Worked example from the 29 Jun–5 Jul issue: USD/INR closed
+85.388 vs 85.456 the prior Friday (pair fell −0.08%) and the issue
+printed **+0.08%** (rupee strengthened).
 
 | Pair | Live | Historical |
 |---|---|---|
@@ -91,6 +128,8 @@ move).**
 ## Network allowlist needed for direct fetching
 The environment's network policy must allow at least:
 `trendlyne.com`, `www.investing.com`, `trade.mstock.com`.
-Note: these sites also run bot protection; if direct fetching still
-returns 403 with the policy open, fall back to user uploads per the
+Note: these sites also run bot protection. Trendlyne's WAF flips between
+blocking python-requests and curl (the fetch script tries both).
+Investing.com's Cloudflare challenge blocks both direct clients — use
+the agent's web-fetch tool for those pages, or user uploads per the
 runbook.
