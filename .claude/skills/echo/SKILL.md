@@ -13,11 +13,17 @@ memory.
 
 ## 0. Dates
 
-- **Issue header window:** previous Saturday → this Friday
-  (e.g. run on Fri 12 Jun 2026 → header `6th June to 12th June`).
+- **Issue header window:** Sunday before the trading week → Saturday
+  after it (e.g. run on Fri 12 Jun 2026 → header `7th June to 13th June`).
+  This matches the published 29 Jun–5 Jul 2025 issue (trading week
+  Mon 30 Jun – Fri 4 Jul). Note: the editorial command doc's example
+  uses Saturday → Friday instead — if the editor corrects the window,
+  follow their correction and update this rule.
 - **Research window:** Monday → Friday of the trading week just ended.
   Use it to scope ALL research, but **never mention these dates inside the
   newsletter text** (the header is the only place dates appear).
+- **Upcoming Events window:** next Sunday → next Saturday (the published
+  sample's events header covers 6th July to 12th July).
 - If a weekday was a market holiday, note it in the intro if relevant.
 
 ## 1. Inputs to collect from the user at the start of the run
@@ -39,15 +45,32 @@ If any of these are missing, insert a clearly marked
 
 Run `python3 scripts/fetch_pages.py` first. It downloads every source URL
 listed in `reference/data_sources.md` into `data/raw/<YYYY-MM-DD>/` with
-browser headers and retries. Then **read the saved files and extract the
-numbers yourself** — do not trust any pre-parsed output blindly.
+browser headers, retries, and a curl fallback (Trendlyne's WAF blocks
+one HTTP client while serving the other). Then **read the saved files and
+extract the numbers yourself** — do not trust any pre-parsed output
+blindly. Where the data actually lives in the saved files:
+
+- Trendlyne **screener pages are JS shells** — the saved `.html` has no
+  table rows. The script also saves `<name>_data.json` from the screener
+  data API for each live screener; read those for the table numbers
+  (`week_changeP`, delivery columns, and `body.totalCount` for counts).
+- The deleted screeners' sections come from computed artifacts the
+  script saves: `breadth_counts.json` (total gainers/losers),
+  `n200_52w_highlow.json` (52-week high/low name lists), and
+  `n500_delivery_movers.json` (`rising_top6` / `falling_bottom6` with
+  the three delivery-% columns).
+- Trendlyne **FII/DII pages embed every table** (daily past-month,
+  monthly, yearly) as `data-jsondata` attributes in the saved HTML.
 
 If a download is blocked (HTTP 403 / bot wall / domain not in the
 environment's network allowlist):
 1. Tell the user which source failed.
-2. Ask them to either upload a screenshot/export of that page, or fix the
-   network policy, then re-run.
-3. As a last resort for index levels and commodity/forex closes only, use
+2. Investing.com sits behind a Cloudflare challenge that blocks direct
+   HTTP clients — fetch those pages with the agent's web-fetch tool
+   (it gets through), and verify the dates on every row you use.
+3. Otherwise ask the user to upload a screenshot/export of that page, or
+   fix the network policy, then re-run.
+4. As a last resort for index levels and commodity/forex closes only, use
    web search against reputable sources (Reuters, Business Standard,
    Economic Times, Mint) and cross-check two sources. Never reconstruct
    screener tables (delivery %, gainers/losers lists) from search — those
@@ -62,7 +85,11 @@ and computation rules are in `reference/data_sources.md`.
 
 1. **Benchmark Index Moves** — Nifty 50, Sensex, Bank Nifty: Friday close
    + % weekly change (vs previous Friday close). 2 decimal places, Indian
-   digit grouping (e.g. `25,461.00`).
+   digit grouping (e.g. `25,461.00`). **Self-check before publishing:**
+   recompute each printed % from the two printed closes — they must agree.
+   (The 29 Jun–5 Jul 2025 issue printed Sensex −0.41% when its own closes
+   give −0.74%; never calibrate against published issues, only against
+   source closes.)
 2. **Market Breadth** — total gainers and total losers from the two
    Trendlyne screeners. One sentence: momentum positive/negative.
 3. **Top Weekly Gainers & Losers (Nifty 100)** — top 5 each from the
@@ -76,12 +103,15 @@ and computation rules are in `reference/data_sources.md`.
    and add a short note on the most interesting name(s).
 5. **Stocks & Sectors in the News** — run the sector rewrite command
    (below, §4a).
-6. **Top Delivery-volume Movers (Nifty 500)** — 5 rising and 5 falling
-   delivery-volume stocks with the three columns (week avg %, month avg %,
-   6-month avg %). Add 1–2 paragraphs explaining the biggest spikes/drops
-   (block deals, stake sales, etc.), fact-checked.
+6. **Top Delivery-volume Movers (Nifty 500)** — 6 rising and 6 falling
+   delivery-volume stocks (the published issue prints six rows each) with
+   the three columns (week avg %, month avg %, 6-month avg %). Add 1–2
+   paragraphs explaining the biggest spikes/drops (block deals, stake
+   sales, etc.), fact-checked.
 7. **Most traded on m.Stock** — format the user-uploaded data into the
-   4-column table. Keep the standard disclaimer note.
+   2-column table (Delivery | Pay Later (MTF), five stocks each, as
+   published). If the upload splits most bought vs most sold, confirm
+   with the user which list to print. Keep the standard disclaimer note.
 8. **FIIs vs DIIs** — two tables (last week, year-to-date): cash
    (provisional) + index futures + stock futures + index options + stock
    options, for FIIs and DIIs, in ₹ crore. Add the data-cutoff note
@@ -101,7 +131,7 @@ and computation rules are in `reference/data_sources.md`.
     the raw pair move.** Flag this in your verification notes every run.
     Then run the forex rewrite command (§4c).
 12. **Global Signals** — run the global markets rewrite command (§4d).
-13. **Upcoming Events (next Sat → Fri)** — macro events (inflation prints,
+13. **Upcoming Events (next Sun → Sat)** — macro events (inflation prints,
     FX reserves, RBI, etc.) + major Nifty 50 earnings from the Trendlyne
     calendar / m.Stock events page. End with: *"You can explore our Events
     calendar feature on the home page & set alerts on your calendar!"*
@@ -163,6 +193,9 @@ FMCG, realty, metals, pharma, energy — whichever actually moved).
 - Every narrative claim (why a stock moved, M&A, results, FDA approvals,
   block deals, etc.) must be verified by **web search against at least
   two independent reputable sources** scoped to the research window.
+- Check every in-body date for weekday/month consistency (the published
+  29 Jun–5 Jul issue printed "Friday, 4th June" for Friday 4th July and
+  "Q4FY24" for what was Q4FY25 — catch these before they ship).
 - Every table number must trace to a fetched file in `data/raw/` or a
   user upload.
 - Write the verification log to `drafts/<issue-date>/verification.md`:
