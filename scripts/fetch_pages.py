@@ -12,6 +12,7 @@ import argparse
 import datetime as dt
 import pathlib
 import re
+import subprocess
 import sys
 import time
 
@@ -86,6 +87,32 @@ def earnings_calendar_url(run_date: dt.date) -> str:
     )
 
 
+def fetch_via_curl(name: str, url: str, out_dir: pathlib.Path) -> str | None:
+    """Fallback for hosts that reject python-requests outright (Trendlyne's
+    WAF intermittently 405s one client while serving the other). Downloads
+    to a temp path so a failure never clobbers a good copy from an earlier
+    run."""
+    target = out_dir / f"{name}.html"
+    tmp = out_dir / f".{name}.html.curl"
+    cmd = [
+        "curl", "-sS", "-L", "--max-time", "45",
+        "-A", HEADERS["User-Agent"],
+        "-H", f"Accept-Language: {HEADERS['Accept-Language']}",
+        "-o", str(tmp), "-w", "%{http_code}", url,
+    ]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    except (subprocess.SubprocessError, OSError):
+        proc = None
+    if proc and proc.stdout.strip() == "200" and tmp.exists():
+        body = tmp.read_text(encoding="utf-8", errors="replace")
+        if "Host not in allowlist" not in body:
+            tmp.replace(target)
+            return f"OK via curl ({len(body):,} bytes)"
+    tmp.unlink(missing_ok=True)
+    return None
+
+
 def fetch(session: requests.Session, name: str, url: str, out_dir: pathlib.Path) -> str:
     for attempt, delay in enumerate((0, 3, 8), start=1):
         if delay:
@@ -94,14 +121,17 @@ def fetch(session: requests.Session, name: str, url: str, out_dir: pathlib.Path)
             resp = session.get(url, headers=HEADERS, timeout=30)
         except requests.RequestException as exc:
             status = f"ERROR {type(exc).__name__}"
-            continue
-        body = resp.text
-        if resp.status_code == 200 and "Host not in allowlist" not in body:
-            (out_dir / f"{name}.html").write_text(body, encoding="utf-8")
-            return f"OK ({len(body):,} bytes)"
-        if "Host not in allowlist" in body:
-            return "BLOCKED: domain not in environment network allowlist"
-        status = f"HTTP {resp.status_code}"
+        else:
+            body = resp.text
+            if resp.status_code == 200 and "Host not in allowlist" not in body:
+                (out_dir / f"{name}.html").write_text(body, encoding="utf-8")
+                return f"OK ({len(body):,} bytes)"
+            if "Host not in allowlist" in body:
+                return "BLOCKED: domain not in environment network allowlist"
+            status = f"HTTP {resp.status_code}"
+        curl_status = fetch_via_curl(name, url, out_dir)
+        if curl_status:
+            return curl_status
     return f"FAILED after {attempt} attempts: {status}"
 
 
