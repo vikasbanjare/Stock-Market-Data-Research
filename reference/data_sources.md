@@ -18,10 +18,15 @@ Friday closes. Published issues are not a calibration source — the
 - Total gainers: https://trendlyne.com/fundamentals/stock-screener/692095/top-gainers-all/
 - Total losers: https://trendlyne.com/fundamentals/stock-screener/692099/top-losers-all/
 - Use the total result counts, not the row data.
-- **DEAD as of Jun 2026 (genuine 404s — screeners deleted on Trendlyne).**
-  Ask the user for replacement screener URLs from the team's Trendlyne
-  account (screener search requires login); until then the counts are a
-  `[FILL IN]` placeholder. Never substitute an approximation.
+- **Original screeners DEAD as of Jun 2026 (404). REBUILT via the screener
+  data API** — `fetch_pages.py` saves `breadth_counts.json`
+  (`{"gainers": N, "losers": N}`), from `body.totalCount` of
+  `query=week_changeP > 0` / `< 0` over `groupType=all`.
+- API quirks (apply to every call below): pagination is `pageNumber`
+  (0-indexed) and rows cap at 25/page; `sortBy`+`order` are mandatory
+  (omitting them throws a misleading "check query" error); requests must
+  send `Accept: application/json` or the DRF endpoint renders HTML
+  (curl's default `*/*` is fine).
 
 ## Top weekly gainers & losers (Nifty 100) + delivery volume
 - Gainers: https://trendlyne.com/fundamentals/stock-screener/677797/top-gainers-stocks-with-delivery-volume/index/NIFTY100/nifty-100/
@@ -46,23 +51,30 @@ the week-vs-month delivery multiple as the `tlcusparam_*` column) and
 
 ## 52-week high / low in the past week (Nifty 200)
 - Highs: https://trendlyne.com/fundamentals/stock-screener/674839/stocks-that-hit-their-52-week-high-in-the-past-week/index/NIFTY200/nifty-200/
-- Lows: https://trendlyne.com/fundamentals/stock-screener/674842/stocks-that-hit-their-52-week-low-in-the-past-week/index/NIFTY200/nifty-200/
-  - **DEAD as of Jun 2026 (genuine 404).** Ask the user for the
-    replacement screener URL; `[FILL IN]` until then.
+- Lows: original screener 674842 **DEAD as of Jun 2026 (404). REBUILT** —
+  `fetch_pages.py` saves `n200_52w_highlow.json`: it pulls
+  `week_low,year_low,week_high,year_high` for every NIFTY200 stock (via
+  `query=week_changeP > 0` then `< 0`) and computes
+  `week_low <= year_low` (low) / `week_high >= year_high` (high) locally.
+  The computed high list reproduces screener 674839's output exactly
+  (validated 11/11 on 2026-06-12) — use the JSON for both lists.
 - Publish full name lists; flag lifetime highs separately when known.
 
 ## Delivery-volume movers (Nifty 500)
-- Rising: https://trendlyne.com/fundamentals/stock-screener/670507/rising-delivery-percentage-weekly-average-monthly-average/index/NIFTY500/nifty-500/
-  - Sort `weekvolovermonth %` descending ("9 to 1") → first 6.
-- Falling: https://trendlyne.com/fundamentals/stock-screener/678211/falling-delivery-percentage-weekly-average-monthly-average/index/NIFTY500/nifty-500/
-  - Sort `weekvolovermonth %` ascending ("1 to 9") → first 6.
-- **Both DEAD as of Jun 2026 (genuine 404s).** Ask the user for
-  replacement screener URLs; `[FILL IN]` until then.
+- Original screeners 670507 (rising) and 678211 (falling) **DEAD as of
+  Jun 2026 (404). REBUILT** — `fetch_pages.py` saves
+  `n500_delivery_movers.json`: it pulls
+  `delivery_5day_avg, delivery_30day_avg, delivery_6M_avg` plus the
+  volume fields for every NIFTY500 stock (screeners 677797+677798
+  regrouped to NIFTY500 jointly cover the index), ranks by
+  `delivery_5day_avg_vol / delivery_30day_avg_vol`, and stores
+  `rising_top6` / `falling_bottom6`.
 - The published table has SIX rows each (29 Jun–5 Jul issue), sorted by
   the week-vs-month delivery-volume multiple, which is not itself a
   printed column.
-- Columns: avg delivery volume % (week), avg month delivery volume %,
-  avg 6-month delivery volume %.
+- Columns printed: avg delivery volume % (week) = `delivery_5day_avg`,
+  avg month delivery volume % = `delivery_30day_avg`,
+  avg 6-month delivery volume % = `delivery_6M_avg`.
 
 ## FIIs vs DIIs (₹ crore)
 Last week:

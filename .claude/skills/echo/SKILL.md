@@ -51,9 +51,14 @@ extract the numbers yourself** — do not trust any pre-parsed output
 blindly. Where the data actually lives in the saved files:
 
 - Trendlyne **screener pages are JS shells** — the saved `.html` has no
-  table rows. The script also saves `<name>.json` from the screener data
-  API for each live screener; read those for the table numbers
+  table rows. The script also saves `<name>_data.json` from the screener
+  data API for each live screener; read those for the table numbers
   (`week_changeP`, delivery columns, and `body.totalCount` for counts).
+- The deleted screeners' sections come from computed artifacts the
+  script saves: `breadth_counts.json` (total gainers/losers),
+  `n200_52w_highlow.json` (52-week high/low name lists), and
+  `n500_delivery_movers.json` (`rising_top6` / `falling_bottom6` with
+  the three delivery-% columns).
 - Trendlyne **FII/DII pages embed every table** (daily past-month,
   monthly, yearly) as `data-jsondata` attributes in the saved HTML.
 

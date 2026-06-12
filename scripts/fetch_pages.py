@@ -10,11 +10,13 @@ Usage:
 """
 import argparse
 import datetime as dt
+import json
 import pathlib
 import re
 import subprocess
 import sys
 import time
+import urllib.parse
 
 import requests
 
@@ -77,6 +79,9 @@ URLS = {
 
 # Screener pages above are JS shells; the table rows come from this API.
 # One JSON per live screener is saved alongside the HTML.
+# API quirks: pagination is `pageNumber` (0-indexed), rows are capped at
+# 25/page regardless of perPageCount, `sortBy`+`order` are mandatory, and
+# requests must accept application/json or the DRF endpoint renders HTML.
 SCREENER_API = "https://trendlyne.com/fundamentals/tl-all-in-one-screener-data-get/"
 SCREENER_QUERIES = {
     # name: (screenpk, groupName, sort order for week_changeP)
@@ -85,11 +90,20 @@ SCREENER_QUERIES = {
     "n200_52w_high": (674839, "NIFTY200", "DESC"),
 }
 
+# The original breadth / 52w-low / delivery-movers screeners were deleted
+# on Trendlyne (404). Their data is rebuilt from the same API: raw
+# queries for breadth and 52w highs/lows, and the two delivery screeners
+# regrouped to NIFTY500 with explicit delivery columns for the movers.
+HILO_COLUMNS = ("Stock,currentPrice,week_changeP,week_low,year_low,"
+                "week_high,year_high")
+DELIVERY_COLUMNS = ("Stock,week_changeP,delivery_5day_avg,delivery_30day_avg,"
+                    "delivery_6M_avg,delivery_5day_avg_vol,delivery_30day_avg_vol")
+
 
 def screener_json_url(screenpk: int, group_name: str, order: str) -> str:
     return (
         f"{SCREENER_API}?screenpk={screenpk}&groupType=index"
-        f"&groupName={group_name}&page=1&perPageCount=100"
+        f"&groupName={group_name}&pageNumber=0&perPageCount=25"
         f"&sortBy=week_changeP&order={order}"
     )
 
@@ -147,11 +161,15 @@ def fetch_via_curl(name: str, url: str, out_dir: pathlib.Path,
 
 def fetch(session: requests.Session, name: str, url: str,
           out_dir: pathlib.Path, ext: str = "html") -> str:
+    headers = dict(HEADERS)
+    if ext == "json":
+        headers["Accept"] = "application/json"
+        headers["X-Requested-With"] = "XMLHttpRequest"
     for attempt, delay in enumerate((0, 3, 8), start=1):
         if delay:
             time.sleep(delay)
         try:
-            resp = session.get(url, headers=HEADERS, timeout=30)
+            resp = session.get(url, headers=headers, timeout=30)
         except requests.RequestException as exc:
             status = f"ERROR {type(exc).__name__}"
         else:
@@ -166,6 +184,148 @@ def fetch(session: requests.Session, name: str, url: str,
         if curl_status:
             return curl_status
     return f"FAILED after {attempt} attempts: {status}"
+
+
+def api_get(session: requests.Session, params: dict) -> dict | None:
+    """One screener-API call; returns the parsed body or None."""
+    url = SCREENER_API + "?" + urllib.parse.urlencode(params)
+    headers = dict(HEADERS)
+    headers["Accept"] = "application/json"
+    headers["X-Requested-With"] = "XMLHttpRequest"
+    for delay in (0, 3, 8):
+        if delay:
+            time.sleep(delay)
+        try:
+            resp = session.get(url, headers=headers, timeout=30)
+            if resp.status_code == 200 and body_ok(resp.text, "json"):
+                body = resp.json().get("body") or {}
+                if "tableHeaders" in body:
+                    return body
+        except requests.RequestException:
+            pass
+        try:
+            proc = subprocess.run(
+                ["curl", "-sS", "-L", "--max-time", "45",
+                 "-A", HEADERS["User-Agent"],
+                 "-H", "X-Requested-With: XMLHttpRequest", url],
+                capture_output=True, text=True, timeout=60)
+            if proc.returncode == 0 and body_ok(proc.stdout, "json"):
+                body = json.loads(proc.stdout).get("body") or {}
+                if "tableHeaders" in body:
+                    return body
+        except (subprocess.SubprocessError, OSError, ValueError):
+            pass
+    return None
+
+
+def api_get_all(session: requests.Session, params: dict) -> list[dict] | None:
+    """Paginate a screener-API query; rows deduped by stock_id."""
+    rows, page = {}, 0
+    while page <= 30:
+        body = api_get(session, dict(params, pageNumber=page, perPageCount=25))
+        if body is None:
+            return None
+        hdrs = [h["unique_name"] for h in body["tableHeaders"]]
+        for r in body["tableData"]:
+            d = dict(zip(hdrs, r))
+            rows[d.get("stock_id") or d["shortname"]] = d
+        if not body.get("isNextPage"):
+            return list(rows.values())
+        page += 1
+        time.sleep(2)
+    return list(rows.values())
+
+
+def _num(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def fetch_computed(session: requests.Session, out_dir: pathlib.Path) -> dict:
+    """Rebuild the data of the deleted Trendlyne screeners (market breadth,
+    Nifty 200 52w high/low, Nifty 500 delivery movers) from the screener
+    API and save one JSON artifact per section."""
+    statuses = {}
+
+    # Market breadth: total weekly gainers/losers across all stocks.
+    counts = {}
+    for key, q, order in (("gainers", "week_changeP > 0", "DESC"),
+                          ("losers", "week_changeP < 0", "ASC")):
+        body = api_get(session, {
+            "query": q, "columns": "Stock,week_changeP", "groupType": "all",
+            "groupName": "", "pageNumber": 0, "perPageCount": 5,
+            "sortBy": "week_changeP", "order": order})
+        counts[key] = body.get("totalCount") if body else None
+        time.sleep(1)
+    if counts["gainers"] is not None and counts["losers"] is not None:
+        (out_dir / "breadth_counts.json").write_text(json.dumps(counts))
+        statuses["breadth_counts"] = (
+            f"OK (gainers={counts['gainers']}, losers={counts['losers']})")
+    else:
+        statuses["breadth_counts"] = "FAILED: screener API unreachable"
+
+    # Nifty 200 52-week highs/lows in the past week.
+    n200 = []
+    for q, order in (("week_changeP > 0", "DESC"), ("week_changeP < 0", "ASC")):
+        part = api_get_all(session, {
+            "query": q, "columns": HILO_COLUMNS, "groupType": "index",
+            "groupName": "NIFTY200", "sortBy": "week_changeP", "order": order})
+        if part is None:
+            n200 = None
+            break
+        n200 += part
+    if n200:
+        highs = sorted(r["shortname"].strip() for r in n200
+                       if _num(r.get("week_high")) is not None
+                       and _num(r.get("year_high")) is not None
+                       and _num(r["week_high"]) >= _num(r["year_high"]))
+        lows = sorted(r["shortname"].strip() for r in n200
+                      if _num(r.get("week_low")) is not None
+                      and _num(r.get("year_low")) is not None
+                      and _num(r["week_low"]) <= _num(r["year_low"]))
+        (out_dir / "n200_52w_highlow.json").write_text(json.dumps(
+            {"highs": highs, "lows": lows, "stocks_scanned": len(n200)}))
+        statuses["n200_52w_highlow"] = (
+            f"OK ({len(highs)} highs, {len(lows)} lows, {len(n200)} scanned)")
+    else:
+        statuses["n200_52w_highlow"] = "FAILED: screener API unreachable"
+
+    # Nifty 500 delivery movers: the two delivery screeners regrouped to
+    # NIFTY500 jointly cover the index; rank by week-vs-month delivery
+    # volume multiple.
+    n500 = []
+    for pk, order in ((677797, "DESC"), (677798, "ASC")):
+        part = api_get_all(session, {
+            "screenpk": pk, "columns": DELIVERY_COLUMNS, "groupType": "index",
+            "groupName": "NIFTY500", "sortBy": "week_changeP", "order": order})
+        if part is None:
+            n500 = None
+            break
+        n500 += part
+    if n500:
+        seen, scored = set(), []
+        for r in n500:
+            key = r.get("stock_id") or r["shortname"]
+            if key in seen:
+                continue
+            seen.add(key)
+            wv = _num(r.get("delivery_5day_avg_vol"))
+            mv = _num(r.get("delivery_30day_avg_vol"))
+            if wv and mv and mv > 0:
+                r["week_vs_month_vol_multiple"] = round(wv / mv, 2)
+                scored.append(r)
+        scored.sort(key=lambda r: r["week_vs_month_vol_multiple"], reverse=True)
+        (out_dir / "n500_delivery_movers.json").write_text(json.dumps(
+            {"rising_top6": scored[:6], "falling_bottom6": scored[-6:][::-1],
+             "stocks_scored": len(scored)}))
+        statuses["n500_delivery_movers"] = (
+            f"OK ({len(scored)} stocks scored)")
+    else:
+        statuses["n500_delivery_movers"] = "FAILED: screener API unreachable"
+
+    return statuses
 
 
 def main() -> int:
@@ -189,15 +349,19 @@ def main() -> int:
         time.sleep(1)  # be polite between hosts
 
     # The screener pages are JS shells; save the actual table data too.
-    api_session = requests.Session()
-    api_session.headers["X-Requested-With"] = "XMLHttpRequest"
     for name, (screenpk, group, order) in SCREENER_QUERIES.items():
         json_name = f"{name}_data"
         url = screener_json_url(screenpk, group, order)
         urls[json_name] = url
-        results[json_name] = fetch(api_session, json_name, url, out_dir, ext="json")
+        results[json_name] = fetch(session, json_name, url, out_dir, ext="json")
         print(f"{results[json_name]:<55} {json_name}")
         time.sleep(1)
+
+    # Rebuild the deleted screeners' data (breadth, 52w low, delivery movers).
+    for name, status in fetch_computed(session, out_dir).items():
+        urls[name] = SCREENER_API
+        results[name] = status
+        print(f"{status:<55} {name}")
 
     failures = {n: s for n, s in results.items() if not s.startswith("OK")}
     print(f"\nSaved to {out_dir}")
