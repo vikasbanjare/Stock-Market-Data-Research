@@ -196,6 +196,73 @@
     }
   ];
 
+  /*
+   * Built-in animation catalog (CutPilot's own engine — no MOGRTs needed).
+   * 'keyframed' anims are realized as Premiere Motion/Opacity keyframes on
+   * rendered caption images; 'framed' anims are realized as a sequence of
+   * rendered frames (the swap is the animation).
+   */
+  var ANIMATIONS = [
+    { id: 'pop',        name: 'Pop',        kind: 'keyframed', demo: 'anim-pop',    description: 'Word scales in with a punchy overshoot' },
+    { id: 'bounce',     name: 'Bounce',     kind: 'keyframed', demo: 'anim-bounce', description: 'Drops in and settles with a bounce' },
+    { id: 'slide',      name: 'Slide up',   kind: 'keyframed', demo: 'anim-slide',  description: 'Rises from below while fading in' },
+    { id: 'fade',       name: 'Fade',       kind: 'keyframed', demo: 'anim-fade',   description: 'Soft opacity fade-in' },
+    { id: 'glitch',     name: 'Glitch',     kind: 'keyframed', demo: 'anim-glitch', description: 'Two-frame jitter + flicker on entry' },
+    { id: 'karaoke',    name: 'Karaoke',    kind: 'framed',    demo: 'anim-sweep',  description: 'Phrase stays up, spoken word lights up' },
+    { id: 'typewriter', name: 'Typewriter', kind: 'framed',    demo: 'anim-type',   description: 'Words accumulate as they are spoken' },
+    { id: 'none',       name: 'None',       kind: 'keyframed', demo: '',            description: 'Hard cut, no motion' }
+  ];
+
+  function getAnimation(id) {
+    for (var i = 0; i < ANIMATIONS.length; i++) if (ANIMATIONS[i].id === id) return ANIMATIONS[i];
+    return ANIMATIONS[0];
+  }
+
+  /* Map preset.anim concept names onto engine animation ids. */
+  var PRESET_ANIM_MAP = {
+    'pop-scale': 'pop', 'color-sweep': 'karaoke', 'box-snap': 'bounce',
+    'fade': 'fade', 'glitch-in': 'glitch', 'typewriter': 'typewriter'
+  };
+
+  /*
+   * Karaoke planning: phrase stays on screen, the active word is rendered
+   * highlighted. One frame per spoken word.
+   * Returns [{start, end, words:[...], active}] — render highlights words[active].
+   */
+  function planKaraoke(cues, wordsPerPhrase) {
+    var k = Math.max(2, wordsPerPhrase || 3);
+    var frames = [];
+    for (var c = 0; c < cues.length; c++) {
+      var words = explodeWords([cues[c]], { wordsPerCue: 1 });
+      for (var p = 0; p < words.length; p += k) {
+        var phrase = words.slice(p, p + k);
+        var texts = [];
+        for (var i = 0; i < phrase.length; i++) texts.push(phrase[i].text);
+        for (i = 0; i < phrase.length; i++) {
+          frames.push({ start: phrase[i].start, end: phrase[i].end, words: texts, active: i });
+        }
+      }
+    }
+    return frames;
+  }
+
+  /*
+   * Typewriter planning: words accumulate within each cue.
+   * Returns [{start, end, text}] with growing text.
+   */
+  function planTypewriter(cues) {
+    var frames = [];
+    for (var c = 0; c < cues.length; c++) {
+      var words = explodeWords([cues[c]], { wordsPerCue: 1 });
+      var acc = [];
+      for (var i = 0; i < words.length; i++) {
+        acc.push(words[i].text);
+        frames.push({ start: words[i].start, end: words[i].end, text: acc.join(' ') });
+      }
+    }
+    return frames;
+  }
+
   function getPreset(id) {
     for (var i = 0; i < STYLE_PRESETS.length; i++) {
       if (STYLE_PRESETS[i].id === id) return STYLE_PRESETS[i];
@@ -211,6 +278,11 @@
     explodeWords: explodeWords,
     remapCuesToKeeps: remapCuesToKeeps,
     STYLE_PRESETS: STYLE_PRESETS,
-    getPreset: getPreset
+    getPreset: getPreset,
+    ANIMATIONS: ANIMATIONS,
+    getAnimation: getAnimation,
+    PRESET_ANIM_MAP: PRESET_ANIM_MAP,
+    planKaraoke: planKaraoke,
+    planTypewriter: planTypewriter
   };
 });

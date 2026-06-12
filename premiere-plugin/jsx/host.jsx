@@ -113,6 +113,8 @@ function CP_getEnv() {
       projectName: app.project.name,
       sequenceName: seq.name,
       fps: fps,
+      width: seq.frameSizeHorizontal,
+      height: seq.frameSizeVertical,
       videoTracks: seq.videoTracks.numTracks,
       audioTracks: seq.audioTracks.numTracks,
       endSeconds: parseFloat(seq.end) / CP_TICKS_PER_SECOND
@@ -156,6 +158,32 @@ function CP_getSelectedClip() {
     if (!found) return CP_fail('No clip selected. Select the clip to analyze in the timeline.');
     if (!found.mediaPath) return CP_fail('Selected clip has no media path (offline or synthetic clip).');
     return CP_ok({ clip: found });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+function CP_getProjectInfo() {
+  try {
+    return CP_ok({ name: app.project.name, path: app.project.path });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+/* Scan the project for already-imported caption files (.srt/.vtt). */
+function CP_findProjectSrts() {
+  try {
+    var hits = [];
+    function walk(bin) {
+      for (var i = 0; i < bin.children.numItems; i++) {
+        var child = bin.children[i];
+        if (child.type === 2 /* BIN */) { walk(child); continue; }
+        var mp = null;
+        try { mp = child.getMediaPath(); } catch (eMp) {}
+        if (mp && /\.(srt|vtt)$/i.test(mp)) {
+          hits.push({ name: child.name, path: mp, nodeId: child.nodeId });
+        }
+      }
+    }
+    walk(app.project.rootItem);
+    return CP_ok({ items: hits });
   } catch (e) { return CP_fail(e.message); }
 }
 
@@ -434,6 +462,130 @@ function CP_importSrtCaptions(argsJson) {
     }
     var okCt = seq.createCaptionTrack(item, 0);
     return CP_ok({ captionTrackCreated: okCt !== false });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+// ----------------------------------------- built-in animation engine ----
+function CP_findComponent(clip, displayName) {
+  for (var i = 0; i < clip.components.numItems; i++) {
+    if (String(clip.components[i].displayName).toLowerCase() === displayName.toLowerCase()) {
+      return clip.components[i];
+    }
+  }
+  return null;
+}
+
+function CP_findProperty(comp, displayName) {
+  if (!comp) return null;
+  for (var i = 0; i < comp.properties.numItems; i++) {
+    if (String(comp.properties[i].displayName).toLowerCase() === displayName.toLowerCase()) {
+      return comp.properties[i];
+    }
+  }
+  return null;
+}
+
+function CP_setKeys(prop, baseTime, keys) {
+  if (!prop) return;
+  try {
+    prop.setTimeVarying(true);
+    for (var i = 0; i < keys.length; i++) {
+      var t = baseTime + keys[i].t;
+      prop.addKey(t);
+      prop.setValueAtKey(t, keys[i].v, true);
+    }
+  } catch (e) {}
+}
+
+/* Apply one of the built-in entry animations as Motion/Opacity keyframes. */
+function CP_animateClip(clip, anim) {
+  var base = clip.inPoint.seconds;
+  var motion = CP_findComponent(clip, 'Motion');
+  var opacityComp = CP_findComponent(clip, 'Opacity');
+  var scale = CP_findProperty(motion, 'Scale');
+  var pos = CP_findProperty(motion, 'Position');
+  var opacity = CP_findProperty(opacityComp, 'Opacity');
+
+  if (anim === 'pop') {
+    CP_setKeys(scale, base, [
+      { t: 0.0, v: 12 }, { t: 0.09, v: 108 }, { t: 0.16, v: 100 }
+    ]);
+  } else if (anim === 'bounce') {
+    CP_setKeys(pos, base, [
+      { t: 0.0, v: [0.5, 0.56] }, { t: 0.11, v: [0.5, 0.487] },
+      { t: 0.18, v: [0.5, 0.503] }, { t: 0.24, v: [0.5, 0.5] }
+    ]);
+    CP_setKeys(opacity, base, [{ t: 0.0, v: 0 }, { t: 0.08, v: 100 }]);
+  } else if (anim === 'slide') {
+    CP_setKeys(pos, base, [
+      { t: 0.0, v: [0.5, 0.56] }, { t: 0.15, v: [0.5, 0.5] }
+    ]);
+    CP_setKeys(opacity, base, [{ t: 0.0, v: 0 }, { t: 0.13, v: 100 }]);
+  } else if (anim === 'fade') {
+    CP_setKeys(opacity, base, [{ t: 0.0, v: 0 }, { t: 0.15, v: 100 }]);
+  } else if (anim === 'glitch') {
+    CP_setKeys(pos, base, [
+      { t: 0.0, v: [0.498, 0.501] }, { t: 0.04, v: [0.503, 0.499] },
+      { t: 0.08, v: [0.5, 0.5] }
+    ]);
+    CP_setKeys(opacity, base, [
+      { t: 0.0, v: 0 }, { t: 0.03, v: 100 }, { t: 0.05, v: 35 }, { t: 0.08, v: 100 }
+    ]);
+  }
+  // 'karaoke', 'typewriter', 'none': the frame sequence is the animation.
+}
+
+/*
+ * Place pre-rendered caption PNGs on a dedicated top video track and apply
+ * the chosen entry animation per clip.
+ * argsJson: { items:[{path,start,end}], anim }
+ */
+function CP_placeCaptionImages(argsJson) {
+  try {
+    var args = JSON.parse(argsJson);
+    var seq = CP_activeSequence();
+
+    // Import everything into a tidy bin.
+    var bin = app.project.rootItem.createBin('CutPilot Captions ' + (new Date()).getTime() % 100000);
+    var paths = [];
+    for (var i = 0; i < args.items.length; i++) paths.push(args.items[i].path);
+    app.project.importFiles(paths, true, bin, false);
+
+    // Map imported items by filename for ordering-safe lookup.
+    var byName = {};
+    for (i = 0; i < bin.children.numItems; i++) {
+      byName[String(bin.children[i].name).toLowerCase()] = bin.children[i];
+    }
+
+    // Use a fresh top video track so we never stomp existing footage.
+    var trackIndex = seq.videoTracks.numTracks - 1;
+    try {
+      app.enableQE();
+      var qseq = qe.project.getActiveSequence();
+      qseq.addTracks(1, seq.videoTracks.numTracks, 0);
+      trackIndex = seq.videoTracks.numTracks - 1;
+    } catch (eTrack) {}
+    var track = seq.videoTracks[trackIndex];
+
+    var placed = 0, animated = 0;
+    for (i = 0; i < args.items.length; i++) {
+      var it = args.items[i];
+      var fileName = it.path.split(/[\\\/]/).pop().toLowerCase();
+      var pItem = byName[fileName];
+      if (!pItem) continue;
+      try {
+        track.overwriteClip(pItem, it.start);
+        var clip = track.clips[track.clips.numItems - 1];
+        // overwriteClip appends in time order; trim/extend to the cue.
+        try { clip.end = CP_timeFromSeconds(it.end); } catch (eEnd) {}
+        placed++;
+        if (args.anim && args.anim !== 'none' && args.anim !== 'karaoke' && args.anim !== 'typewriter') {
+          CP_animateClip(clip, args.anim);
+          animated++;
+        }
+      } catch (ePlace) {}
+    }
+    return CP_ok({ placed: placed, animated: animated, track: trackIndex + 1, bin: bin.name });
   } catch (e) { return CP_fail(e.message); }
 }
 

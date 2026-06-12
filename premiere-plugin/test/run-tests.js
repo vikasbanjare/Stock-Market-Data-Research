@@ -99,6 +99,59 @@ console.log('captions.js');
   assert(CPCaptions.getPreset('hormozi').uppercase === true, 'hormozi preset is uppercase');
 }
 
+// ------------------------------------------------ animation planners ----
+console.log('captions.js (animation engine)');
+{
+  const cue = [{ start: 0, end: 4, text: 'one two three four' }];
+
+  const kar = CPCaptions.planKaraoke(cue, 2);
+  assert(kar.length === 4, 'karaoke: one frame per spoken word');
+  assert(JSON.stringify(kar[0].words) === '["one","two"]' && kar[0].active === 0,
+         'karaoke: first frame shows phrase with word 1 active');
+  assert(JSON.stringify(kar[1].words) === '["one","two"]' && kar[1].active === 1,
+         'karaoke: second frame highlights word 2');
+  assert(JSON.stringify(kar[2].words) === '["three","four"]' && kar[2].active === 0,
+         'karaoke: next phrase starts fresh');
+  assert(close(kar[0].start, 0) && close(kar[3].end, 4), 'karaoke: timing spans the cue');
+
+  const tw = CPCaptions.planTypewriter(cue);
+  assert(tw.length === 4, 'typewriter: one frame per word');
+  assert(tw[0].text === 'one' && tw[2].text === 'one two three',
+         'typewriter: words accumulate');
+  assert(close(tw[3].end, 4), 'typewriter: last frame ends at cue end');
+
+  assert(CPCaptions.ANIMATIONS.length >= 8, 'animation catalog has 8+ entries');
+  assert(CPCaptions.getAnimation('karaoke').kind === 'framed', 'karaoke is a framed animation');
+  assert(CPCaptions.getAnimation('nonsense').id === 'pop', 'unknown animation falls back to pop');
+  assert(CPCaptions.PRESET_ANIM_MAP['color-sweep'] === 'karaoke', 'preset anim concepts map to engine ids');
+}
+
+// --------------------------------------------------------------- render ----
+console.log('render.js (pure layout helpers)');
+{
+  const CPRender = require(path.join(__dirname, '..', 'js', 'render.js'));
+  const measure = s => s.length * 10; // fake: 10px per character
+
+  const lines = CPRender.wrapLines(['hello', 'brave', 'new', 'world'], 120, measure);
+  assert(lines.length === 2, 'wrapLines breaks at max width');
+  assert(lines[0].join(' ') === 'hello brave' && lines[1].join(' ') === 'new world',
+         'wrapLines keeps word order');
+  assert(lines.flat().join(' ') === 'hello brave new world', 'wrapLines loses no words');
+
+  const one = CPRender.wrapLines(['supercalifragilistic'], 50, measure);
+  assert(one.length === 1, 'oversized single word still gets its own line');
+
+  const preset = CPCaptions.getPreset('hormozi');
+  const full = CPRender.styleForFrame(preset, 1080, {});
+  const half = CPRender.styleForFrame(preset, 540, {});
+  assert(full.size === preset.fontSize, 'style at 1080p uses native font size');
+  assert(half.size === Math.round(preset.fontSize / 2), 'style scales with frame height');
+  assert(CPRender.styleForFrame(preset, 1080, { fontSize: 120 }).size === 120,
+         'fontSize override wins');
+  assert(CPRender.styleForFrame(preset, 1080, { uppercase: false }).uppercase === false,
+         'uppercase override wins over preset');
+}
+
 // ------------------------------------------------------------ multicam ----
 console.log('multicam.js');
 {

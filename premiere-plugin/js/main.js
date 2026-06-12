@@ -1,26 +1,29 @@
 /*
- * CutPilot — panel controller.
- * Wires the UI to the analysis engines (js/) and the ExtendScript host (jsx/).
+ * CutPilot — panel controller (v0.2, automated flow).
+ * Captions: auto-found transcripts → visual style + animation pickers →
+ * one button. The built-in render engine draws every caption frame to a
+ * transparent PNG and the host keyframes the entry animation — no MOGRTs,
+ * no manual files. SRT management lives under Advanced.
  */
 (function () {
   'use strict';
 
   // ------------------------------------------------------------- state ----
   var state = {
-    clip: null,          // selected clip info from host
-    silencesMedia: [],   // refined silences, media-relative seconds
-    silencesSeq: [],     // same, mapped to sequence time
-    keepsMedia: [],      // keep segments, media-relative
-    keepsSeq: [],        // keep segments, sequence time
-    mediaDuration: 0,
-    srtCues: null,
-    srtPath: null,
-    mogrtPath: null,
-    plan: null
+    env: null,
+    clip: null,
+    silencesSeq: [],
+    keepsMedia: [],
+    keepsSeq: [],
+    plan: null,
+    sources: [],        // transcript candidates
+    sourceIdx: -1,
+    presetId: 'hormozi',
+    animId: 'pop',
+    mcMode: 'rotate'
   };
 
   var settings = loadSettings();
-
   function loadSettings() {
     try { return JSON.parse(localStorage.getItem('cutpilot.settings')) || {}; }
     catch (e) { return {}; }
@@ -40,10 +43,34 @@
     $('log').parentNode.scrollTop = 1e9;
   }
 
+  var toastTimer = null;
+  function toast(msg, isErr) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isErr ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.add('hidden'); }, 4500);
+    log(msg, isErr ? 'err' : 'ok');
+  }
+
   function fmt(sec) {
     var m = Math.floor(sec / 60);
     var s = (sec - m * 60).toFixed(2);
     return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function nodeReq(mod) {
+    var req = (typeof cep_node !== 'undefined' && cep_node.require) || window.require;
+    return req(mod);
+  }
+
+  function pickFile(title, exts) {
+    if (window.cep && window.cep.fs && window.cep.fs.showOpenDialogEx) {
+      var r = window.cep.fs.showOpenDialogEx(false, false, title, null, exts);
+      if (r && r.data && r.data.length) return r.data[0];
+      return null;
+    }
+    return prompt(title + ' — enter full file path:') || null;
   }
 
   // --------------------------------------------------------------- tabs ----
@@ -61,47 +88,320 @@
   function boot() {
     $('set-ffmpeg').value = settings.ffmpegPath || '';
     $('set-dropframe').checked = !!settings.dropFrame;
-    buildPresetSelect();
+    buildStyleRail();
+    buildAnimRail();
+    updateEngineBadge();
 
     if (!CPBridge.isCEP()) {
-      $('env-status').textContent = 'browser preview (no Premiere)';
+      $('env-status').textContent = 'browser preview';
       $('env-status').className = 'env-status err';
+      renderSources();
       return;
     }
     CPBridge.callHost('CP_getEnv').then(function (env) {
-      $('env-status').textContent = env.sequenceName + ' · ' + env.fps.toFixed(2) + ' fps';
+      state.env = env;
+      $('env-status').textContent = env.sequenceName + ' · ' + env.width + '×' + env.height;
       $('env-status').className = 'env-status ok';
     }).catch(function (e) {
       $('env-status').textContent = e.message;
       $('env-status').className = 'env-status err';
     });
+    scanTranscripts();
   }
 
-  // ---------------------------------------------------------- file pick ----
-  function pickFile(title, exts) {
-    if (window.cep && window.cep.fs && window.cep.fs.showOpenDialogEx) {
-      var r = window.cep.fs.showOpenDialogEx(false, false, title, null, exts);
-      if (r && r.data && r.data.length) return r.data[0];
-      return null;
+  // ================================================== TRANSCRIPT FINDER ====
+  function listCaptionFilesIn(dir, sub) {
+    var out = [];
+    try {
+      var fs = nodeReq('fs');
+      var pathMod = nodeReq('path');
+      var names = fs.readdirSync(dir);
+      for (var i = 0; i < names.length; i++) {
+        if (/\.(srt|vtt)$/i.test(names[i])) {
+          var full = pathMod.join(dir, names[i]);
+          var mtime = 0;
+          try { mtime = fs.statSync(full).mtimeMs; } catch (eS) {}
+          out.push({ label: names[i], sub: sub, path: full, mtime: mtime });
+        }
+      }
+    } catch (e) {}
+    return out;
+  }
+
+  function scanTranscripts() {
+    $('tr-badge').textContent = 'searching…';
+    $('tr-badge').className = 'badge';
+    var found = [];
+    var seen = {};
+    function add(src) {
+      var key = (src.path || '').toLowerCase();
+      if (key && seen[key]) return;
+      seen[key] = true;
+      found.push(src);
     }
-    var p = prompt(title + ' — enter full file path:');
-    return p || null;
+
+    var pathMod = null;
+    try { pathMod = nodeReq('path'); } catch (e) {}
+
+    CPBridge.callHost('CP_findProjectSrts').then(function (r) {
+      (r.items || []).forEach(function (it) {
+        add({ label: it.name, sub: 'already in your project', path: it.path, mtime: 1e15 });
+      });
+      return CPBridge.callHost('CP_getSelectedClip').catch(function () { return null; });
+    }).then(function (sel) {
+      if (sel && sel.clip && sel.clip.mediaPath && pathMod) {
+        var dir = pathMod.dirname(sel.clip.mediaPath);
+        var base = pathMod.basename(sel.clip.mediaPath).replace(/\.[^.]+$/, '').toLowerCase();
+        listCaptionFilesIn(dir, 'next to your footage').forEach(function (s) {
+          if (s.label.toLowerCase().indexOf(base) === 0) s.mtime += 1e14; // same name first
+          add(s);
+        });
+      }
+      return CPBridge.callHost('CP_getProjectInfo').catch(function () { return null; });
+    }).then(function (proj) {
+      if (proj && proj.path && pathMod) {
+        listCaptionFilesIn(pathMod.dirname(proj.path), 'next to your project').forEach(add);
+      }
+      found.sort(function (a, b) { return b.mtime - a.mtime; });
+      state.sources = found;
+      state.sourceIdx = found.length ? 0 : -1;
+      renderSources();
+    }).catch(function () {
+      state.sources = [];
+      state.sourceIdx = -1;
+      renderSources();
+    });
   }
 
-  function writeTextFile(path, content) {
-    var req = (typeof cep_node !== 'undefined' && cep_node.require) || window.require;
-    var fs = req('fs');
-    fs.writeFileSync(path, content, 'utf8');
+  function renderSources() {
+    var box = $('tr-sources');
+    box.innerHTML = '';
+    if (!state.sources.length) {
+      $('tr-badge').textContent = 'none found yet';
+      $('tr-badge').className = 'badge warn';
+      var empty = document.createElement('div');
+      empty.className = 'source-empty';
+      empty.textContent = 'No transcript found. Premiere can make one for you — tap "How do I make one?" (takes ~1 minute), or choose a file.';
+      box.appendChild(empty);
+      return;
+    }
+    $('tr-badge').textContent = state.sources.length + ' found';
+    $('tr-badge').className = 'badge ok';
+    state.sources.forEach(function (src, i) {
+      var el = document.createElement('div');
+      el.className = 'source-item' + (i === state.sourceIdx ? ' on' : '');
+      el.innerHTML =
+        '<span class="src-ico">📄</span>' +
+        '<span><div class="src-name"></div><div class="src-sub"></div></span>' +
+        '<span class="src-check">✓</span>';
+      el.querySelector('.src-name').textContent = src.label;
+      el.querySelector('.src-sub').textContent = src.sub;
+      el.addEventListener('click', function () {
+        state.sourceIdx = i;
+        renderSources();
+      });
+      box.appendChild(el);
+    });
   }
 
-  function tempPath(name) {
-    var req = (typeof cep_node !== 'undefined' && cep_node.require) || window.require;
-    var os = req('os');
-    var pathMod = req('path');
-    return pathMod.join(os.tmpdir(), name);
+  $('btn-tr-rescan').addEventListener('click', scanTranscripts);
+  $('btn-tr-help').addEventListener('click', function () {
+    $('tr-help').classList.toggle('hidden');
+  });
+  $('btn-tr-manual').addEventListener('click', function () {
+    var p = pickFile('Choose a caption file (.srt / .vtt)', ['srt', 'vtt']);
+    if (!p) return;
+    state.sources.unshift({ label: p.split(/[\\/]/).pop(), sub: 'chosen by you', path: p, mtime: 1e16 });
+    state.sourceIdx = 0;
+    renderSources();
+  });
+
+  // ======================================================= STYLE PICKER ====
+  function buildStyleRail() {
+    var rail = $('style-rail');
+    CPCaptions.STYLE_PRESETS.forEach(function (p) {
+      var card = document.createElement('div');
+      card.className = 'style-card' + (p.id === state.presetId ? ' on' : '');
+      card.dataset.id = p.id;
+
+      var demo = document.createElement('div');
+      demo.className = 'demo';
+      var word = document.createElement('span');
+      var animId = CPCaptions.PRESET_ANIM_MAP[p.anim] || 'pop';
+      var animDef = CPCaptions.getAnimation(animId);
+      if (animDef.demo) word.className = animDef.demo;
+      word.textContent = p.uppercase ? 'POP' : 'Pop';
+      word.style.color = p.fill;
+      word.style.fontFamily = '"' + p.font + '", ' + (p.fallbackFonts || []).join(', ') + ', sans-serif';
+      if (p.stroke && p.strokeWidth) {
+        word.style.textShadow =
+          '-2px -2px 0 ' + p.stroke + ', 2px -2px 0 ' + p.stroke +
+          ', -2px 2px 0 ' + p.stroke + ', 2px 2px 0 ' + p.stroke;
+      }
+      if (p.boxColor) { word.style.background = p.boxColor; word.style.padding = '2px 8px'; word.style.borderRadius = '6px'; }
+      if (p.glow) word.style.textShadow = '0 0 10px ' + p.glow;
+      if (animId === 'karaoke' && p.highlight) word.style.setProperty('--sweep', p.highlight);
+      if (p.glow) word.style.setProperty('--glow', p.glow);
+      demo.appendChild(word);
+      card.appendChild(demo);
+
+      var name = document.createElement('div');
+      name.className = 's-name';
+      name.textContent = p.name;
+      card.appendChild(name);
+      var sub = document.createElement('div');
+      sub.className = 's-sub';
+      sub.textContent = p.font;
+      card.appendChild(sub);
+
+      card.addEventListener('click', function () {
+        state.presetId = p.id;
+        var on = rail.querySelector('.style-card.on');
+        if (on) on.classList.remove('on');
+        card.classList.add('on');
+        // preset carries its own defaults; user can still override below
+        $('cap-words').value = p.wordsPerCue;
+        $('cap-upper').checked = !!p.uppercase;
+        selectAnim(animId);
+      });
+      rail.appendChild(card);
+    });
   }
 
-  // ============================================================ SILENCE ====
+  function buildAnimRail() {
+    var rail = $('anim-rail');
+    CPCaptions.ANIMATIONS.forEach(function (a) {
+      var chip = document.createElement('button');
+      chip.className = 'anim-chip' + (a.id === state.animId ? ' on' : '');
+      chip.dataset.id = a.id;
+      chip.textContent = a.name;
+      chip.title = a.description;
+      chip.addEventListener('click', function () { selectAnim(a.id); });
+      rail.appendChild(chip);
+    });
+  }
+
+  function selectAnim(id) {
+    state.animId = id;
+    var chips = document.querySelectorAll('.anim-chip');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].classList.toggle('on', chips[i].dataset.id === id);
+    }
+  }
+
+  function updateEngineBadge() {
+    var b = $('engine-badge');
+    b.textContent = $('cap-engine').value === 'native' ? 'native captions' : 'built-in engine';
+    b.className = 'badge ok';
+  }
+  $('cap-engine').addEventListener('change', updateEngineBadge);
+
+  function currentPreset() {
+    return CPCaptions.getPreset(state.presetId) || CPCaptions.STYLE_PRESETS[0];
+  }
+
+  // ===================================================== ADD CAPTIONS ====
+  function readSelectedTranscript() {
+    if (state.sourceIdx < 0) throw new Error('No transcript yet — hit Rescan or "How do I make one?"');
+    var src = state.sources[state.sourceIdx];
+    var text = nodeReq('fs').readFileSync(src.path, 'utf8');
+    var cues = CPCaptions.parseSRT(text);
+    if (!cues.length) throw new Error('No captions found inside ' + src.label);
+    return cues;
+  }
+
+  function capProgress(msg) {
+    var el = $('cap-progress');
+    if (msg == null) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    el.textContent = msg;
+  }
+
+  $('btn-magic').addEventListener('click', function () {
+    var cues;
+    try { cues = readSelectedTranscript(); }
+    catch (e) { return toast(e.message, true); }
+
+    var preset = currentPreset();
+    var words = parseInt($('cap-words').value, 10) || 0;
+    var upper = $('cap-upper').checked;
+
+    if ($('cap-engine').value === 'native') {
+      var ncues = words > 0
+        ? CPCaptions.explodeWords(cues, { wordsPerCue: words, uppercase: upper })
+        : (upper ? cues.map(function (c) { return { start: c.start, end: c.end, text: c.text.toUpperCase() }; }) : cues);
+      try {
+        var pathMod = nodeReq('path');
+        var out = pathMod.join(nodeReq('os').tmpdir(), 'cutpilot-' + Date.now() + '.srt');
+        nodeReq('fs').writeFileSync(out, CPCaptions.toSRT(ncues), 'utf8');
+        capProgress('Creating caption track');
+        CPBridge.callHost('CP_importSrtCaptions', { srtPath: out }).then(function () {
+          capProgress(null);
+          toast('✓ Caption track added (' + ncues.length + ' cues). Style it once in Essential Graphics: ' +
+                preset.font + ' ' + preset.fontSize + 'px, ' + preset.fill +
+                (preset.stroke ? ' + stroke ' + preset.stroke : ''));
+        }).catch(function (e) { capProgress(null); toast(e.message, true); });
+      } catch (e) { capProgress(null); toast(e.message, true); }
+      return;
+    }
+
+    // ---- built-in animated engine ----
+    if (!state.env) return toast('Open a sequence in Premiere first.', true);
+    var anim = state.animId;
+    var frames;
+    if (anim === 'karaoke') {
+      frames = CPCaptions.planKaraoke(cues, Math.max(2, words || 3));
+    } else if (anim === 'typewriter') {
+      frames = CPCaptions.planTypewriter(cues);
+    } else if (words > 0) {
+      frames = CPCaptions.explodeWords(cues, { wordsPerCue: words });
+    } else {
+      frames = cues.map(function (c) { return { start: c.start, end: c.end, text: c.text }; });
+    }
+    if (frames.length > 1500 &&
+        !confirm(frames.length + ' caption frames will be rendered — that can take a few minutes. Continue?')) return;
+
+    var sizeOverride = parseInt($('cap-size').value, 10) || 0;
+    var outDir;
+    try {
+      var pm = nodeReq('path');
+      outDir = pm.join(nodeReq('os').tmpdir(), 'cutpilot-frames-' + Date.now());
+    } catch (e) { return toast('Node unavailable: ' + e.message, true); }
+
+    $('btn-magic').disabled = true;
+    capProgress('Rendering 0 / ' + frames.length);
+    CPRender.renderFrames(frames, {
+      width: state.env.width || 1920,
+      height: state.env.height || 1080,
+      preset: preset,
+      overrides: {
+        uppercase: upper,
+        fontSize: sizeOverride || null,
+        yPct: (parseInt($('cap-ypos').value, 10) || 76) / 100
+      },
+      outDir: outDir,
+      onProgress: function (done, total) { capProgress('Rendering ' + done + ' / ' + total); }
+    }).then(function (items) {
+      capProgress('Placing ' + items.length + ' captions in your timeline');
+      return CPBridge.callHost('CP_placeCaptionImages', { items: items, anim: anim });
+    }).then(function (r) {
+      $('btn-magic').disabled = false;
+      capProgress(null);
+      toast('🎉 ' + r.placed + ' captions added on V' + r.track +
+            (r.animated ? ' with ' + CPCaptions.getAnimation(anim).name + ' animation' : ''));
+    }).catch(function (e) {
+      $('btn-magic').disabled = false;
+      capProgress(null);
+      toast('Captions failed: ' + e.message, true);
+    });
+  });
+
+  // ========================================================== SMART CUT ====
+  function selectedSilences() {
+    return state.silencesSeq.filter(function (s) { return s.keep; })
+      .map(function (s) { return { start: s.start, end: s.end }; });
+  }
+
   $('btn-analyze').addEventListener('click', function () {
     var opts = {
       thresholdDb: parseFloat($('opt-threshold').value),
@@ -109,13 +409,15 @@
       padding: parseFloat($('opt-padding').value),
       minKeep: parseFloat($('opt-minkeep').value)
     };
-    $('analyze-progress').classList.remove('hidden');
-    $('analyze-progress').textContent = 'Reading selected clip…';
+    var prog = $('analyze-progress');
+    prog.classList.remove('hidden');
+    prog.textContent = 'Reading selected clip';
 
     CPBridge.callHost('CP_getSelectedClip').then(function (res) {
       state.clip = res.clip;
-      $('analyze-progress').textContent = 'Analyzing audio… (this can take a moment)';
-
+      $('clip-badge').textContent = res.clip.name;
+      $('clip-badge').className = 'badge ok';
+      prog.textContent = 'Listening for silences';
       if (settings.ffmpegPath) {
         return CPAudio.ffmpegDetect(state.clip.mediaPath, settings.ffmpegPath,
                                      opts.thresholdDb, Math.min(opts.minSilence, 0.3), CPSilence);
@@ -123,28 +425,25 @@
       return CPAudio.webAudioDetect(state.clip.mediaPath, { thresholdDb: opts.thresholdDb }, CPSilence);
     }).then(function (det) {
       var clip = state.clip;
-      state.mediaDuration = det.duration || clip.outPoint;
-
+      var mediaDuration = det.duration || clip.outPoint;
       var refined = CPSilence.refineSilences(det.silences, {
         minSilence: opts.minSilence,
         padding: opts.padding,
-        totalDuration: state.mediaDuration
+        totalDuration: mediaDuration
       });
 
-      // Restrict to the portion of media actually used in the timeline.
-      state.silencesMedia = [];
+      var silencesMedia = [];
       for (var i = 0; i < refined.length; i++) {
         var s = Math.max(refined[i].start, clip.inPoint);
         var e = Math.min(refined[i].end, clip.outPoint);
-        if (e > s) state.silencesMedia.push({ start: s, end: e });
+        if (e > s) silencesMedia.push({ start: s, end: e });
       }
-
-      state.silencesSeq = state.silencesMedia.map(function (r) {
+      state.silencesSeq = silencesMedia.map(function (r) {
         return { start: clip.seqStart + (r.start - clip.inPoint),
                  end: clip.seqStart + (r.end - clip.inPoint), keep: true };
       });
 
-      var clipRangeSil = state.silencesMedia.map(function (r) {
+      var clipRangeSil = silencesMedia.map(function (r) {
         return { start: r.start - clip.inPoint, end: r.end - clip.inPoint };
       });
       var clipDur = clip.outPoint - clip.inPoint;
@@ -156,25 +455,19 @@
       });
 
       renderResults(clipDur);
-      $('analyze-progress').classList.add('hidden');
-      log('Analysis done: ' + state.silencesSeq.length + ' silences found.', 'ok');
+      prog.classList.add('hidden');
+      toast('Found ' + state.silencesSeq.length + ' silences.');
     }).catch(function (e) {
-      $('analyze-progress').classList.add('hidden');
-      log('Analyze failed: ' + e.message, 'err');
+      prog.classList.add('hidden');
+      toast('Analyze failed: ' + e.message, true);
     });
   });
-
-  function selectedSilences() {
-    return state.silencesSeq.filter(function (s) { return s.keep; })
-      .map(function (s) { return { start: s.start, end: s.end }; });
-  }
 
   function renderResults(clipDur) {
     var cut = CPSilence.totalDuration(selectedSilences());
     $('stats').innerHTML =
-      'Clip length <b>' + fmt(clipDur) + '</b> · silences <b>' +
-      state.silencesSeq.length + '</b> · time saved <b>' + fmt(cut) + '</b> (' +
-      (clipDur ? Math.round(100 * cut / clipDur) : 0) + '%)';
+      'Removing <b>' + fmt(cut) + '</b> of dead air — that\'s <b>' +
+      (clipDur ? Math.round(100 * cut / clipDur) : 0) + '%</b> of your clip';
 
     var list = $('silence-list');
     list.innerHTML = '';
@@ -184,10 +477,7 @@
       var cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.checked = s.keep;
-      cb.addEventListener('change', function () {
-        s.keep = cb.checked;
-        renderResults(clipDur);
-      });
+      cb.addEventListener('change', function () { s.keep = cb.checked; renderResults(clipDur); });
       item.appendChild(cb);
       var span = document.createElement('span');
       span.textContent = '#' + (i + 1) + '  ' + fmt(s.start) + ' → ' + fmt(s.end);
@@ -203,53 +493,59 @@
 
   $('btn-markers').addEventListener('click', function () {
     CPBridge.callHost('CP_addMarkers', { ranges: selectedSilences(), label: 'Silence' })
-      .then(function (r) { log('Added ' + r.created + ' preview markers.', 'ok'); })
-      .catch(function (e) { log(e.message, 'err'); });
+      .then(function (r) { toast('Added ' + r.created + ' preview markers.'); })
+      .catch(function (e) { toast(e.message, true); });
   });
 
   $('btn-clear-markers').addEventListener('click', function () {
     CPBridge.callHost('CP_clearCutPilotMarkers', { label: 'Silence' })
-      .then(function (r) { log('Removed ' + r.removed + ' markers.', 'ok'); })
-      .catch(function (e) { log(e.message, 'err'); });
+      .then(function (r) { toast('Removed ' + r.removed + ' markers.'); })
+      .catch(function (e) { toast(e.message, true); });
+  });
+
+  $('btn-rebuild').addEventListener('click', function () {
+    if (!state.clip) return toast('Run the analysis first.', true);
+    if (!state.keepsMedia.length) return toast('No keep segments computed.', true);
+    CPBridge.callHost('CP_rebuildTrimmed', {
+      nodeId: state.clip.nodeId,
+      keeps: state.keepsMedia,
+      name: 'CutPilot · ' + state.clip.name
+    }).then(function (r) {
+      toast('🎉 Built "' + r.sequence + '" — ' + r.segmentsPlaced + ' segments, ' + fmt(r.finalDuration) + ' long.');
+    }).catch(function (e) { toast('Rebuild failed: ' + e.message, true); });
   });
 
   $('btn-cut').addEventListener('click', function () {
     var ranges = selectedSilences();
-    if (!ranges.length) return log('Nothing selected to cut.', 'err');
-    if (!confirm('Cut ' + ranges.length + ' silent ranges in place?\n' +
-                 'This edits the current sequence (QE razor + delete).')) return;
+    if (!ranges.length) return toast('Nothing selected to cut.', true);
+    if (!confirm('Cut ' + ranges.length + ' silent ranges directly in this sequence?')) return;
     CPBridge.callHost('CP_razorRipple', {
       ranges: ranges,
       closeGaps: $('opt-closegaps').checked,
       backup: $('opt-backup').checked,
       dropFrame: !!settings.dropFrame
     }).then(function (r) {
-      log('Cut done: removed ' + r.removedClips + ' clip pieces, closed ' +
-          r.closedGaps + ' gaps.', 'ok');
-    }).catch(function (e) { log('Cut failed: ' + e.message, 'err'); });
-  });
-
-  $('btn-rebuild').addEventListener('click', function () {
-    if (!state.clip) return log('Run an analysis first.', 'err');
-    if (!state.keepsMedia.length) return log('No keep segments computed.', 'err');
-    CPBridge.callHost('CP_rebuildTrimmed', {
-      nodeId: state.clip.nodeId,
-      keeps: state.keepsMedia,
-      name: 'CutPilot · ' + state.clip.name
-    }).then(function (r) {
-      log('Built "' + r.sequence + '": ' + r.segmentsPlaced + ' segments, ' +
-          fmt(r.finalDuration) + ' total.', 'ok');
-    }).catch(function (e) { log('Rebuild failed: ' + e.message, 'err'); });
+      toast('Cut done — removed ' + r.removedClips + ' pieces, closed ' + r.closedGaps + ' gaps.');
+    }).catch(function (e) { toast('Cut failed: ' + e.message, true); });
   });
 
   // =========================================================== MULTICAM ====
+  var mcButtons = document.querySelectorAll('#mc-mode button');
+  for (var m = 0; m < mcButtons.length; m++) {
+    mcButtons[m].addEventListener('click', function () {
+      document.querySelector('#mc-mode button.on').classList.remove('on');
+      this.classList.add('on');
+      state.mcMode = this.dataset.mode;
+    });
+  }
+
   $('btn-mc-plan').addEventListener('click', function () {
     if (!state.keepsSeq.length) {
-      return log('Run a silence analysis first — the angle plan follows those cuts.', 'err');
+      return toast('Run Smart Cut first — angles switch at those cut points.', true);
     }
     var numAngles = parseInt($('mc-angles').value, 10);
     state.plan = CPMulticam.buildAnglePlan(state.keepsSeq, numAngles, {
-      mode: $('mc-mode').value,
+      mode: state.mcMode,
       holdCuts: parseInt($('mc-hold').value, 10),
       minSegmentForSwitch: parseFloat($('mc-minseg').value),
       seed: Date.now() & 0xffff
@@ -270,10 +566,9 @@
       item.appendChild(span);
       view.appendChild(item);
     });
-    view.classList.remove('hidden');
+    $('mc-plan-card').classList.remove('hidden');
     $('btn-mc-apply').classList.remove('hidden');
-    log('Plan: ' + stats.segments + ' segments, ' + stats.switches +
-        ' switches (' + stats.perAngle.join('/') + ' per angle).', 'ok');
+    toast(stats.segments + ' segments, ' + stats.switches + ' camera switches planned.');
   });
 
   $('btn-mc-apply').addEventListener('click', function () {
@@ -282,130 +577,8 @@
       plan: state.plan,
       numAngles: parseInt($('mc-angles').value, 10)
     }).then(function (r) {
-      log('Multicam applied: toggled ' + r.toggled + ' clips across ' +
-          r.tracksUsed + ' tracks.', 'ok');
-    }).catch(function (e) { log('Multicam failed: ' + e.message, 'err'); });
-  });
-
-  // =========================================================== CAPTIONS ====
-  function buildPresetSelect() {
-    var sel = $('cap-preset');
-    CPCaptions.STYLE_PRESETS.forEach(function (p) {
-      var o = document.createElement('option');
-      o.value = p.id;
-      o.textContent = p.name;
-      sel.appendChild(o);
-    });
-    sel.addEventListener('change', renderPresetCard);
-    renderPresetCard();
-  }
-
-  function currentPreset() {
-    return CPCaptions.getPreset($('cap-preset').value) || CPCaptions.STYLE_PRESETS[0];
-  }
-
-  function renderPresetCard() {
-    var p = currentPreset();
-    var card = $('preset-card');
-    var sample = p.uppercase ? 'YOUR CAPTION' : 'Your caption';
-    card.innerHTML = '';
-    var prev = document.createElement('div');
-    prev.className = 'preview';
-    prev.textContent = sample;
-    prev.style.color = p.fill;
-    prev.style.fontFamily = (p.font || 'sans-serif') + ', ' + (p.fallbackFonts || []).join(', ');
-    if (p.stroke && p.strokeWidth) {
-      prev.style.textShadow =
-        '-2px -2px 0 ' + p.stroke + ', 2px -2px 0 ' + p.stroke +
-        ', -2px 2px 0 ' + p.stroke + ', 2px 2px 0 ' + p.stroke;
-    }
-    if (p.boxColor) {
-      prev.style.background = p.boxColor;
-      prev.style.borderRadius = (p.boxRadius || 8) + 'px';
-    }
-    if (p.glow) prev.style.textShadow = '0 0 12px ' + p.glow;
-    card.appendChild(prev);
-    var meta = document.createElement('div');
-    meta.className = 'meta';
-    meta.textContent = p.description + ' — Font: ' + p.font + ' · Size: ' + p.fontSize +
-      ' · Animation: ' + p.anim + ' (' + p.animNotes + ')';
-    card.appendChild(meta);
-
-    $('cap-words').value = p.wordsPerCue;
-    $('cap-upper').checked = !!p.uppercase;
-  }
-
-  $('btn-load-srt').addEventListener('click', function () {
-    var path = pickFile('Choose an SRT caption file', ['srt']);
-    if (!path) return;
-    try {
-      var req = (typeof cep_node !== 'undefined' && cep_node.require) || window.require;
-      var text = req('fs').readFileSync(path, 'utf8');
-      state.srtCues = CPCaptions.parseSRT(text);
-      state.srtPath = path;
-      $('srt-status').textContent = state.srtCues.length + ' cues loaded';
-      log('Loaded ' + state.srtCues.length + ' cues from ' + path, 'ok');
-    } catch (e) {
-      log('Could not read SRT: ' + e.message, 'err');
-    }
-  });
-
-  function styledCues() {
-    if (!state.srtCues) return null;
-    var words = parseInt($('cap-words').value, 10);
-    var upper = $('cap-upper').checked;
-    var cues = state.srtCues;
-    if (words > 0) {
-      cues = CPCaptions.explodeWords(cues, { wordsPerCue: words, uppercase: upper });
-    } else if (upper) {
-      cues = cues.map(function (c) {
-        return { start: c.start, end: c.end, text: c.text.toUpperCase() };
-      });
-    }
-    return cues;
-  }
-
-  $('btn-cap-native').addEventListener('click', function () {
-    var cues = styledCues();
-    if (!cues) return log('Load an SRT first.', 'err');
-    var preset = currentPreset();
-    try {
-      var out = tempPath('cutpilot-' + preset.id + '-' + Date.now() + '.srt');
-      writeTextFile(out, CPCaptions.toSRT(cues));
-      CPBridge.callHost('CP_importSrtCaptions', { srtPath: out }).then(function () {
-        log('Caption track created (' + cues.length + ' cues, ' + preset.name + ' timing). ' +
-            'Style the track once in Essential Graphics with: ' + preset.font + ' ' +
-            preset.fontSize + 'px, fill ' + preset.fill +
-            (preset.stroke ? ', stroke ' + preset.stroke : '') +
-            ' — then save it as a Track Style to reuse.', 'ok');
-      }).catch(function (e) { log(e.message, 'err'); });
-    } catch (e) {
-      log('Could not write styled SRT: ' + e.message, 'err');
-    }
-  });
-
-  $('btn-mogrt-pick').addEventListener('click', function () {
-    var path = pickFile('Choose a .mogrt text template', ['mogrt']);
-    if (!path) return;
-    state.mogrtPath = path;
-    $('mogrt-status').textContent = path.split(/[\\/]/).pop();
-  });
-
-  $('btn-cap-mogrt').addEventListener('click', function () {
-    var cues = styledCues();
-    if (!cues) return log('Load an SRT first.', 'err');
-    if (!state.mogrtPath) return log('Choose a .mogrt template first.', 'err');
-    if (cues.length > 400 &&
-        !confirm(cues.length + ' cues = ' + cues.length + ' graphics. Continue?')) return;
-    CPBridge.callHost('CP_insertMogrtCaptions', {
-      mogrtPath: state.mogrtPath,
-      cues: cues,
-      videoTrack: null,
-      audioTrack: 0
-    }).then(function (r) {
-      log('Inserted ' + r.inserted + ' graphics, set text on ' + r.textSet + '.' +
-          (r.failed ? ' Failed: ' + r.failed : ''), r.failed ? 'err' : 'ok');
-    }).catch(function (e) { log(e.message, 'err'); });
+      toast('🎬 Multicam applied — ' + r.toggled + ' clips toggled across ' + r.tracksUsed + ' tracks.');
+    }).catch(function (e) { toast('Multicam failed: ' + e.message, true); });
   });
 
   // =========================================================== SETTINGS ====
@@ -418,7 +591,7 @@
     settings.ffmpegPath = $('set-ffmpeg').value.trim();
     settings.dropFrame = $('set-dropframe').checked;
     saveSettings();
-    log('Settings saved.', 'ok');
+    toast('Settings saved.');
   });
 
   boot();

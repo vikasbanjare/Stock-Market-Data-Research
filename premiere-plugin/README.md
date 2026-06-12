@@ -8,12 +8,16 @@ most repetitive parts of talking-head and multicam editing:
 2. **Multicam auto-switching** — assigns a camera angle to every kept
    segment (rotate / ping-pong / random / hero-cam modes) and toggles the
    stacked camera tracks accordingly.
-3. **Trend-styled captions** — loads an SRT (use Premiere's built-in
-   Speech-to-Text to make one), explodes it into word-by-word "karaoke"
-   cues, and creates a native caption track or inserts animated MOGRT
-   graphics per cue. Six style presets reflect what's trending: Hormozi
-   Bold, Karaoke Highlight, Highlight Box, Clean Minimal, Neon Pop,
-   Typewriter.
+3. **Trend-styled animated captions** — finds your transcript
+   automatically (in the project, next to your footage, or next to the
+   project file), then renders captions with CutPilot's **built-in
+   animation engine**: every caption frame is drawn to a transparent PNG
+   (any font, color, stroke, glow, highlight box) and placed on a fresh
+   top track with real Premiere keyframes for the entry animation. No
+   MOGRTs, no manual files. Six style presets (Hormozi Bold, Karaoke
+   Highlight, Highlight Box, Clean Minimal, Neon Pop, Typewriter) ×
+   eight animations (Pop, Bounce, Slide up, Fade, Glitch, Karaoke,
+   Typewriter, None) — mix and match freely, Captions.ai-style.
 
 See [`docs/RESEARCH.md`](docs/RESEARCH.md) for the market/trend research and
 the feature roadmap behind this design.
@@ -93,17 +97,20 @@ Restart Premiere and open **Window → Extensions → CutPilot**.
 
 ### Captions
 
-1. In Premiere: **Window → Text → Transcribe**, then export captions as SRT
-   (or bring any SRT).
-2. **Load SRT…**, pick a style preset, and set words-per-cue (1 = the
-   word-by-word pop style; 0 = full sentences).
-3. **Create caption track (native)** — writes the re-timed SRT and attaches
-   it as a caption track. Style the track once in Essential Graphics using
-   the preset's font/size/colors (shown in the panel log), then save it as
-   a Track Style to reuse forever.
-4. For animated captions, point CutPilot at any one-text-field `.mogrt`
-   template and it inserts one graphic per cue with the text filled in —
-   the template provides the animation (pop, glitch, box-snap…).
+1. CutPilot looks for a transcript automatically: SRT/VTT files already in
+   your project, sitting next to your footage, or next to the project
+   file. No transcript yet? Premiere makes one — **Window → Text →
+   Transcribe sequence**, export to SRT next to your video, hit **Rescan**.
+2. Pick a **style** card (live animated previews) and an **animation**
+   chip. Advanced: words-at-a-time (1 = word-by-word pop), UPPERCASE,
+   text size, vertical position, or switch to the native caption engine.
+3. Press **✨ Add captions**. The built-in engine renders every caption
+   frame and places them on a new top video track with keyframed entry
+   animations (pop/bounce/slide/fade/glitch) or frame-sequence animations
+   (karaoke highlight, typewriter).
+
+The native caption engine remains available under Advanced when you want
+text that stays editable inside Premiere's caption track.
 
 ## Project layout
 
@@ -116,11 +123,14 @@ premiere-plugin/
 │   ├── main.js            Panel controller / UI glue
 │   ├── audio.js           Web Audio + ffmpeg silence detectors
 │   ├── silence.js         Range math (pure, unit-tested)
-│   ├── captions.js        SRT tooling + style presets (pure, unit-tested)
+│   ├── captions.js        SRT tooling, style presets, animation planners
+│   ├── render.js          Built-in caption render engine (canvas → PNG)
 │   ├── multicam.js        Angle planning (pure, unit-tested)
 │   └── lib/cep-bridge.js  Minimal CSInterface replacement
 ├── jsx/host.jsx           ExtendScript: razor, ripple, rebuild, multicam,
-│                          captions, MOGRT insertion (QE used defensively)
+│                          caption placement + keyframed animations
+├── install-windows.bat    One-click installer (Windows)
+├── install-mac.command    One-click installer (macOS)
 └── test/run-tests.js      Node unit tests (node test/run-tests.js)
 ```
 
@@ -154,10 +164,11 @@ Exchange marketplace.
 - "Cut in place" relies on the undocumented QE DOM. It is the same
   mechanism community silence-cutters use, but Adobe doesn't guarantee it;
   the safe rebuild mode is the supported path.
-- Native caption *styling* (font/color) isn't scriptable, so presets apply
-  timing + casing and the panel tells you the exact style values to set
-  once as a reusable Track Style. Full styling automation comes with the
-  MOGRT path.
+- Rendered captions are images: fully styled and animated automatically,
+  but editing a word means re-running (or use the native caption engine,
+  whose text stays editable in Premiere).
+- Word-by-word on long videos renders many PNGs (≈1 per word). The panel
+  warns above 1,500 frames; karaoke phrase mode reduces the count.
 - Speed-ramped or reversed clips aren't compensated in the time mapping yet.
 
 ## Why CEP and not UXP?
