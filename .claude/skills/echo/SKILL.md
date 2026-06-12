@@ -35,23 +35,35 @@ Ask the user to upload (screenshots, Excel, or pasted text):
 If any of these are missing, insert a clearly marked
 `[FILL IN: <what>]` placeholder and continue — never invent this data.
 
-## 2. Data fetching
+## 2. Data fetching (token-frugal order — follow strictly)
 
-Run `python3 scripts/fetch_pages.py` first. It downloads every source URL
-listed in `reference/data_sources.md` into `data/raw/<YYYY-MM-DD>/` with
-browser headers and retries. Then **read the saved files and extract the
-numbers yourself** — do not trust any pre-parsed output blindly.
+Scripts fetch and parse; you read only their compact output. NEVER read
+raw downloaded HTML into the conversation, NEVER launch research
+subagents, and cap web searches at ~10 for the whole run.
 
-If a download is blocked (HTTP 403 / bot wall / domain not in the
-environment's network allowlist):
-1. Tell the user which source failed.
-2. Ask them to either upload a screenshot/export of that page, or fix the
-   network policy, then re-run.
-3. As a last resort for index levels and commodity/forex closes only, use
-   web search against reputable sources (Reuters, Business Standard,
-   Economic Times, Mint) and cross-check two sources. Never reconstruct
-   screener tables (delivery %, gainers/losers lists) from search — those
-   must come from Trendlyne or the user.
+1. `python3 scripts/fetch_market_data.py` — Yahoo Finance JSON: index,
+   commodity and forex closes + weekly % (forex already in the published
+   rupee-perspective sign convention). Read the printed table /
+   `market_data.json` only.
+2. `python3 scripts/fetch_nse_data.py` — official NSE data: market
+   breadth, Nifty 100 weekly gainers/losers with delivery ratios,
+   Nifty 500 delivery movers, FII/DII daily cash. Read the printed
+   summary / `nse_data.json` only.
+3. Only for what the scripts could not provide (FII/DII F&O + YTD,
+   52-week high/low lists, 6-month delivery averages, events calendar):
+   `python3 scripts/fetch_pages.py` for the Trendlyne pages — but do NOT
+   read the saved HTML directly; extract values with a short Python
+   snippet (grep/parse → print just the numbers). If a page is blocked,
+   ask the user for a screenshot/export instead.
+4. Web search ONLY for the narrative sections (sector stories, global
+   signals, reasons behind moves) and to spot-check headline numbers.
+   Budget ~8–10 searches total; one search per sector topic, not per
+   claim.
+
+If a script fails (bot wall / domain not in the environment's network
+allowlist), tell the user exactly which source failed and ask for an
+upload or a network-policy fix. Never reconstruct screener tables from
+search results — those must come from NSE/Trendlyne data or the user.
 
 ## 3. Section-by-section build order
 

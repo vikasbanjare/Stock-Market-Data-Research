@@ -4,6 +4,21 @@ Every table in the newsletter, where its numbers come from, and how to
 extract them. URLs here are the canonical sources from the editorial
 command document.
 
+## Preferred machine-readable sources (use FIRST — near-zero token cost)
+
+| Data | Source | Script |
+|---|---|---|
+| Nifty 50 / Sensex / Bank Nifty closes + weekly % | Yahoo Finance chart API (`^NSEI`, `^BSESN`, `^NSEBANK`) | `scripts/fetch_market_data.py` |
+| Brent, Gold, Silver, NatGas, Copper closes + weekly % | Yahoo Finance (`BZ=F`, `GC=F`, `SI=F`, `NG=F`, `HG=F`) | `scripts/fetch_market_data.py` |
+| USD/EUR/GBP vs INR closes + weekly % (rupee-perspective sign) | Yahoo Finance (`USDINR=X`, `EURINR=X`, `GBPINR=X`) | `scripts/fetch_market_data.py` |
+| Market breadth, Nifty 100 weekly gainers/losers, delivery volumes | NSE full bhavcopy CSVs (`sec_bhavdata_full_DDMMYYYY.csv`, has CLOSE_PRICE + DELIV_PER) + index lists (`ind_nifty100list.csv` etc.) | `scripts/fetch_nse_data.py` |
+| FII/DII daily cash (provisional) | NSE `api/fiidiiTradeReact` | `scripts/fetch_nse_data.py` |
+
+The Trendlyne/Investing.com URLs below remain the editorial reference
+and the cross-check/fallback (and the only source for FII/DII F&O + YTD
+breakdowns, 52-week screener lists, 6-month delivery averages, and the
+events calendar).
+
 ## Benchmark indices
 | Item | Source |
 |---|---|
@@ -90,7 +105,19 @@ move).**
 
 ## Network allowlist needed for direct fetching
 The environment's network policy must allow at least:
-`trendlyne.com`, `www.investing.com`, `trade.mstock.com`.
-Note: these sites also run bot protection; if direct fetching still
-returns 403 with the policy open, fall back to user uploads per the
+
+```
+*.nseindia.com
+query1.finance.yahoo.com
+query2.finance.yahoo.com
+trendlyne.com
+*.trendlyne.com
+www.investing.com
+*.investing.com
+trade.mstock.com
+```
+
+The first three power the preferred low-token scripts. The rest are
+cross-check/fallback sources; they also run bot protection, so if they
+still return 403 with the policy open, fall back to user uploads per the
 runbook.

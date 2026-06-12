@@ -35,11 +35,20 @@ Markdown + Word draft for human review.
 ## Environment requirements
 
 - Python deps: `pip install -r requirements.txt`
-- **Network policy:** for direct fetching, this environment's network
-  allowlist must include `trendlyne.com`, `www.investing.com`, and
-  `trade.mstock.com`. Without it (or if those sites' bot protection
-  blocks us), the agent will ask for screenshots/exports of the blocked
-  pages instead — the run still works, just with more manual input.
+- **Network policy:** the environment's allowlist should include
+  `*.nseindia.com`, `query1.finance.yahoo.com`, `query2.finance.yahoo.com`
+  (these power the low-token data scripts), plus `trendlyne.com`,
+  `*.trendlyne.com`, `www.investing.com`, `*.investing.com`,
+  `trade.mstock.com` as cross-check/fallback. If a source is blocked,
+  the agent asks for screenshots/exports instead — the run still works,
+  just with more manual input.
+
+## Token discipline (why runs are cheap)
+
+Scripts fetch and parse all numeric data and emit compact JSON; the
+model reads only those summaries, never raw pages. Web searches are
+reserved for the narrative sections and capped (~10 per run). Research
+subagents are never used.
 
 ## Hard rules baked into the runbook
 
