@@ -841,6 +841,32 @@
     });
     $('btn-alt-apply').addEventListener('click', applyMogrtTemplate);
     $('btn-native-apply').addEventListener('click', applyNative);
+    $('btn-tpl-inspect').addEventListener('click', inspectMogrt);
+  }
+
+  /* Resolve the currently-selected .mogrt path (installed dropdown or file). */
+  function selectedMogrtPath() {
+    if (state.tplSource === 'installed') {
+      var idx = parseInt($('tpl-select').value, 10);
+      return (!isNaN(idx) && state.installedMogrts[idx]) ? state.installedMogrts[idx].path : null;
+    }
+    return state.mogrtFile || null;
+  }
+
+  /* Drop one instance of the template and list its editable fields, so we
+     can see exactly which field holds the text. */
+  function inspectMogrt() {
+    var path = selectedMogrtPath();
+    var out = $('tpl-inspect-out');
+    if (!path) { out.classList.remove('hidden'); out.className = 'diag-out err'; out.textContent = 'Pick a template first.'; return; }
+    out.classList.remove('hidden'); out.className = 'diag-out'; out.textContent = 'Inspecting ' + path.split(/[\\/]/).pop() + '…';
+    CPBridge.callHost('CP_inspectMogrt', { path: path }).then(function (r) {
+      if (!r.props || !r.props.length) { out.textContent = 'This template exposes no editable fields (count 0).'; return; }
+      var lines = r.props.map(function (p) {
+        return '#' + p.i + '  "' + p.name + '"  [' + p.type + ']' + (p.type === 'string' ? '  = ' + p.sample : '');
+      });
+      out.textContent = path.split(/[\\/]/).pop() + ' — ' + r.count + ' fields:\n' + lines.join('\n');
+    }).catch(function (e) { out.className = 'diag-out err'; out.textContent = 'Inspect failed: ' + e.message; });
   }
 
   function scanInstalledMogrts() {
@@ -1078,6 +1104,29 @@
       state.mcMode = this.dataset.mode;
     });
   }
+  function updateMcFfmpegBanner() {
+    var el = $('mc-ffmpeg');
+    if (!el) return;
+    var src = $('mc-source').value;
+    var needsAudio = (src === 'follow' || src === 'speech');
+    if (!needsAudio) { el.classList.add('hidden'); return; }
+    var ff = resolveFfmpeg();
+    el.classList.remove('hidden');
+    if (ff) {
+      el.className = 'ff-banner ok';
+      el.innerHTML = '✅ Audio engine ready (ffmpeg found). This mode can read your mics.';
+    } else {
+      el.className = 'ff-banner';
+      el.innerHTML = '⚠️ <b>This mode needs ffmpeg</b> because your mics are inside video files ' +
+        '(.MOV/.MP4), which Premiere\'s panel can\'t read on its own.<br>' +
+        'Install it once — open Terminal and run: <code>brew install ffmpeg</code><br>' +
+        'Then tap re-check. (Or set its path in Settings.)' +
+        '<br><button class="chip-btn" id="mc-ff-recheck">↻ Re-check ffmpeg</button>';
+      var btn = document.getElementById('mc-ff-recheck');
+      if (btn) btn.addEventListener('click', function () { _ffmpegProbed = false; updateMcFfmpegBanner(); refreshFfmpegStatus(); });
+    }
+  }
+
   function syncMcSource() {
     var src = $('mc-source').value;
     $('mc-speaker-opts').classList.toggle('hidden', src !== 'follow');
@@ -1087,6 +1136,7 @@
     $('mc-pattern-opts').classList.toggle('hidden', src === 'follow');
     if (src === 'speech') populateMainTracks();
     if (src === 'follow') renderMcMap();
+    updateMcFfmpegBanner();
   }
   $('mc-source').addEventListener('change', syncMcSource);
   $('mc-angles').addEventListener('change', function () {

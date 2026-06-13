@@ -808,6 +808,50 @@ function CP_getAudioTracks() {
   } catch (e) { return CP_fail(e.message); }
 }
 
+/*
+ * Inspect a .mogrt: drop one instance, list every editable property
+ * (name + current value type), then remove the test instance. Lets us see
+ * exactly what text field a template exposes.
+ * argsJson: { path }
+ */
+function CP_inspectMogrt(argsJson) {
+  try {
+    var args = JSON.parse(argsJson);
+    var seq = CP_activeSequence();
+    var vTrack = seq.videoTracks.numTracks - 1;
+    var clip = null;
+    try { clip = seq.importMGT(args.path, CP_ticksFromSeconds(0), vTrack, 0); }
+    catch (eImp) { return CP_fail('importMGT failed: ' + eImp.message); }
+    if (!clip) return CP_fail('importMGT returned nothing.');
+
+    var props = [];
+    try {
+      var comp = clip.getMGTComponent();
+      if (comp && comp.properties) {
+        for (var i = 0; i < comp.properties.numItems; i++) {
+          var p = comp.properties[i];
+          var val = null, type = '?';
+          try { val = p.getValue(); type = typeof val; } catch (eV) {}
+          var sample = (type === 'string') ? String(val).substr(0, 40) : String(val);
+          props.push({ i: i, name: String(p.displayName), type: type, sample: sample });
+        }
+      }
+    } catch (eComp) {}
+
+    // remove the test instance (best effort via QE)
+    try {
+      app.enableQE();
+      var qt = qe.project.getActiveSequence().getVideoTrackAt(vTrack);
+      for (var k = qt.numItems - 1; k >= 0; k--) {
+        var it = qt.getItemAt(k);
+        if (it && it.type !== 'Empty') { try { it.remove(0, 0); } catch (eR) {} break; }
+      }
+    } catch (eQE) {}
+
+    return CP_ok({ count: props.length, props: props });
+  } catch (e) { return CP_fail(e.message); }
+}
+
 /* Return sorted sequence-marker times (seconds) — a Smart-Cut-free source
    of multicam switch points. */
 function CP_getMarkers() {
