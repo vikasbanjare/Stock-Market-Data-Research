@@ -259,16 +259,17 @@
         <span class="step-num">1</span>
         <span class="step-title">Cameras</span>
       </div>
-      <p class="hint">Stack each camera on its own video track (V1, V2, …). For
-         "Who's talking", put each person's mic on the matching audio track
-         (V1↔A1, V2↔A2, …). Then choose how the angle should switch.</p>
+      <p class="hint">Stack each camera on its own video track (V1, V2, …). Then
+         pick how the angle should switch — works with one mic per person, one
+         mixed track, or a single main mic.</p>
 
       <label>How to switch angle
         <select id="mc-source">
-          <option value="speaker">🎙️ Cut to whoever is talking (auto)</option>
-          <option value="interval">Every few seconds</option>
-          <option value="markers">At my timeline markers</option>
-          <option value="smartcut">At my Smart Cut points</option>
+          <option value="follow">🎙️ Follow the speaker — a mic per camera</option>
+          <option value="speech">🗣️ Switch on speech — one main / mixed mic</option>
+          <option value="interval">⏱️ Every few seconds</option>
+          <option value="markers">📍 At my timeline markers</option>
+          <option value="smartcut">✂️ At my Smart Cut points</option>
         </select>
       </label>
 
@@ -276,7 +277,16 @@
         <input type="number" id="mc-angles" value="2" min="1" max="8">
       </label>
 
-      <!-- speaker (FireCut-style) options -->
+      <!-- one main / mixed mic -->
+      <div id="mc-main-opts" class="hidden">
+        <label>Main audio track
+          <select id="mc-main-track"><option value="0">A1</option></select>
+        </label>
+        <p class="hint">Cuts to a new camera at each new sentence / talk burst
+           on this track. Great for a single mixed podcast track.</p>
+      </div>
+
+      <!-- follow-the-speaker (FireCut-style) options -->
       <div id="mc-speaker-opts">
         <label>Wide / group shot (when nobody or everybody talks)
           <select id="mc-wide">

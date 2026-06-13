@@ -92,14 +92,20 @@ Restart Premiere and open **Window → Extensions → CutPilot**.
 Stack each camera on its own video track (V1, V2, …), then pick **how to
 switch** — no Smart Cut required:
 
-- **🎙️ Cut to whoever is talking (auto)** *(default, FireCut-style)* — put
-  each person's mic on the matching audio track (V1↔A1, V2↔A2, …). CutPilot
-  listens to each mic, works out who's speaking when, and cuts to that
-  camera. Set a **Wide / group shot** to use when nobody or everybody talks,
-  and a **Min shot length** so it never flickers.
-- **Every few seconds** — rotate/ping-pong/random/hero on a fixed interval.
-- **At my timeline markers** — switch on your own markers.
-- **At my Smart Cut points** — switch on the silence cuts from Smart Cut.
+- **🎙️ Follow the speaker** *(FireCut-style)* — one mic per camera
+  (V1↔A1, V2↔A2, …). CutPilot listens to each mic, works out who's speaking,
+  and cuts to that camera. Set a **Wide / group shot** for when nobody or
+  everybody talks, and a **Min shot length** so it never flickers.
+- **🗣️ Switch on speech** — for **one main or mixed audio track** (any
+  layout). Pick the **Main audio track**; CutPilot cuts to a new camera at
+  each new sentence / talk burst, using your switching style below.
+- **⏱️ Every few seconds** — rotate/ping-pong/random/hero on a fixed interval.
+- **📍 At my timeline markers** — switch on your own markers.
+- **✂️ At my Smart Cut points** — switch on the silence cuts from Smart Cut.
+
+So it works in every layout: a mic per person → *Follow the speaker*; one
+mixed track or a single main mic → *Switch on speech*; or no useful audio →
+the interval / markers / Smart-Cut options.
 
 Build the plan, review the per-shot angle list, then **Apply** — CutPilot
 enables the chosen camera and disables the others per shot. The edit lives in

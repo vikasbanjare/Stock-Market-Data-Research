@@ -1043,12 +1043,33 @@
   }
   function syncMcSource() {
     var src = $('mc-source').value;
-    $('mc-speaker-opts').classList.toggle('hidden', src !== 'speaker');
+    $('mc-speaker-opts').classList.toggle('hidden', src !== 'follow');
+    $('mc-main-opts').classList.toggle('hidden', src !== 'speech');
     $('mc-interval-wrap').classList.toggle('hidden', src !== 'interval');
-    $('mc-pattern-opts').classList.toggle('hidden', src === 'speaker');
+    // the rotate/random pattern applies to everything except follow-the-speaker
+    $('mc-pattern-opts').classList.toggle('hidden', src === 'follow');
+    if (src === 'speech') populateMainTracks();
   }
   $('mc-source').addEventListener('change', syncMcSource);
   syncMcSource();
+
+  var _mainTracksLoaded = false;
+  function populateMainTracks() {
+    if (_mainTracksLoaded) return;
+    CPBridge.callHost('CP_getAudioTracks').then(function (r) {
+      var sel = $('mc-main-track');
+      var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; });
+      if (!tracks.length) return;
+      sel.innerHTML = '';
+      tracks.forEach(function (t, i) {
+        var o = document.createElement('option');
+        o.value = String(i);
+        o.textContent = t.name || ('A' + (t.index + 1));
+        sel.appendChild(o);
+      });
+      _mainTracksLoaded = true;
+    }).catch(function () {});
+  }
   $('mc-interval').addEventListener('input', function () { $('mc-interval-val').textContent = this.value; });
   $('mc-minseg').addEventListener('input', function () { $('mc-minseg-val').textContent = this.value; });
 
@@ -1094,12 +1115,33 @@
     });
   }
 
-  /* FireCut-style: cut to whoever is talking. */
+  /* "Switch on speech": one main/mixed track → cut to a new camera at each
+     new talk burst (sentence/pause boundary). Returns Promise of segments. */
+  function mcSpeechBurstSegments() {
+    return CPBridge.callHost('CP_getAudioTracks').then(function (r) {
+      var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; });
+      if (!tracks.length) throw new Error('No audio on the timeline. Add your podcast audio first.');
+      var idx = parseInt($('mc-main-track').value, 10) || 0;
+      var track = tracks[idx] || tracks[0];
+      var dur = r.end || (state.env && state.env.endSeconds) || 0;
+      capMcProgress('Listening to ' + (track.name || 'the main track') + '…');
+      return analyzeSpeech(track).then(function (speech) {
+        capMcProgress(null);
+        // a new shot begins where each talk burst begins
+        var bounds = speech.map(function (s) { return s.start; });
+        var segs = CPMulticam.segmentsFromBoundaries(bounds, dur);
+        if (!segs.length) throw new Error('No speech detected on that track.');
+        return segs;
+      });
+    });
+  }
+
+  /* FireCut-style: cut to whoever is talking (a mic per camera). */
   function mcSpeakerPlan(numAngles) {
     return CPBridge.callHost('CP_getAudioTracks').then(function (r) {
       var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; }).slice(0, numAngles);
       if (tracks.length < 2) {
-        throw new Error('Put each person\'s mic on its own audio track (A1, A2…) — found ' + tracks.length + '. Or use another switch mode.');
+        throw new Error('"Follow the speaker" needs one mic per camera (A1, A2…) — found ' + tracks.length + '. Try "Switch on speech" for a single/mixed track.');
       }
       state.env = state.env || {};
       var dur = r.end || state.env.endSeconds || 0;
@@ -1122,19 +1164,26 @@
     el.classList.remove('hidden'); el.textContent = msg;
   }
 
+  function patternPlan(numAngles, segmentsPromise) {
+    return segmentsPromise.then(function (segments) {
+      if (!segments.length) throw new Error('Could not work out any switch points.');
+      return CPMulticam.buildAnglePlan(segments, numAngles, {
+        mode: state.mcMode,
+        holdCuts: parseInt($('mc-hold').value, 10),
+        minSegmentForSwitch: 0.4,
+        seed: Date.now() & 0xffff
+      });
+    });
+  }
+
   $('btn-mc-plan').addEventListener('click', function () {
     var numAngles = parseInt($('mc-angles').value, 10);
-    var planner = ($('mc-source').value === 'speaker')
-      ? mcSpeakerPlan(numAngles)
-      : mcSegments().then(function (segments) {
-          if (!segments.length) throw new Error('Could not work out any switch points.');
-          return CPMulticam.buildAnglePlan(segments, numAngles, {
-            mode: state.mcMode,
-            holdCuts: parseInt($('mc-hold').value, 10),
-            minSegmentForSwitch: parseFloat($('mc-minseg').value),
-            seed: Date.now() & 0xffff
-          });
-        });
+    var src = $('mc-source').value;
+    var planner;
+    if (src === 'follow') planner = mcSpeakerPlan(numAngles);
+    else if (src === 'speech') planner = patternPlan(numAngles, mcSpeechBurstSegments());
+    else planner = patternPlan(numAngles, mcSegments());
+
     planner.then(function (plan) {
       if (!plan || !plan.length) return toast('No camera switches were produced.', true);
       state.plan = plan;
