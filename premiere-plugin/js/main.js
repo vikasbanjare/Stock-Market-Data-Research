@@ -571,6 +571,7 @@
     $('c-box').value = toHex(p.boxColor, '#ff3b6b');
     $('c-upper').checked = !!p.uppercase;
     $('c-words').value = p.wordsPerCue;
+    syncRhythmButtons(p.wordsPerCue);
     $('c-kw').checked = !!p.keyword;
     $('c-kw-mode-wrap').classList.toggle('hidden', !p.keyword);
     $('c-hl-scale').value = Math.round((p.highlightScale || 1) * 100);
@@ -636,7 +637,22 @@
       });
     }
     $('c-pos').addEventListener('input', function () { setLayoutButton(this.value); });
+    // caption rhythm: One word / Short phrase / Full line
+    var rb = document.querySelectorAll('#c-rhythm button');
+    for (var r = 0; r < rb.length; r++) {
+      rb[r].addEventListener('click', function () {
+        $('c-words').value = this.dataset.w;
+        syncRhythmButtons(parseInt(this.dataset.w, 10));
+        renderPreview();
+      });
+    }
     $('btn-replay').addEventListener('click', renderPreview);
+  }
+
+  function syncRhythmButtons(w) {
+    var target = (w === 0) ? 0 : (w >= 2 ? 3 : 1);
+    var rb = document.querySelectorAll('#c-rhythm button');
+    for (var i = 0; i < rb.length; i++) rb[i].classList.toggle('on', parseInt(rb[i].dataset.w, 10) === target);
   }
 
   function readKeyword() {
@@ -881,47 +897,73 @@
     var overrides = readOverrides();
     var words = parseInt($('c-words').value, 10) || 0;
     var anim = state.animId;
-
-    var frames = CPCaptions.buildCaptionFrames(cues, {
-      anim: anim,
-      wordsPerCue: words,
-      uppercase: overrides.uppercase,
-      keyword: readKeyword(),
-      speaker: readSpeaker()
-    });
-
-    if (frames.length > 1500 &&
-        !confirm(frames.length + ' caption frames will be rendered — that can take a few minutes. Continue?')) return;
-
-    var outDir;
-    try {
-      var pm = nodeReq('path');
-      outDir = pm.join(nodeReq('os').tmpdir(), 'cutpilot-frames-' + Date.now());
-    } catch (e) { return toast('Node unavailable: ' + e.message, true); }
+    var wantSync = $('c-sync').checked && words !== 0;
 
     $('btn-magic').disabled = true;
-    capProgress('Rendering 0 / ' + frames.length);
-    CPRender.renderFrames(frames, {
-      width: state.env.width || 1920,
-      height: state.env.height || 1080,
-      preset: preset,
-      overrides: overrides,
-      outDir: outDir,
-      onProgress: function (done, total) { capProgress('Rendering ' + done + ' / ' + total); }
-    }).then(function (items) {
-      capProgress('Placing ' + items.length + ' captions in your timeline');
-      return CPBridge.callHost('CP_placeCaptionImages', { items: items, anim: anim });
-    }).then(function (r) {
-      $('btn-magic').disabled = false;
-      capProgress(null);
-      toast('🎉 ' + r.placed + ' captions added on V' + r.track +
-            (r.animated ? ' with ' + CPCaptions.getAnimation(anim).name + ' animation' : ''));
+    capProgress(wantSync ? 'Listening to the audio for sync…' : 'Preparing…');
+
+    getCaptionWordCues(cues, wantSync).then(function (wordCues) {
+      var frames = CPCaptions.buildCaptionFrames(cues, {
+        anim: anim,
+        wordsPerCue: words,
+        uppercase: overrides.uppercase,
+        keyword: readKeyword(),
+        speaker: readSpeaker(),
+        wordCues: wordCues
+      });
+
+      if (frames.length > 1500 &&
+          !confirm(frames.length + ' caption frames will be rendered — that can take a few minutes. Continue?')) {
+        $('btn-magic').disabled = false; capProgress(null); return;
+      }
+
+      var outDir;
+      try {
+        var pm = nodeReq('path');
+        outDir = pm.join(nodeReq('os').tmpdir(), 'cutpilot-frames-' + Date.now());
+      } catch (e) { $('btn-magic').disabled = false; capProgress(null); return toast('Node unavailable: ' + e.message, true); }
+
+      capProgress('Rendering 0 / ' + frames.length);
+      return CPRender.renderFrames(frames, {
+        width: state.env.width || 1920,
+        height: state.env.height || 1080,
+        preset: preset,
+        overrides: overrides,
+        outDir: outDir,
+        onProgress: function (done, total) { capProgress('Rendering ' + done + ' / ' + total); }
+      }).then(function (items) {
+        capProgress('Placing ' + items.length + ' captions in your timeline');
+        return CPBridge.callHost('CP_placeCaptionImages', { items: items, anim: anim });
+      }).then(function (r) {
+        $('btn-magic').disabled = false;
+        capProgress(null);
+        toast('🎉 ' + r.placed + ' captions added on V' + r.track +
+              (wordCues ? ' · audio-synced' : '') +
+              (r.animated ? ' · ' + CPCaptions.getAnimation(anim).name : ''));
+      });
     }).catch(function (e) {
       $('btn-magic').disabled = false;
       capProgress(null);
       toast('Captions failed: ' + e.message, true);
     });
   });
+
+  /* Build audio-aligned word cues for tight sync (null = fall back to
+     length-weighted timing). Uses the first audio track's envelope. */
+  function getCaptionWordCues(cues, wantSync) {
+    if (!wantSync) return Promise.resolve(null);
+    var ff = resolveFfmpeg();
+    if (!ff) return Promise.resolve(null);
+    return ensureAudioTracks().then(function (tracks) {
+      if (!tracks.length) return null;
+      var track = tracks[0];
+      return CPAudio.ffmpegEnvelope(track.mediaPath, ff, 0.1).then(function (env) {
+        if (!env.samples || !env.samples.length) return null;
+        return CPCaptions.alignCuesToAudio(cues, env.samples, track.inPoint || 0,
+          { rise: 6, minSpacing: 0.1, snapWin: 0.18 });
+      });
+    }).catch(function () { return null; });  // any failure → silent fallback
+  }
 
   // ---- advanced: Premiere template / plain track ----
   function wireAltMode() {

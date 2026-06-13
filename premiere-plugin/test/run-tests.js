@@ -288,6 +288,42 @@ console.log('captions.js (speaker labels & keyword pop)');
   assert(CPCaptions.getPreset('lift').speaker === true, 'podcast preset enables speaker labels');
 }
 
+// ----------------------------------------------- audio-synced captions ----
+console.log('captions.js (audio sync)');
+{
+  // envelope: quiet floor with energy bumps at t=0.5 and t=1.2
+  const env = [];
+  for (let i = 0; i < 20; i++) env.push({ t: i * 0.1, db: -50 });
+  env[5].db = -12; env[6].db = -14;   // onset ~0.5
+  env[12].db = -12; env[13].db = -14; // onset ~1.2
+  const ons = CPCaptions.detectOnsets(env, 0, 2, { rise: 6, minSpacing: 0.1 });
+  assert(ons.length === 2, 'detectOnsets finds two energy onsets');
+  assert(close(ons[0], 0.5, 0.01) && close(ons[1], 1.2, 0.01), 'onset times correct');
+
+  // alignPhrase snaps word boundaries to onsets
+  const aligned = CPCaptions.alignPhrase(['one', 'two'], 0, 2, [1.2], 0.3);
+  assert(aligned.length === 2, 'alignPhrase returns a cue per word');
+  assert(close(aligned[1].start, 1.2), 'second word snapped to the onset');
+  assert(close(aligned[0].start, 0) && close(aligned[1].end, 2), 'phrase spans [start,end]');
+
+  // single-word phrase passes through
+  const one = CPCaptions.alignPhrase(['solo'], 3, 4, []);
+  assert(one.length === 1 && one[0].text === 'solo', 'single word handled');
+
+  // alignCuesToAudio produces word-level cues, offset by inPoint
+  const cues = [{ start: 0, end: 2, text: 'one two' }];
+  const envIn = [];
+  for (let i = 0; i < 40; i++) envIn.push({ t: i * 0.1, db: -50 });
+  envIn[22].db = -12; // media t=2.2 → seq t=1.2 (inPoint 1.0)
+  const wc = CPCaptions.alignCuesToAudio(cues, envIn, 1.0, { rise: 6, minSpacing: 0.1, snapWin: 0.3 });
+  assert(wc.length === 2 && wc[0].text === 'one', 'alignCuesToAudio splits into words');
+  assert(close(wc[1].start, 1.2, 0.05), 'word start uses onset mapped by inPoint');
+
+  // buildCaptionFrames consumes wordCues for tight sync
+  const fr = CPCaptions.buildCaptionFrames(cues, { anim: 'pop', wordsPerCue: 1, wordCues: wc });
+  assert(fr.length === 2 && close(fr[1].start, 1.2, 0.05), 'frames use audio-aligned word timing');
+}
+
 // ------------------------------------------------------------ multicam ----
 console.log('multicam.js');
 {

@@ -567,6 +567,104 @@
   }
 
   /*
+   * Detect speech-energy onsets within [startT, endT] of a dB envelope
+   * (samples: [{t, db}]). An onset is where the level rises above an adaptive
+   * threshold after being below it. Returns onset times. Pure + tested.
+   */
+  function detectOnsets(samples, startT, endT, opts) {
+    opts = opts || {};
+    var win = [];
+    for (var i = 0; i < samples.length; i++) {
+      if (samples[i].t >= startT - 1e-6 && samples[i].t <= endT + 1e-6) win.push(samples[i]);
+    }
+    if (win.length < 2) return [];
+    var sorted = win.map(function (s) { return s.db; }).sort(function (a, b) { return a - b; });
+    var floor = sorted[Math.floor(sorted.length * 0.3)];
+    var thr = floor + (opts.rise != null ? opts.rise : 6);
+    var minSpacing = opts.minSpacing != null ? opts.minSpacing : 0.12;
+    var onsets = [], prevAbove = false, last = -1e9;
+    for (i = 0; i < win.length; i++) {
+      var above = win[i].db >= thr;
+      if (above && !prevAbove && (win[i].t - last) >= minSpacing) { onsets.push(win[i].t); last = win[i].t; }
+      prevAbove = above;
+    }
+    return onsets;
+  }
+
+  /*
+   * Time a phrase's words across [start, end]: start with length-weighted
+   * boundaries, then SNAP each interior word boundary to the nearest speech
+   * onset (if one is close). This pulls word timing onto the real speech.
+   * Returns [{start, end, text}] per word. Pure + tested.
+   */
+  function alignPhrase(words, start, end, onsets, snapWin) {
+    var n = words.length;
+    if (n <= 1) return [{ start: start, end: end, text: words[0] || '' }];
+    snapWin = snapWin != null ? snapWin : 0.18;
+    var weights = [], total = 0, i;
+    for (i = 0; i < n; i++) { var wt = Math.max(2, words[i].replace(/\s/g, '').length); weights.push(wt); total += wt; }
+    var bounds = [start], t = start;
+    for (i = 0; i < n - 1; i++) { t += (end - start) * weights[i] / total; bounds.push(t); }
+    bounds.push(end);
+    // snap interior boundaries to nearest onset
+    for (i = 1; i < n; i++) {
+      var b = bounds[i], best = null, bd = snapWin;
+      for (var o = 0; o < onsets.length; o++) {
+        var d = Math.abs(onsets[o] - b);
+        if (d < bd) { bd = d; best = onsets[o]; }
+      }
+      if (best != null) bounds[i] = best;
+    }
+    for (i = 1; i < bounds.length; i++) if (bounds[i] < bounds[i - 1]) bounds[i] = bounds[i - 1];
+    var out = [];
+    for (i = 0; i < n; i++) out.push({ start: bounds[i], end: bounds[i + 1], text: words[i] });
+    return out;
+  }
+
+  /*
+   * Re-time every cue's words to the audio envelope. inPoint is the audio
+   * clip's sync offset (sequence time + inPoint = media time). Returns a flat
+   * list of word-level cues [{start, end, text}]. Pure + tested.
+   */
+  function alignCuesToAudio(cues, samples, inPoint, opts) {
+    inPoint = inPoint || 0;
+    var out = [];
+    for (var c = 0; c < cues.length; c++) {
+      var words = cues[c].text.replace(/\s+/g, ' ').trim().split(' ');
+      if (words.length <= 1) { out.push({ start: cues[c].start, end: cues[c].end, text: words[0] || '' }); continue; }
+      var onsetsMedia = detectOnsets(samples, cues[c].start + inPoint, cues[c].end + inPoint, opts);
+      var onsetsSeq = onsetsMedia.map(function (o) { return o - inPoint; });
+      var aligned = alignPhrase(words, cues[c].start, cues[c].end, onsetsSeq, opts && opts.snapWin);
+      for (var k = 0; k < aligned.length; k++) out.push(aligned[k]);
+    }
+    return out;
+  }
+
+  /* Build frames from pre-timed word cues (used when audio alignment is on).
+     Groups words per the chosen rhythm; karaoke highlights the active word. */
+  function framesFromWordCues(wordCues, anim, wordsPerCue, kw, up) {
+    function ucw(arr) { return up ? arr.map(uc) : arr; }
+    var per = (anim === 'karaoke') ? Math.max(2, wordsPerCue || 3) : Math.max(1, wordsPerCue || 1);
+    var frames = [], i, j;
+    for (i = 0; i < wordCues.length; i += per) {
+      var group = wordCues.slice(i, i + per);
+      var words = ucw(group.map(function (g) { return g.text; }));
+      if (anim === 'karaoke') {
+        for (j = 0; j < group.length; j++) {
+          var f = { start: group[j].start, end: group[j].end, words: words, active: j };
+          if (kw && kw.on) f.highlightSet = markKeywords(words, kw);
+          frames.push(f);
+        }
+      } else {
+        var fr = { start: group[0].start, end: group[group.length - 1].end, words: words };
+        if (kw && kw.on) fr.highlightSet = markKeywords(words, kw);
+        frames.push(fr);
+      }
+    }
+    return frames;
+  }
+
+  /*
    * Single entry point that turns cues into render-ready frames for any
    * animation, applying words-per-cue, casing, and keyword highlighting.
    * opts: { anim, wordsPerCue, uppercase, keyword:{on,mode} }
@@ -598,15 +696,22 @@
     }
 
     if (anim === 'karaoke') {
-      frames = planKaraoke(cues, Math.max(2, wpc || 3));
-      for (i = 0; i < frames.length; i++) {
-        f = frames[i];
-        if (up) f.words = f.words.map(uc);
-        if (kw.on) f.highlightSet = markKeywords(f.words, kw);
+      if (opts.wordCues && opts.wordCues.length) {
+        frames = framesFromWordCues(opts.wordCues, anim, wpc, kw, up);
+      } else {
+        frames = planKaraoke(cues, Math.max(2, wpc || 3));
+        for (i = 0; i < frames.length; i++) {
+          f = frames[i];
+          if (up) f.words = f.words.map(uc);
+          if (kw.on) f.highlightSet = markKeywords(f.words, kw);
+        }
       }
     } else if (anim === 'typewriter') {
       frames = planTypewriter(cues);
       if (up) for (i = 0; i < frames.length; i++) frames[i].text = frames[i].text.toUpperCase();
+    } else if (opts.wordCues && opts.wordCues.length && wpc > 0) {
+      // audio-aligned word/phrase frames (tight sync)
+      frames = framesFromWordCues(opts.wordCues, anim, wpc, kw, up);
     } else {
       var src = (wpc > 0)
         ? explodeWords(cues, { wordsPerCue: wpc, uppercase: up })
@@ -660,6 +765,9 @@
     planTypewriter: planTypewriter,
     markKeywords: markKeywords,
     extractSpeaker: extractSpeaker,
+    detectOnsets: detectOnsets,
+    alignPhrase: alignPhrase,
+    alignCuesToAudio: alignCuesToAudio,
     buildCaptionFrames: buildCaptionFrames
   };
 });
