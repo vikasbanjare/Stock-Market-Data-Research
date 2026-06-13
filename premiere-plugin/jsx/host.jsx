@@ -441,39 +441,62 @@ function CP_rebuildTrimmed(argsJson) {
 
 // ------------------------------------------------------------- multicam ----
 /*
- * Apply an angle plan to stacked camera tracks: for every plan segment,
- * the chosen camera's clips stay enabled on their track and the same time
- * range is disabled on every other camera track.
- * argsJson: { plan:[{start,end,angle}], numAngles }
+ * Apply an angle plan to stacked camera tracks (FireCut-style).
+ * Because each camera is usually ONE long clip per track, we first razor
+ * every camera track at all the segment boundaries, then enable only the
+ * chosen camera's piece per segment and disable the others.
+ * argsJson: { plan:[{start,end,angle}], numAngles, dropFrame }
  */
 function CP_applyMulticamPlan(argsJson) {
   try {
     var args = JSON.parse(argsJson);
     var seq = CP_activeSequence();
     var n = Math.min(args.numAngles, seq.videoTracks.numTracks);
-    var toggled = 0;
+    var fps = CP_sequenceFps(seq);
 
-    for (var t = 0; t < n; t++) {
+    // collect unique internal boundaries
+    var bmap = {};
+    for (var p = 0; p < args.plan.length; p++) {
+      if (args.plan[p].start > 0.001) bmap[args.plan[p].start.toFixed(3)] = args.plan[p].start;
+      bmap[args.plan[p].end.toFixed(3)] = args.plan[p].end;
+    }
+    var bounds = [];
+    for (var key in bmap) if (bmap.hasOwnProperty(key)) bounds.push(bmap[key]);
+    bounds.sort(function (a, b) { return a - b; });
+
+    // razor each camera track at every boundary
+    var razored = 0;
+    try {
+      var qseq = CP_qeSequence();
+      for (var t = 0; t < n; t++) {
+        var qtrack = qseq.getVideoTrackAt(t);
+        if (!qtrack) continue;
+        for (var b = 0; b < bounds.length; b++) {
+          try { qtrack.razor(CP_timecode(bounds[b], fps, !!args.dropFrame)); razored++; } catch (eRz) {}
+        }
+      }
+    } catch (eQE) {}
+
+    // toggle enable/disable per resulting piece
+    var toggled = 0;
+    for (t = 0; t < n; t++) {
       var track = seq.videoTracks[t];
       for (var i = 0; i < track.clips.numItems; i++) {
         var clip = track.clips[i];
         var mid = (clip.start.seconds + clip.end.seconds) / 2;
-        for (var p = 0; p < args.plan.length; p++) {
-          var segp = args.plan[p];
-          if (mid >= segp.start && mid < segp.end) {
-            var shouldDisable = (segp.angle !== t);
+        for (var s = 0; s < args.plan.length; s++) {
+          var seg = args.plan[s];
+          if (mid >= seg.start && mid < seg.end) {
+            var shouldDisable = (seg.angle !== t);
             try {
-              if (clip.disabled !== shouldDisable) {
-                clip.disabled = shouldDisable;
-                toggled++;
-              }
+              if (clip.disabled !== shouldDisable) { clip.disabled = shouldDisable; toggled++; }
             } catch (eDis) {}
             break;
           }
         }
       }
     }
-    return CP_ok({ toggled: toggled, tracksUsed: n });
+    return CP_ok({ toggled: toggled, razored: razored, cuts: bounds.length, tracksUsed: n });
   } catch (e) { return CP_fail(e.message); }
 }
 

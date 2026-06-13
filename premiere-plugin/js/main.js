@@ -77,6 +77,25 @@
     return req(mod);
   }
 
+  /* Find an ffmpeg binary: the user's setting first, then common install
+     locations. ffmpeg is what lets us read audio inside video files (Web
+     Audio can't), so multicam/Smart-Cut work on real footage. Cached. */
+  var _ffmpeg, _ffmpegProbed = false;
+  function resolveFfmpeg() {
+    if (_ffmpegProbed) return _ffmpeg;
+    _ffmpegProbed = true;
+    _ffmpeg = null;
+    var fs;
+    try { fs = nodeReq('fs'); } catch (e) { return (_ffmpeg = settings.ffmpegPath || null); }
+    var tryPath = function (p) { try { return p && fs.existsSync(p); } catch (e2) { return false; } };
+    if (tryPath(settings.ffmpegPath)) return (_ffmpeg = settings.ffmpegPath);
+    var cands = ['/opt/homebrew/bin/ffmpeg', '/usr/local/bin/ffmpeg', '/usr/bin/ffmpeg',
+                 '/opt/local/bin/ffmpeg', 'C:\\ffmpeg\\bin\\ffmpeg.exe',
+                 'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe'];
+    for (var i = 0; i < cands.length; i++) if (tryPath(cands[i])) return (_ffmpeg = cands[i]);
+    return (_ffmpeg = null);
+  }
+
   function pickFile(title, exts) {
     if (window.cep && window.cep.fs && window.cep.fs.showOpenDialogEx) {
       var r = window.cep.fs.showOpenDialogEx(false, false, title, null, exts);
@@ -882,10 +901,18 @@
     }).then(function (r) {
       $('btn-alt-apply').disabled = false;
       capProgress(null);
-      toast('🎬 Added ' + r.inserted + ' template captions' +
-            (r.failed ? ' · ' + r.failed + ' failed' : '') +
-            (r.textSet === 0 && r.inserted ? ' — this template has no editable text field.' : ''),
-            r.inserted === 0);
+      if (r.inserted === 0) {
+        var why = (r.sampleErrors && r.sampleErrors.length) ? ' (' + r.sampleErrors[0] + ')' : '';
+        return toast('Couldn\'t add this template' + why + '. Try a different .mogrt, or use an Animated style.', true);
+      }
+      if (r.textSet === 0) {
+        toast('Placed ' + r.inserted + ' graphics, but couldn\'t find a text field to fill. ' +
+              'Template fields: ' + ((r.fields && r.fields.join(', ')) || 'none exposed') +
+              '. Tell me one and I\'ll target it.', true);
+      } else {
+        toast('🎬 Added ' + r.inserted + ' template captions (' + r.textSet + ' with text)' +
+              (r.failed ? ' · ' + r.failed + ' failed' : '') + '.');
+      }
     }).catch(function (e) { $('btn-alt-apply').disabled = false; capProgress(null); toast(e.message, true); });
   }
 
@@ -930,8 +957,9 @@
       $('clip-badge').textContent = res.clip.name;
       $('clip-badge').className = 'badge ok';
       prog.textContent = 'Listening for silences';
-      if (settings.ffmpegPath) {
-        return CPAudio.ffmpegDetect(state.clip.mediaPath, settings.ffmpegPath,
+      var ff = resolveFfmpeg();
+      if (ff) {
+        return CPAudio.ffmpegDetect(state.clip.mediaPath, ff,
                                      opts.thresholdDb, Math.min(opts.minSilence, 0.3), CPSilence);
       }
       return CPAudio.webAudioDetect(state.clip.mediaPath, { thresholdDb: opts.thresholdDb }, CPSilence);
@@ -1177,8 +1205,9 @@
   /* Analyze one audio track's speech regions (sequence time). */
   function analyzeSpeech(track) {
     var thr = -40;
-    var detect = settings.ffmpegPath
-      ? CPAudio.ffmpegDetect(track.mediaPath, settings.ffmpegPath, thr, 0.3, CPSilence)
+    var ff = resolveFfmpeg();
+    var detect = ff
+      ? CPAudio.ffmpegDetect(track.mediaPath, ff, thr, 0.3, CPSilence)
       : CPAudio.webAudioDetect(track.mediaPath, { thresholdDb: thr }, CPSilence);
     return detect.then(function (det) {
       var dur = det.duration || track.outPoint;
@@ -1305,13 +1334,24 @@
     if (!state.plan) return;
     CPBridge.callHost('CP_applyMulticamPlan', {
       plan: state.plan,
-      numAngles: parseInt($('mc-angles').value, 10)
+      numAngles: parseInt($('mc-angles').value, 10),
+      dropFrame: !!settings.dropFrame
     }).then(function (r) {
-      toast('🎬 Multicam applied — ' + r.toggled + ' clips toggled across ' + r.tracksUsed + ' tracks.');
+      toast('🎬 Multicam applied — ' + r.razored + ' cuts, ' + r.toggled +
+            ' angle toggles across ' + r.tracksUsed + ' tracks.');
     }).catch(function (e) { toast('Multicam failed: ' + e.message, true); });
   });
 
   // =========================================================== SETTINGS ====
+  function refreshFfmpegStatus() {
+    _ffmpegProbed = false; // re-probe
+    var ff = resolveFfmpeg();
+    var el = $('ffmpeg-status');
+    if (ff) { el.textContent = '✅ ffmpeg found: ' + ff; el.className = 'hint'; }
+    else { el.textContent = '⚠️ No ffmpeg found. Multicam & Smart Cut can\'t read audio inside ' +
+            'video files without it. Install ffmpeg (e.g. "brew install ffmpeg") or set its path below.'; el.className = 'hint'; }
+  }
+
   $('btn-ffmpeg-pick').addEventListener('click', function () {
     var path = pickFile('Locate the ffmpeg binary', []);
     if (path) $('set-ffmpeg').value = path;
@@ -1321,8 +1361,39 @@
     settings.ffmpegPath = $('set-ffmpeg').value.trim();
     settings.dropFrame = $('set-dropframe').checked;
     saveSettings();
+    refreshFfmpegStatus();
     toast('Settings saved.');
   });
+
+  // ----------------------------------------------------- diagnostics ----
+  var diagButtons = document.querySelectorAll('#tab-settings [data-diag]');
+  for (var d = 0; d < diagButtons.length; d++) {
+    diagButtons[d].addEventListener('click', function () {
+      var fn = this.dataset.diag;
+      var out = $('diag-out');
+      out.className = 'diag-out';
+      out.textContent = 'Running ' + fn + '…';
+      if (!CPBridge.isCEP()) { out.textContent = 'Not running inside Premiere.'; return; }
+      CPBridge.callHost(fn).then(function (r) {
+        out.className = 'diag-out';
+        out.textContent = fn + ' →\n' + JSON.stringify(r, null, 2);
+      }).catch(function (e) {
+        out.className = 'diag-out err';
+        out.textContent = fn + ' FAILED →\n' + e.message;
+      });
+    });
+  }
+  $('btn-diag-copy').addEventListener('click', function () {
+    var t = $('diag-out').textContent;
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = t; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      toast('Diagnostics copied — paste them to me.');
+    } catch (e) { toast('Select the text and copy manually.', true); }
+  });
+
+  refreshFfmpegStatus();
 
   boot();
 })();

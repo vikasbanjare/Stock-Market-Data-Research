@@ -331,7 +331,8 @@
   <section id="tab-settings" class="tab-page">
     <div class="card">
       <div class="step-head"><span class="step-title">Performance</span></div>
-      <label>ffmpeg path (optional — faster analysis, every format)
+      <div id="ffmpeg-status" class="hint">checking for ffmpeg…</div>
+      <label>ffmpeg path (recommended — needed to read audio inside video files)
         <div class="row tight">
           <input type="text" id="set-ffmpeg" placeholder="/opt/homebrew/bin/ffmpeg">
           <button id="btn-ffmpeg-pick" class="chip-btn">…</button>
@@ -340,7 +341,21 @@
       <label class="check"><input type="checkbox" id="set-dropframe"> Drop-frame timecode (29.97 / 59.94)</label>
       <button id="btn-save-settings" class="hero-btn small">Save settings</button>
     </div>
-    <p class="hint center">CutPilot v0.6 · smart cut · auto multicam · caption template studio</p>
+
+    <div class="card">
+      <div class="step-head"><span class="step-title">🔧 Diagnostics</span></div>
+      <p class="hint">If something "doesn't work", run these and send me what shows up.</p>
+      <div class="diag-grid">
+        <button class="chip-btn" data-diag="CP_getEnv">Connection</button>
+        <button class="chip-btn" data-diag="CP_getSelectedClip">Selected clip</button>
+        <button class="chip-btn" data-diag="CP_getAudioTracks">Audio tracks</button>
+        <button class="chip-btn" data-diag="CP_findInstalledMogrts">Installed templates</button>
+      </div>
+      <pre id="diag-out" class="diag-out">Results appear here.</pre>
+      <button id="btn-diag-copy" class="chip-btn">Copy results</button>
+    </div>
+
+    <p class="hint center">CutPilot v0.6.1 · smart cut · auto multicam · caption template studio</p>
   </section>
 
   <footer><div id="log" class="log"></div></footer>
