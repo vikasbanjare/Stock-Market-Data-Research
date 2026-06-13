@@ -20,7 +20,11 @@
     sourceIdx: -1,
     presetId: 'hormozi',
     animId: 'pop',
-    mcMode: 'rotate'
+    mcMode: 'rotate',
+    capMode: 'animated',     // animated | template | native
+    tplSource: 'installed',  // installed | file
+    installedMogrts: [],
+    mogrtFile: null
   };
 
   var settings = loadSettings();
@@ -90,7 +94,7 @@
     $('set-dropframe').checked = !!settings.dropFrame;
     buildStyleRail();
     buildAnimRail();
-    updateEngineBadge();
+    wireModePicker();
 
     if (!CPBridge.isCEP()) {
       $('env-status').textContent = 'browser preview';
@@ -289,12 +293,78 @@
     }
   }
 
-  function updateEngineBadge() {
-    var b = $('engine-badge');
-    b.textContent = $('cap-engine').value === 'native' ? 'native captions' : 'built-in engine';
-    b.className = 'badge ok';
+  // ======================================================= MODE PICKER ====
+  function wireModePicker() {
+    var cards = document.querySelectorAll('#cap-mode .mode-card');
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].addEventListener('click', function () {
+        document.querySelector('#cap-mode .mode-card.on').classList.remove('on');
+        this.classList.add('on');
+        selectCapMode(this.dataset.mode);
+      });
+    }
+    var subs = document.querySelectorAll('#tpl-source button');
+    for (var s = 0; s < subs.length; s++) {
+      subs[s].addEventListener('click', function () {
+        document.querySelector('#tpl-source button.on').classList.remove('on');
+        this.classList.add('on');
+        state.tplSource = this.dataset.src;
+        $('tpl-installed').classList.toggle('hidden', state.tplSource !== 'installed');
+        $('tpl-file').classList.toggle('hidden', state.tplSource !== 'file');
+      });
+    }
+    $('btn-tpl-rescan').addEventListener('click', scanInstalledMogrts);
+    $('btn-tpl-pick').addEventListener('click', function () {
+      var p = pickFile('Choose a Motion Graphics Template', ['mogrt']);
+      if (!p) return;
+      state.mogrtFile = p;
+      $('tpl-file-name').textContent = p.split(/[\\/]/).pop();
+    });
   }
-  $('cap-engine').addEventListener('change', updateEngineBadge);
+
+  function selectCapMode(mode) {
+    state.capMode = mode;
+    $('mode-animated').classList.toggle('hidden', mode !== 'animated');
+    $('mode-template').classList.toggle('hidden', mode !== 'template');
+    $('mode-native').classList.toggle('hidden', mode !== 'native');
+    if (mode === 'template' && !state.installedMogrts.length) scanInstalledMogrts();
+  }
+
+  function scanInstalledMogrts() {
+    var sel = $('tpl-select');
+    sel.innerHTML = '<option>scanning…</option>';
+    CPBridge.callHost('CP_findInstalledMogrts').then(function (r) {
+      state.installedMogrts = r.items || [];
+      sel.innerHTML = '';
+      if (!state.installedMogrts.length) {
+        sel.innerHTML = '<option value="">No installed templates found</option>';
+        $('tpl-installed-hint').textContent =
+          'No templates installed yet. Add one in Premiere (Essential Graphics → ' +
+          'Install Motion Graphics Template), or use "From a file" — then tap ↻.';
+        return;
+      }
+      var lastCat = null;
+      var group = null;
+      state.installedMogrts.forEach(function (m, i) {
+        if (m.category !== lastCat) {
+          group = document.createElement('optgroup');
+          group.label = m.category || 'Templates';
+          sel.appendChild(group);
+          lastCat = m.category;
+        }
+        var o = document.createElement('option');
+        o.value = String(i);
+        o.textContent = m.name;
+        group.appendChild(o);
+      });
+      $('tpl-installed-hint').textContent =
+        state.installedMogrts.length + ' templates found in your Premiere. ' +
+        'Pick one — CutPilot adds it per line and types in the words.';
+    }).catch(function (e) {
+      sel.innerHTML = '<option value="">scan failed</option>';
+      $('tpl-installed-hint').textContent = e.message;
+    });
+  }
 
   function currentPreset() {
     return CPCaptions.getPreset(state.presetId) || CPCaptions.STYLE_PRESETS[0];
@@ -317,6 +387,13 @@
     el.textContent = msg;
   }
 
+  /* Apply words-at-a-time + casing to plain text cues (native + template). */
+  function textCues(cues, words, upper) {
+    if (words > 0) return CPCaptions.explodeWords(cues, { wordsPerCue: words, uppercase: upper });
+    if (upper) return cues.map(function (c) { return { start: c.start, end: c.end, text: c.text.toUpperCase() }; });
+    return cues;
+  }
+
   $('btn-magic').addEventListener('click', function () {
     var cues;
     try { cues = readSelectedTranscript(); }
@@ -326,10 +403,9 @@
     var words = parseInt($('cap-words').value, 10) || 0;
     var upper = $('cap-upper').checked;
 
-    if ($('cap-engine').value === 'native') {
-      var ncues = words > 0
-        ? CPCaptions.explodeWords(cues, { wordsPerCue: words, uppercase: upper })
-        : (upper ? cues.map(function (c) { return { start: c.start, end: c.end, text: c.text.toUpperCase() }; }) : cues);
+    // -------- Plain: native, editable caption track --------
+    if (state.capMode === 'native') {
+      var ncues = textCues(cues, words, upper);
       try {
         var pathMod = nodeReq('path');
         var out = pathMod.join(nodeReq('os').tmpdir(), 'cutpilot-' + Date.now() + '.srt');
@@ -337,7 +413,7 @@
         capProgress('Creating caption track');
         CPBridge.callHost('CP_importSrtCaptions', { srtPath: out }).then(function () {
           capProgress(null);
-          toast('✓ Caption track added (' + ncues.length + ' cues). Style it once in Essential Graphics: ' +
+          toast('✓ Caption track added (' + ncues.length + ' lines). Style it once in Essential Graphics: ' +
                 preset.font + ' ' + preset.fontSize + 'px, ' + preset.fill +
                 (preset.stroke ? ' + stroke ' + preset.stroke : ''));
         }).catch(function (e) { capProgress(null); toast(e.message, true); });
@@ -345,7 +421,43 @@
       return;
     }
 
-    // ---- built-in animated engine ----
+    // -------- Template: Premiere MOGRT (installed or file) --------
+    if (state.capMode === 'template') {
+      var mogrtPath = null;
+      if (state.tplSource === 'installed') {
+        var idx = parseInt($('tpl-select').value, 10);
+        if (isNaN(idx) || !state.installedMogrts[idx]) {
+          return toast('Pick an installed template, or switch to "From a file".', true);
+        }
+        mogrtPath = state.installedMogrts[idx].path;
+      } else {
+        if (!state.mogrtFile) return toast('Choose a .mogrt file first.', true);
+        mogrtPath = state.mogrtFile;
+      }
+      var tcues = textCues(cues, words, upper);
+      if (tcues.length > 400 &&
+          !confirm(tcues.length + ' graphics will be added (one per line). Continue?')) return;
+      capProgress('Adding ' + tcues.length + ' template graphics');
+      $('btn-magic').disabled = true;
+      CPBridge.callHost('CP_insertMogrtCaptions', {
+        mogrtPath: mogrtPath, cues: tcues, videoTrack: null, audioTrack: 0
+      }).then(function (r) {
+        $('btn-magic').disabled = false;
+        capProgress(null);
+        toast('🎬 Added ' + r.inserted + ' template captions' +
+              (r.textSet ? ' (' + r.textSet + ' with text)' : '') +
+              (r.failed ? ' · ' + r.failed + ' failed' : '') +
+              (r.textSet === 0 && r.inserted ? ' — this template has no editable text field.' : ''),
+              r.inserted === 0);
+      }).catch(function (e) {
+        $('btn-magic').disabled = false;
+        capProgress(null);
+        toast(e.message, true);
+      });
+      return;
+    }
+
+    // -------- Animated: CutPilot's built-in engine --------
     if (!state.env) return toast('Open a sequence in Premiere first.', true);
     var anim = state.animId;
     var frames;

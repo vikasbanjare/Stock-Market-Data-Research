@@ -187,6 +187,53 @@ function CP_findProjectSrts() {
   } catch (e) { return CP_fail(e.message); }
 }
 
+/*
+ * List the Motion Graphics Templates already installed in Premiere.
+ * Folder.userData resolves to the right place on both platforms:
+ *   macOS:   ~/Library/Application Support
+ *   Windows: C:\Users\<user>\AppData\Roaming
+ * so the templates live in <userData>/Adobe/Common/Motion Graphics Templates.
+ * Recurses into subfolders (users organize templates into categories),
+ * capped for safety.
+ */
+function CP_findInstalledMogrts() {
+  try {
+    var roots = [];
+    var common = new Folder(Folder.userData.fsName + '/Adobe/Common/Motion Graphics Templates');
+    if (common.exists) roots.push(common);
+    // Some installs also keep a per-version Essential Graphics cache.
+    var docs = new Folder(Folder.myDocuments.fsName + '/Adobe/Motion Graphics Templates');
+    if (docs.exists) roots.push(docs);
+
+    var hits = [];
+    var MAX = 600;
+    function walk(folder, depth) {
+      if (depth > 5 || hits.length >= MAX) return;
+      var entries = folder.getFiles();
+      for (var i = 0; i < entries.length && hits.length < MAX; i++) {
+        var e = entries[i];
+        if (e instanceof Folder) {
+          walk(e, depth + 1);
+        } else if (/\.mogrt$/i.test(e.name)) {
+          var cat = decodeURIComponent(folder.name);
+          hits.push({
+            name: decodeURIComponent(e.name).replace(/\.mogrt$/i, ''),
+            category: cat,
+            path: e.fsName
+          });
+        }
+      }
+    }
+    for (var r = 0; r < roots.length; r++) walk(roots[r], 0);
+
+    hits.sort(function (a, b) {
+      if (a.category === b.category) return a.name < b.name ? -1 : 1;
+      return a.category < b.category ? -1 : 1;
+    });
+    return CP_ok({ items: hits, scanned: roots.length });
+  } catch (e) { return CP_fail(e.message); }
+}
+
 // ------------------------------------------------------------- markers ----
 /*
  * Dry-run: drop a sequence marker over every detected silence so the user

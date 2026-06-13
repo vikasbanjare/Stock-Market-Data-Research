@@ -95,22 +95,38 @@ Restart Premiere and open **Window → Extensions → CutPilot**.
    review the per-segment angle list, then **Apply plan** — CutPilot
    enables the chosen camera and disables the others per segment.
 
-### Captions
+The Captions tab is two simple steps, then one button.
 
-1. CutPilot looks for a transcript automatically: SRT/VTT files already in
-   your project, sitting next to your footage, or next to the project
-   file. No transcript yet? Premiere makes one — **Window → Text →
-   Transcribe sequence**, export to SRT next to your video, hit **Rescan**.
-2. Pick a **style** card (live animated previews) and an **animation**
-   chip. Advanced: words-at-a-time (1 = word-by-word pop), UPPERCASE,
-   text size, vertical position, or switch to the native caption engine.
-3. Press **✨ Add captions**. The built-in engine renders every caption
-   frame and places them on a new top video track with keyframed entry
-   animations (pop/bounce/slide/fade/glitch) or frame-sequence animations
-   (karaoke highlight, typewriter).
+**Step 1 — Transcript.** CutPilot finds it automatically: SRT/VTT files
+already in your project, sitting next to your footage, or next to the
+project file. No transcript yet? Premiere makes one — **Window → Text →
+Transcribe sequence**, export to SRT next to your video, hit **Refresh**.
+The "No transcript? →" button walks you through it. You can also **Pick a
+file** manually.
 
-The native caption engine remains available under Advanced when you want
-text that stays editable inside Premiere's caption track.
+**Step 2 — Pick a look.** Three modes, and only the chosen mode's controls
+are shown (progressive disclosure):
+
+- **Animated** *(recommended)* — CutPilot's built-in engine. Choose a
+  **style** card (live animated previews) and an **animation** chip:
+  Pop, Bounce, Slide up, Fade, Glitch, Karaoke, Typewriter, None. Every
+  caption frame is rendered to a transparent PNG and placed on a new top
+  track with real Premiere keyframes. No templates needed.
+- **Template** — use a Premiere Motion Graphics Template (.mogrt) for the
+  animation. Two sources:
+  - **Installed in Premiere** — CutPilot scans the templates already
+    installed in your copy of Premiere (the Essential Graphics library)
+    and lists them in a dropdown, grouped by folder. Pick one.
+  - **From a file** — choose any `.mogrt` you downloaded or made. CutPilot
+    adds one graphic per caption line and types the words into its text
+    field.
+- **Plain** — a normal, editable caption track. Set the font once in
+  Essential Graphics and save it as a Track Style.
+
+**Fine-tune** (optional): words-at-a-time (1 = word-by-word pop, 0 = full
+lines), UPPERCASE, text size, vertical position.
+
+Then press **✨ Add captions**.
 
 ## Project layout
 
@@ -128,7 +144,8 @@ premiere-plugin/
 │   ├── multicam.js        Angle planning (pure, unit-tested)
 │   └── lib/cep-bridge.js  Minimal CSInterface replacement
 ├── jsx/host.jsx           ExtendScript: razor, ripple, rebuild, multicam,
-│                          caption placement + keyframed animations
+│                          caption placement + keyframed animations, MOGRT
+│                          insertion, installed-template discovery
 ├── install-windows.bat    One-click installer (Windows)
 ├── install-mac.command    One-click installer (macOS)
 └── test/run-tests.js      Node unit tests (node test/run-tests.js)

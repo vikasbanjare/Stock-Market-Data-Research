@@ -125,6 +125,47 @@ words-per-cue, and an animation spec.
 - Rewrite adapters on the UXP API (panel JS is already framework-free).
 - Sign, package, ship to Adobe Exchange / aescripts.
 
+## UX research — simplifying for non-technical users (v0.3)
+
+The redesign follows the dominant guidance for professional creative tools
+aimed at non-experts:
+
+- **Progressive disclosure.** Show only what matters now; reveal the rest on
+  demand. The caption tab is two numbered steps, and only the *selected*
+  mode's controls render (Animated / Template / Plain). Detection knobs, the
+  in-place QE cut, and per-line settings live under collapsed
+  "Advanced / Fine-tune" sections.
+- **Plain language over jargon.** Mode cards say "Animated / Template /
+  Plain", not "render engine / MOGRT / native caption track". ("Template" is
+  kept because that's the word Premiere uses in Essential Graphics.)
+- **Visual choices, sensible defaults.** Style cards animate live; the
+  default (Animated → Hormozi → Pop, transcript auto-selected) lets a
+  first-time user succeed with a single click.
+- **One primary action.** Each tab has exactly one gradient hero button.
+- **Strong empty states.** "No transcript found" explains the 1-minute fix
+  inline rather than just failing.
+
+Maps to standard references on progressive disclosure / progressive
+reduction (UXPin, IxDF, LogRocket) and the observation that template/preset
+flows out-adopt "powerful" timeline-first tools.
+
+## MOGRT integration (v0.3)
+
+Two template paths, both via `sequence.importMGT()`:
+
+1. **Installed templates.** `Folder.userData` resolves to the platform user
+   data root on both OSes, so installed Motion Graphics Templates live at
+   `<userData>/Adobe/Common/Motion Graphics Templates/` (plus an optional
+   `~/Documents/Adobe/Motion Graphics Templates/`). `CP_findInstalledMogrts`
+   recurses these (depth/count-capped), returns name + category + path, and
+   the panel groups them in a dropdown by folder.
+2. **File picker.** Any `.mogrt` the user points at — retained from v0.1 per
+   user request.
+
+After insertion, the host finds the template's first text-like property by
+display name and sets the line's words into it. Templates without an exposed
+text field still place (animation only); the panel reports that.
+
 ## Sources
 
 - [Adobe Developer Blog — UXP Arrives in Premiere (Dec 2025)](https://blog.developer.adobe.com/en/publish/2025/12/uxp-arrives-in-premiere-a-new-era-for-plugin-development)
@@ -139,3 +180,5 @@ words-per-cue, and an animation spec.
 - [Blitzcut — TikTok caption styles 2026](https://blitzcutai.com/blog/best-caption-style-tiktok) · [TikTok caption fonts](https://blitzcutai.com/blog/best-caption-fonts-tiktok)
 - [Poko — Best caption styles for marketing videos 2026](https://poko.video/blog/best-caption-styles-for-marketing-videos-2026-guide)
 - [FontMirror — Typography trends in short-form video](https://www.fontmirror.com/en/typography-trends-shaping-short-form-ai-video-content/)
+- [Adobe — Install Motion Graphics templates in Premiere](https://helpx.adobe.com/premiere/desktop/add-text-images/use-motion-graphics-templates/install-motion-graphics-templates.html)
+- [UXPin — What is Progressive Disclosure in UX (2026)](https://www.uxpin.com/studio/blog/what-is-progressive-disclosure/) · [IxDF — Progressive Disclosure](https://ixdf.org/literature/topics/progressive-disclosure) · [LogRocket — Progressive disclosure types & use cases](https://blog.logrocket.com/ux-design/progressive-disclosure-ux-types-use-cases/)

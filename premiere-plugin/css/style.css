@@ -267,6 +267,34 @@ input:focus, select:focus { outline: none; border-color: var(--accent); }
 .style-card .s-name { font-size: 10.5px; font-weight: 700; }
 .style-card .s-sub { font-size: 8.5px; color: var(--dim); }
 
+/* ----------------------------------------------------- mode picker --- */
+.mode-picker { display: flex; gap: 7px; margin-bottom: 4px; }
+.mode-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 11px 4px 9px;
+  background: var(--card2);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  color: var(--fg);
+  cursor: pointer;
+  transition: border-color .15s, transform .12s, background .15s;
+}
+.mode-card:hover { transform: translateY(-2px); }
+.mode-card.on { border-color: var(--accent); background: var(--grad-soft); box-shadow: 0 0 0 2px rgba(139, 92, 246, .2); }
+.mode-card .mode-ico { font-size: 18px; line-height: 1.1; }
+.mode-card .mode-name { font-size: 12px; font-weight: 700; }
+.mode-card .mode-sub { font-size: 8.5px; color: var(--dim); text-align: center; line-height: 1.25; }
+
+.mode-panel { margin-top: 12px; animation: cp-rise .2s ease; }
+@keyframes cp-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.seg-control.sub { margin: 0 0 10px; }
+#tpl-select { margin: 0; }
+
 .anim-label { font-size: 10.5px; color: var(--dim); font-weight: 600; margin: 4px 0 6px; }
 .anim-rail { display: flex; flex-wrap: wrap; gap: 6px; }
 .anim-chip {

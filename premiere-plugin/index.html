@@ -46,14 +46,69 @@
     <div class="card">
       <div class="step-head">
         <span class="step-num">2</span>
-        <span class="step-title">Style</span>
-        <span id="engine-badge" class="badge"></span>
+        <span class="step-title">Pick a look</span>
       </div>
-      <div id="style-rail" class="style-rail"></div>
-      <div class="anim-label">Animation</div>
-      <div id="anim-rail" class="anim-rail"></div>
+
+      <div class="mode-picker" id="cap-mode">
+        <button class="mode-card on" data-mode="animated">
+          <span class="mode-ico">✦</span>
+          <span class="mode-name">Animated</span>
+          <span class="mode-sub">Trendy, auto-styled</span>
+        </button>
+        <button class="mode-card" data-mode="template">
+          <span class="mode-ico">🎬</span>
+          <span class="mode-name">Template</span>
+          <span class="mode-sub">Your Premiere MOGRTs</span>
+        </button>
+        <button class="mode-card" data-mode="native">
+          <span class="mode-ico">📝</span>
+          <span class="mode-name">Plain</span>
+          <span class="mode-sub">Editable text</span>
+        </button>
+      </div>
+
+      <!-- Animated: CutPilot's own engine -->
+      <div class="mode-panel" id="mode-animated">
+        <div class="anim-label">Style</div>
+        <div id="style-rail" class="style-rail"></div>
+        <div class="anim-label">Animation</div>
+        <div id="anim-rail" class="anim-rail"></div>
+      </div>
+
+      <!-- Template: MOGRT (installed picker OR file) -->
+      <div class="mode-panel hidden" id="mode-template">
+        <div class="seg-control sub" id="tpl-source">
+          <button data-src="installed" class="on">Installed in Premiere</button>
+          <button data-src="file">From a file</button>
+        </div>
+        <div id="tpl-installed">
+          <div class="row tight">
+            <select id="tpl-select"><option>scanning…</option></select>
+            <button id="btn-tpl-rescan" class="chip-btn" title="Rescan installed templates">↻</button>
+          </div>
+          <p class="hint" id="tpl-installed-hint">CutPilot reuses any animated caption
+             template already installed in your Premiere — it adds one per line and
+             types in the words.</p>
+        </div>
+        <div id="tpl-file" class="hidden">
+          <div class="row tight">
+            <button id="btn-tpl-pick" class="chip-btn">Choose .mogrt file…</button>
+            <span id="tpl-file-name" class="dim">none chosen</span>
+          </div>
+          <p class="hint">Pick any Motion Graphics Template with a text field — great for
+             a custom animation you downloaded or made yourself.</p>
+        </div>
+      </div>
+
+      <!-- Plain: native caption track -->
+      <div class="mode-panel hidden" id="mode-native">
+        <p class="hint">Adds a normal caption track you can re-type any time in
+           Premiere's Text panel. Set the font once in Essential Graphics and save it
+           as a Track Style to reuse it forever.</p>
+      </div>
+
       <details class="advanced">
-        <summary>Advanced</summary>
+        <summary>Fine-tune</summary>
         <div class="grid2">
           <label>Words at a time
             <input type="number" id="cap-words" value="1" min="0" max="8">
@@ -70,15 +125,8 @@
             <input type="number" id="cap-ypos" value="76" min="10" max="95">
           </label>
         </div>
-        <label>Caption engine
-          <select id="cap-engine">
-            <option value="animated">Animated (CutPilot engine — recommended)</option>
-            <option value="native">Native caption track (editable text)</option>
-          </select>
-        </label>
-        <p class="hint">Text size 0 = use the style's default. Native captions are
-           editable in Premiere but carry timing + casing only (style them once
-           as a Track Style).</p>
+        <p class="hint">Words at a time: 1 = the word-by-word pop look, 0 = full lines.
+           Text size 0 keeps the style's default. (Size & position apply to Animated.)</p>
       </details>
     </div>
 
@@ -188,7 +236,7 @@
       <label class="check"><input type="checkbox" id="set-dropframe"> Drop-frame timecode (29.97 / 59.94)</label>
       <button id="btn-save-settings" class="hero-btn small">Save settings</button>
     </div>
-    <p class="hint center">CutPilot v0.2 · silence cutting · multicam · trend captions</p>
+    <p class="hint center">CutPilot v0.3 · silence cutting · multicam · trend captions</p>
   </section>
 
   <footer><div id="log" class="log"></div></footer>
