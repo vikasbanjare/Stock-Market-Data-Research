@@ -492,20 +492,28 @@
   }
 
   // ----------------------------------------------- MOGRT card action sheet ----
+  function syncMsWords() {
+    var w = parseInt($('c-words').value, 10) || 0;
+    var target = (w === 0) ? 0 : (w >= 2 ? 3 : 1);
+    var wb = document.querySelectorAll('#ms-words button');
+    for (var i = 0; i < wb.length; i++) wb[i].classList.toggle('on', parseInt(wb[i].dataset.w, 10) === target);
+  }
+
   function openMogrtSheet(t) {
     state.selectedMogrt = { path: t.path, name: t.name };
     $('ms-name').textContent = t.name;
     $('ms-inspect-out').classList.add('hidden');
+    syncMsWords();
     $('mogrt-sheet').classList.remove('hidden');
   }
 
   function wireMogrtSheet() {
+    // these buttons drive the SAME words-per-caption value as the editor stepper
     var wb = document.querySelectorAll('#ms-words button');
     for (var i = 0; i < wb.length; i++) {
       wb[i].addEventListener('click', function () {
-        document.querySelector('#ms-words button.on').classList.remove('on');
-        this.classList.add('on');
-        state.mogrtWords = parseInt(this.dataset.w, 10) || 0;
+        setWordCount(parseInt(this.dataset.w, 10) || 0);
+        syncMsWords();
       });
     }
     $('ms-close').addEventListener('click', function () { $('mogrt-sheet').classList.add('hidden'); });
@@ -1130,7 +1138,7 @@
   function applyMogrtWithPath(mogrtPath, btn) {
     var cues;
     try { cues = readSelectedTranscript(); } catch (e) { return toast(e.message, true); }
-    var words = (state.mogrtWords != null) ? state.mogrtWords : (parseInt($('c-words').value, 10) || 0);
+    var words = parseInt($('c-words').value, 10) || 0;   // the one Words-per-caption stepper
     var tcues = textCues(cues, words, $('c-upper').checked);
     if (tcues.length > 400 &&
         !confirm(tcues.length + ' graphics will be added (one per line). Continue?')) return;
