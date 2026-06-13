@@ -325,7 +325,49 @@
     { id: 'paper', name: 'Paper II', category: 'Education', popularity: 75, layout: 'bottom', keyword: true,
       font: 'Inter', fallbackFonts: ['Helvetica', 'Arial'],
       fontSize: 58, fill: '#1A1A1A', highlight: '#1A1A1A', boxColor: '#FFFFFF', boxRadius: 8, stroke: null, strokeWidth: 0,
-      uppercase: false, wordsPerCue: 2, anim: 'pop' }
+      uppercase: false, wordsPerCue: 2, anim: 'pop' },
+
+    // --- Captions.ai signature looks (recreated from the gallery) ---
+    { id: 'prism', name: 'Prism Pro', category: 'Bold Creator', popularity: 96, layout: 'bottom', keyword: true,
+      font: 'Montserrat', fallbackFonts: ['Inter', 'Arial Black'],
+      fontSize: 74, fill: '#FFFFFF', highlight: '#FFD400', stroke: '#000000', strokeWidth: 7,
+      uppercase: false, wordsPerCue: 0, anim: 'pop' },
+    { id: 'evo', name: 'Evo', category: 'Bold Creator', popularity: 88, layout: 'bottom', keyword: true, highlightScale: 1.1,
+      font: 'Poppins', fallbackFonts: ['Inter', 'Arial'],
+      fontSize: 66, fill: '#FFFFFF', highlight: '#FFD400', stroke: '#000000', strokeWidth: 5,
+      uppercase: false, wordsPerCue: 0, anim: 'pop' },
+    { id: 'stack', name: 'Stack', category: 'Bold Creator', popularity: 84, layout: 'bottom', keyword: true,
+      font: 'Inter', fallbackFonts: ['Helvetica', 'Arial'],
+      fontSize: 60, fill: '#FFFFFF', highlight: '#FF4D6D', stroke: '#000000', strokeWidth: 4,
+      uppercase: false, wordsPerCue: 0, anim: 'fade' },
+    { id: 'kai', name: 'Kai', category: 'Social Growth', popularity: 86, layout: 'bottom', keyword: false,
+      font: 'Archivo Black', fallbackFonts: ['Montserrat', 'Arial Black'],
+      fontSize: 80, fill: '#FF2D9B', highlight: '#FFFFFF', stroke: '#000000', strokeWidth: 8,
+      uppercase: true, wordsPerCue: 1, anim: 'pop' },
+    { id: 'y2k', name: 'Y2K', category: 'Gaming Stream', popularity: 81, layout: 'center', keyword: false,
+      font: 'Verdana', fallbackFonts: ['Tahoma', 'Arial'],
+      fontSize: 54, fill: '#FFFFFF', highlight: '#00F0FF', boxColor: '#141414', boxRadius: 4, stroke: null, strokeWidth: 0,
+      letterSpacing: 1, uppercase: false, wordsPerCue: 0, anim: 'glitch' },
+    { id: 'elevate', name: 'Elevate', category: 'Cinematic', popularity: 77, layout: 'center', keyword: false,
+      font: 'Georgia', fallbackFonts: ['Times New Roman', 'serif'],
+      fontSize: 60, fill: '#F3ECE0', highlight: '#D9B36A', stroke: null, strokeWidth: 0,
+      letterSpacing: 1, uppercase: false, wordsPerCue: 0, anim: 'fade' },
+    { id: 'sketch', name: 'Sketch', category: 'Storytelling', popularity: 74, layout: 'center', keyword: false,
+      font: 'Bradley Hand', fallbackFonts: ['Comic Sans MS', 'cursive'],
+      fontSize: 64, fill: '#FFFFFF', highlight: '#FFE53B', stroke: '#000000', strokeWidth: 4,
+      uppercase: false, wordsPerCue: 0, anim: 'fade' },
+    { id: 'bloom', name: 'Bloom', category: 'Storytelling', popularity: 71, layout: 'center', keyword: false,
+      font: 'Georgia', fallbackFonts: ['serif'],
+      fontSize: 58, fill: '#FFF3E9', highlight: '#E6A0B0', stroke: null, strokeWidth: 0,
+      letterSpacing: 1, uppercase: false, wordsPerCue: 0, anim: 'fade' },
+    { id: 'linen', name: 'Linen', category: 'Minimal Professional', popularity: 73, layout: 'bottom', keyword: false,
+      font: 'Georgia', fallbackFonts: ['Times New Roman', 'serif'],
+      fontSize: 54, fill: '#FFFFFF', highlight: '#C9A36A', stroke: null, strokeWidth: 0,
+      letterSpacing: 1, uppercase: false, wordsPerCue: 0, anim: 'fade' },
+    { id: 'sonnet', name: 'Sonnet', category: 'Storytelling', popularity: 67, layout: 'center', keyword: false,
+      font: 'Georgia', fallbackFonts: ['Times New Roman', 'serif'],
+      fontSize: 48, fill: '#EFE8DF', highlight: '#CBB68B', stroke: null, strokeWidth: 0,
+      letterSpacing: 1, uppercase: false, wordsPerCue: 0, anim: 'fade' }
   ];
 
   /* The full catalog the library browses (base + extras). */
@@ -343,7 +385,8 @@
   var FONTS = [
     'Montserrat', 'Anton', 'Bebas Neue', 'Poppins', 'Inter', 'Oswald',
     'Archivo Black', 'Impact', 'Arial Black', 'Roboto', 'Helvetica',
-    'Futura', 'Georgia', 'Verdana', 'JetBrains Mono', 'Courier New'
+    'Futura', 'Georgia', 'Times New Roman', 'Verdana', 'Tahoma',
+    'Bradley Hand', 'Comic Sans MS', 'JetBrains Mono', 'Courier New'
   ];
 
   /*
