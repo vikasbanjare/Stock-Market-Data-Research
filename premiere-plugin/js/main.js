@@ -22,7 +22,14 @@
     mcMode: 'rotate',
     tplSource: 'installed',  // installed | file
     installedMogrts: [],
-    mogrtFile: null
+    mogrtFile: null,
+    // template library
+    customTemplates: [],
+    favs: {},
+    recent: [],
+    libCategory: 'All',
+    libSearch: '',
+    libSort: 'popular'
   };
 
   var settings = loadSettings();
@@ -96,13 +103,15 @@
   function boot() {
     $('set-ffmpeg').value = settings.ffmpegPath || '';
     $('set-dropframe').checked = !!settings.dropFrame;
+    loadLibraryPrefs();
     buildFontSelect();
-    buildStyleRail();
     buildAnimRail();
     wireCustomizer();
     wireTranscriptBar();
     wireAltMode();
-    applyPresetToControls(currentPreset());  // seeds controls + first preview
+    wireSubviews();
+    buildLibrary();
+    applyTemplate(currentPreset(), { silent: true });  // seeds controls + first preview
 
     if (!CPBridge.isCEP()) {
       $('env-status').textContent = 'browser preview';
@@ -220,11 +229,168 @@
     return cues;
   }
 
-  // ===================================================== STYLE + CUSTOMIZER ==
-  function currentPreset() {
-    return CPCaptions.getPreset(state.presetId) || CPCaptions.STYLE_PRESETS[0];
+  // ===================================================== TEMPLATE LIBRARY ====
+  var LS = { fav: 'cutpilot.favs', recent: 'cutpilot.recent', custom: 'cutpilot.custom' };
+
+  function loadLibraryPrefs() {
+    try { state.favs = JSON.parse(localStorage.getItem(LS.fav)) || {}; } catch (e) { state.favs = {}; }
+    try { state.recent = JSON.parse(localStorage.getItem(LS.recent)) || []; } catch (e2) { state.recent = []; }
+    try { state.customTemplates = JSON.parse(localStorage.getItem(LS.custom)) || []; } catch (e3) { state.customTemplates = []; }
+  }
+  function saveFavs() { localStorage.setItem(LS.fav, JSON.stringify(state.favs)); }
+  function saveRecent() { localStorage.setItem(LS.recent, JSON.stringify(state.recent.slice(0, 12))); }
+  function saveCustom() { localStorage.setItem(LS.custom, JSON.stringify(state.customTemplates)); }
+
+  /* All templates = built-ins + the user's saved custom ones. */
+  function allTemplates() { return CPCaptions.TEMPLATES.concat(state.customTemplates); }
+
+  function findTemplate(id) {
+    var all = allTemplates();
+    for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
+    return CPCaptions.TEMPLATES[0];
   }
 
+  function currentPreset() { return findTemplate(state.presetId); }
+
+  function buildLibrary() {
+    // niche suggester
+    var nsel = $('lib-niche');
+    CPCaptions.NICHES.forEach(function (n) {
+      var o = document.createElement('option'); o.value = n; o.textContent = n; nsel.appendChild(o);
+    });
+    nsel.addEventListener('change', function () {
+      var id = CPCaptions.NICHE_RECOMMEND[this.value];
+      if (id) { applyTemplate(findTemplate(id)); toast('Suggested "' + findTemplate(id).name + '" for ' + this.value + '.'); }
+      this.value = '';
+    });
+
+    // category chips
+    var cats = ['All', 'Favorites', 'Recent', 'My Templates'].concat(CPCaptions.CATEGORIES);
+    var chipBox = $('lib-cats');
+    cats.forEach(function (c) {
+      var chip = document.createElement('button');
+      chip.className = 'cat-chip' + (c === state.libCategory ? ' on' : '');
+      chip.textContent = c;
+      chip.addEventListener('click', function () {
+        state.libCategory = c;
+        var on = chipBox.querySelector('.cat-chip.on'); if (on) on.classList.remove('on');
+        chip.classList.add('on');
+        renderTemplateGrid();
+      });
+      chipBox.appendChild(chip);
+    });
+
+    $('lib-search').addEventListener('input', function () { state.libSearch = this.value.toLowerCase(); renderTemplateGrid(); });
+    $('lib-sort').addEventListener('change', function () { state.libSort = this.value; renderTemplateGrid(); });
+    $('btn-tpl-import').addEventListener('click', importTemplate);
+    renderTemplateGrid();
+  }
+
+  function filteredTemplates() {
+    var list = allTemplates().slice();
+    var cat = state.libCategory;
+    if (cat === 'Favorites') list = list.filter(function (t) { return state.favs[t.id]; });
+    else if (cat === 'Recent') {
+      list = state.recent.map(findTemplate).filter(Boolean);
+    } else if (cat === 'My Templates') list = state.customTemplates.slice();
+    else if (cat !== 'All') list = list.filter(function (t) { return t.category === cat; });
+
+    if (state.libSearch) {
+      var q = state.libSearch;
+      list = list.filter(function (t) {
+        return (t.name + ' ' + t.category + ' ' + t.font + ' ' + (t.anim || '')).toLowerCase().indexOf(q) >= 0;
+      });
+    }
+    if (state.libSort === 'popular' && cat !== 'Recent') list.sort(function (a, b) { return (b.popularity || 0) - (a.popularity || 0); });
+    else if (state.libSort === 'az') list.sort(function (a, b) { return a.name < b.name ? -1 : 1; });
+    else if (state.libSort === 'favorites') list.sort(function (a, b) { return (state.favs[b.id] ? 1 : 0) - (state.favs[a.id] ? 1 : 0); });
+    return list;
+  }
+
+  function renderTemplateGrid() {
+    var grid = $('tpl-grid');
+    grid.innerHTML = '';
+    var list = filteredTemplates();
+    if (!list.length) {
+      var e = document.createElement('div');
+      e.className = 'lib-empty';
+      e.textContent = state.libCategory === 'Favorites' ? 'No favorites yet — tap the ☆ on any template.'
+        : state.libCategory === 'My Templates' ? 'No custom templates yet. Open a style, tweak it, and hit ＋ Save.'
+        : 'No templates match your search.';
+      grid.appendChild(e);
+      return;
+    }
+    list.forEach(function (t) {
+      grid.appendChild(buildTemplateCard(t));
+    });
+  }
+
+  function buildTemplateCard(t) {
+    var card = document.createElement('div');
+    card.className = 'tpl-card' + (t.id === state.presetId ? ' on' : '');
+
+    var thumb = document.createElement('div');
+    thumb.className = 'tpl-thumb';
+    var cap = document.createElement('div');
+    cap.className = 't-cap';
+    var animId = CPCaptions.animIdForConcept(t.anim);
+    var def = CPCaptions.getAnimation(animId);
+    // cards only loop the keyframed entrances; framed ones (karaoke/typewriter) just fade
+    var demo = (def.kind === 'framed') ? 'anim-fade' : (def.demo || 'anim-fade');
+    // a 2-word sample so keyword highlight is visible
+    var w1 = t.uppercase ? 'BIG' : 'Big';
+    var w2 = t.uppercase ? 'IDEA' : 'idea';
+    cap.innerHTML = w1 + ' <span class="kwd">' + w2 + '</span>';
+    cap.style.fontFamily = '"' + t.font + '", ' + (t.fallbackFonts || []).join(', ') + ', sans-serif';
+    cap.style.color = t.fill;
+    if (t.letterSpacing) cap.style.letterSpacing = t.letterSpacing + 'px';
+    if (t.stroke && t.strokeWidth) {
+      cap.style.textShadow = '-1.5px -1.5px 0 ' + t.stroke + ',1.5px -1.5px 0 ' + t.stroke +
+        ',-1.5px 1.5px 0 ' + t.stroke + ',1.5px 1.5px 0 ' + t.stroke;
+    }
+    if (t.glow) cap.style.textShadow = '0 0 10px ' + t.glow;
+    if (t.boxColor) { cap.style.background = t.boxColor; cap.style.padding = '2px 8px'; cap.style.borderRadius = '6px'; }
+    var kwd = cap.querySelector('.kwd');
+    kwd.style.color = t.highlight || t.fill;
+    if (demo) cap.className = 't-cap ' + demo;
+    thumb.appendChild(cap);
+
+    var pop = document.createElement('span');
+    pop.className = 'tpl-pop';
+    pop.textContent = '🔥 ' + (t.popularity || 60);
+    thumb.appendChild(pop);
+
+    var fav = document.createElement('button');
+    fav.className = 'tpl-fav' + (state.favs[t.id] ? ' on' : '');
+    fav.textContent = state.favs[t.id] ? '★' : '☆';
+    fav.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      if (state.favs[t.id]) delete state.favs[t.id]; else state.favs[t.id] = 1;
+      saveFavs();
+      fav.classList.toggle('on');
+      fav.textContent = state.favs[t.id] ? '★' : '☆';
+      if (state.libCategory === 'Favorites') renderTemplateGrid();
+    });
+    thumb.appendChild(fav);
+    card.appendChild(thumb);
+
+    var meta = document.createElement('div');
+    meta.className = 'tpl-meta';
+    var nm = document.createElement('span'); nm.className = 'tpl-name'; nm.textContent = t.name;
+    var ct = document.createElement('span'); ct.className = 'tpl-cat'; ct.textContent = t.category;
+    meta.appendChild(nm); meta.appendChild(ct);
+    card.appendChild(meta);
+
+    card.addEventListener('click', function () { applyTemplate(t); showView('editor'); });
+    return card;
+  }
+
+  function trackRecent(id) {
+    state.recent = [id].concat(state.recent.filter(function (x) { return x !== id; }));
+    saveRecent();
+  }
+
+  // ----------------------------------------------------- editor controls ----
   function buildFontSelect() {
     var sel = $('c-font');
     CPCaptions.FONTS.forEach(function (f) {
@@ -250,17 +416,17 @@
     return (typeof c === 'string' && /^#[0-9a-fA-F]{6}$/.test(c)) ? c : (fb || '#ffffff');
   }
 
-  /* Load a preset into all customizer controls, then refresh the preview. */
-  function applyPresetToControls(p) {
+  /* Load a template into all customizer controls, refresh preview.
+     opts.silent skips the recent-tracking + toast (used on boot). */
+  function applyTemplate(p, opts) {
+    opts = opts || {};
     state.presetId = p.id;
-    var on = $('style-rail').querySelector('.style-card.on');
-    if (on) on.classList.remove('on');
-    var card = $('style-rail').querySelector('[data-id="' + p.id + '"]');
-    if (card) card.classList.add('on');
+    $('editor-tpl-name').textContent = p.name;
 
     setFontValue(p.font);
     $('c-size').value = p.fontSize;
-    $('c-pos').value = 76;
+    $('c-pos').value = (p.layout === 'top') ? 18 : (p.layout === 'center') ? 50 : 76;
+    setLayoutButton($('c-pos').value);
     $('c-fill').value = toHex(p.fill, '#ffffff');
     $('c-hl').value = toHex(p.highlight, '#ffd400');
     $('c-stroke').value = toHex(p.stroke, '#000000');
@@ -269,47 +435,18 @@
     $('c-box').value = toHex(p.boxColor, '#ff3b6b');
     $('c-upper').checked = !!p.uppercase;
     $('c-words').value = p.wordsPerCue;
-    selectAnim(CPCaptions.PRESET_ANIM_MAP[p.anim] || 'pop');
+    $('c-kw').checked = !!p.keyword;
+    $('c-kw-mode-wrap').classList.toggle('hidden', !p.keyword);
+    selectAnim(CPCaptions.animIdForConcept(p.anim));
     updateVals();
     renderPreview();
+
+    if (!opts.silent) { trackRecent(p.id); toast('Applied "' + p.name + '". Tweak it below, then Add captions.'); }
   }
 
-  function buildStyleRail() {
-    var rail = $('style-rail');
-    CPCaptions.STYLE_PRESETS.forEach(function (p) {
-      var card = document.createElement('div');
-      card.className = 'style-card' + (p.id === state.presetId ? ' on' : '');
-      card.dataset.id = p.id;
-
-      var demo = document.createElement('div');
-      demo.className = 'demo';
-      var word = document.createElement('span');
-      var animId = CPCaptions.PRESET_ANIM_MAP[p.anim] || 'pop';
-      var animDef = CPCaptions.getAnimation(animId);
-      if (animDef.demo) word.className = animDef.demo;
-      word.textContent = p.uppercase ? 'Aa' : 'Aa';
-      word.style.color = p.fill;
-      word.style.fontFamily = '"' + p.font + '", ' + (p.fallbackFonts || []).join(', ') + ', sans-serif';
-      if (p.stroke && p.strokeWidth) {
-        word.style.textShadow =
-          '-2px -2px 0 ' + p.stroke + ', 2px -2px 0 ' + p.stroke +
-          ', -2px 2px 0 ' + p.stroke + ', 2px 2px 0 ' + p.stroke;
-      }
-      if (p.boxColor) { word.style.background = p.boxColor; word.style.padding = '2px 8px'; word.style.borderRadius = '6px'; }
-      if (p.glow) word.style.textShadow = '0 0 10px ' + p.glow;
-      if (animId === 'karaoke' && p.highlight) word.style.setProperty('--sweep', p.highlight);
-      if (p.glow) word.style.setProperty('--glow', p.glow);
-      demo.appendChild(word);
-      card.appendChild(demo);
-
-      var name = document.createElement('div');
-      name.className = 's-name';
-      name.textContent = p.name;
-      card.appendChild(name);
-
-      card.addEventListener('click', function () { applyPresetToControls(p); });
-      rail.appendChild(card);
-    });
+  function setLayoutButton(pos) {
+    var btns = document.querySelectorAll('#c-layout button');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].dataset.pos === String(pos));
   }
 
   function buildAnimRail() {
@@ -341,12 +478,122 @@
 
   function wireCustomizer() {
     var ids = ['c-font', 'c-size', 'c-pos', 'c-fill', 'c-hl', 'c-stroke', 'c-box',
-               'c-strokew', 'c-box-on', 'c-upper', 'c-words'];
+               'c-strokew', 'c-box-on', 'c-upper', 'c-words', 'c-kw', 'c-kw-mode'];
     ids.forEach(function (id) {
       $(id).addEventListener('input', function () { updateVals(); renderPreview(); });
       $(id).addEventListener('change', function () { updateVals(); renderPreview(); });
     });
+    $('c-kw').addEventListener('change', function () {
+      $('c-kw-mode-wrap').classList.toggle('hidden', !this.checked);
+    });
+    // layout quick buttons set the position slider
+    var lay = document.querySelectorAll('#c-layout button');
+    for (var i = 0; i < lay.length; i++) {
+      lay[i].addEventListener('click', function () {
+        $('c-pos').value = this.dataset.pos;
+        setLayoutButton(this.dataset.pos);
+        updateVals(); renderPreview();
+      });
+    }
+    $('c-pos').addEventListener('input', function () { setLayoutButton(this.value); });
     $('btn-replay').addEventListener('click', renderPreview);
+  }
+
+  function readKeyword() {
+    return { on: $('c-kw').checked, mode: $('c-kw-mode').value };
+  }
+
+  // ----------------------------------------------------- sub-views / save ----
+  function showView(v) {
+    $('view-templates').classList.toggle('hidden', v !== 'templates');
+    $('view-editor').classList.toggle('hidden', v !== 'editor');
+    var btns = document.querySelectorAll('#cap-view button');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].dataset.view === v);
+    if (v === 'editor') renderPreview();
+    if (v === 'templates') renderTemplateGrid();
+  }
+
+  function wireSubviews() {
+    var btns = document.querySelectorAll('#cap-view button');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].addEventListener('click', function () { showView(this.dataset.view); });
+    }
+    $('btn-back-lib').addEventListener('click', function () { showView('templates'); });
+    $('btn-save-tpl').addEventListener('click', saveAsTemplate);
+    $('btn-dup-tpl').addEventListener('click', duplicateTemplate);
+    $('btn-export-tpl').addEventListener('click', exportTemplate);
+  }
+
+  /* Build a template object from the current customizer state. */
+  function styleFromControls(name, id) {
+    var o = readOverrides();
+    return {
+      id: id || ('custom-' + Date.now()),
+      name: name || 'My Template',
+      category: 'My Templates',
+      popularity: 50,
+      custom: true,
+      font: o.font, fallbackFonts: currentPreset().fallbackFonts || [],
+      fontSize: o.fontSize, fill: o.fill, highlight: o.highlight,
+      stroke: o.strokeWidth ? o.stroke : null, strokeWidth: o.strokeWidth,
+      boxColor: o.boxColor, boxRadius: currentPreset().boxRadius || 10,
+      glow: currentPreset().glow || null,
+      letterSpacing: currentPreset().letterSpacing || 0,
+      uppercase: o.uppercase,
+      layout: o.yPct <= 0.3 ? 'top' : o.yPct >= 0.66 ? 'bottom' : 'center',
+      keyword: $('c-kw').checked,
+      wordsPerCue: parseInt($('c-words').value, 10) || 0,
+      anim: state.animId
+    };
+  }
+
+  function saveAsTemplate() {
+    var name = prompt('Name this template:', currentPreset().name + ' Custom');
+    if (!name) return;
+    var tpl = styleFromControls(name);
+    state.customTemplates.push(tpl);
+    saveCustom();
+    state.presetId = tpl.id;
+    $('editor-tpl-name').textContent = tpl.name;
+    toast('Saved "' + name + '" to My Templates.');
+  }
+
+  function duplicateTemplate() {
+    var tpl = styleFromControls(currentPreset().name + ' Copy');
+    state.customTemplates.push(tpl);
+    saveCustom();
+    state.presetId = tpl.id;
+    $('editor-tpl-name').textContent = tpl.name;
+    toast('Duplicated as "' + tpl.name + '".');
+  }
+
+  function exportTemplate() {
+    var tpl = styleFromControls(currentPreset().name, currentPreset().id);
+    var json = JSON.stringify(tpl, null, 2);
+    try {
+      var p = nodeReq('path');
+      var out = p.join(nodeReq('os').homedir(), (tpl.name.replace(/[^\w]+/g, '_')) + '.cutpilot.json');
+      nodeReq('fs').writeFileSync(out, json, 'utf8');
+      toast('Exported to ' + out);
+    } catch (e) { toast('Export failed: ' + e.message, true); }
+  }
+
+  function importTemplate() {
+    var p = pickFile('Choose a CutPilot template (.json)', ['json']);
+    if (!p) return;
+    try {
+      var tpl = JSON.parse(nodeReq('fs').readFileSync(p, 'utf8'));
+      if (!tpl || !tpl.font) throw new Error('Not a CutPilot template file.');
+      tpl.id = 'custom-' + Date.now();
+      tpl.category = 'My Templates';
+      tpl.custom = true;
+      state.customTemplates.push(tpl);
+      saveCustom();
+      state.libCategory = 'My Templates';
+      var on = $('lib-cats').querySelector('.cat-chip.on'); if (on) on.classList.remove('on');
+      renderTemplateGrid();
+      toast('Imported "' + (tpl.name || 'template') + '".');
+    } catch (e) { toast('Import failed: ' + e.message, true); }
   }
 
   /* Read the customizer into an overrides object for mergeStyle / render. */
@@ -433,12 +680,18 @@
       typ();
       previewTimer = setInterval(typ, 480);
     } else {
-      cap.textContent = words === 1
-        ? (caps ? 'INSANE' : 'Insane')
-        : (caps ? 'THIS LOOKS INSANE' : 'This looks insane');
+      var kwOn = $('c-kw').checked;
+      if (words === 1) {
+        var oneWord = caps ? 'INSANE' : 'Insane';
+        cap.innerHTML = kwOn ? '<span style="color:' + st.highlight + '">' + oneWord + '</span>' : oneWord;
+      } else {
+        var ws = caps ? ['THIS', 'LOOKS', 'INSANE'] : ['This', 'looks', 'insane'];
+        cap.innerHTML = ws.map(function (word, i) {
+          return (i === 2 && kwOn) ? '<span style="color:' + st.highlight + '">' + word + '</span>' : word;
+        }).join(' ');
+      }
       if (anim !== 'none') {
-        // re-trigger the CSS animation
-        void cap.offsetWidth;
+        void cap.offsetWidth; // re-trigger the CSS animation
         cap.classList.add('pa-' + anim);
       }
     }
@@ -470,11 +723,12 @@
     var words = parseInt($('c-words').value, 10) || 0;
     var anim = state.animId;
 
-    var frames;
-    if (anim === 'karaoke') frames = CPCaptions.planKaraoke(cues, Math.max(2, words || 3));
-    else if (anim === 'typewriter') frames = CPCaptions.planTypewriter(cues);
-    else if (words > 0) frames = CPCaptions.explodeWords(cues, { wordsPerCue: words });
-    else frames = cues.map(function (c) { return { start: c.start, end: c.end, text: c.text }; });
+    var frames = CPCaptions.buildCaptionFrames(cues, {
+      anim: anim,
+      wordsPerCue: words,
+      uppercase: overrides.uppercase,
+      keyword: readKeyword()
+    });
 
     if (frames.length > 1500 &&
         !confirm(frames.length + ' caption frames will be rendered — that can take a few minutes. Continue?')) return;
@@ -539,7 +793,7 @@
       state.mogrtFile = p;
       $('tpl-file-name').textContent = p.split(/[\\/]/).pop();
     });
-    $('btn-alt-apply').addEventListener('click', applyTemplate);
+    $('btn-alt-apply').addEventListener('click', applyMogrtTemplate);
     $('btn-native-apply').addEventListener('click', applyNative);
   }
 
@@ -577,7 +831,7 @@
     });
   }
 
-  function applyTemplate() {
+  function applyMogrtTemplate() {
     var cues;
     try { cues = readSelectedTranscript(); } catch (e) { return toast(e.message, true); }
     var mogrtPath = null;

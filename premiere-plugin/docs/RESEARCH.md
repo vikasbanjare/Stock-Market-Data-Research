@@ -166,6 +166,38 @@ After insertion, the host finds the template's first text-like property by
 display name and sets the line's words into it. Templates without an exposed
 text field still place (animation only); the panel reports that.
 
+## Caption Template Library (v0.5)
+
+Modeled on the Captions.ai / Submagic template browser (visual cards of a
+clip + a distinct caption style, named Prism/Impact/Y2K/Chalk…). Built
+entirely on CutPilot's own render engine — no MOGRTs needed.
+
+- **Catalog**: 24+ templates (`CPCaptions.TEMPLATES`), each with full style
+  fields plus library metadata (`category`, `popularity`, `layout`,
+  `keyword`), spanning all ten requested categories (Bold Creator, Minimal
+  Professional, Dynamic Highlight, Social Growth, Podcast Pro, Storytelling,
+  Gaming Stream, Cinematic, Motivation, Education).
+- **Browser**: two sub-views (Templates / Editor). Cards show a looping
+  animated CSS preview, name, category, 🔥 popularity, ☆ favorite. Search
+  (name/category/font/animation), sort (Popular/Recent/Favorites/A–Z),
+  category chips, and an **✨ AI niche suggester** (`NICHE_RECOMMEND`).
+- **Custom templates**: build in the Editor → Save / Duplicate / Export /
+  Import. Persisted in `localStorage`; export/import as `.cutpilot.json`
+  (the practical, offline version of the "marketplace"; team/community
+  sharing would layer a backend on the same JSON schema).
+- **Keyword highlight engine** (`markKeywords`): flags numbers, capitalized
+  names, call-to-action words, and the strongest content word, rendered in
+  the highlight color per-word via `highlightSet` (the "more VIEWS?"
+  effect). Modes: Smart / Longest / Numbers / CTA / Names.
+- **Unified frame builder** (`buildCaptionFrames`): one tested entry point
+  turning cues → render frames for every animation, applying words-per-cue,
+  casing, and keyword highlighting.
+
+Design references: the user-supplied Captions.ai gallery screenshots, plus
+the Submagic style/animation conventions documented above. UX continues the
+progressive-disclosure approach: one-click apply from the gallery, full
+control in the Editor, advanced MOGRT/native paths collapsed.
+
 ## Sources
 
 - [Adobe Developer Blog — UXP Arrives in Premiere (Dec 2025)](https://blog.developer.adobe.com/en/publish/2025/12/uxp-arrives-in-premiere-a-new-era-for-plugin-development)

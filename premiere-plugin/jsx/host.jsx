@@ -562,6 +562,11 @@ function CP_animateClip(clip, anim) {
       { t: 0.0, v: 40 }, { t: 0.16, v: 100 }
     ]);
     CP_setKeys(opacity, base, [{ t: 0.0, v: 0 }, { t: 0.12, v: 100 }]);
+  } else if (anim === 'zoom') {
+    CP_setKeys(scale, base, [
+      { t: 0.0, v: 170 }, { t: 0.18, v: 100 }
+    ]);
+    CP_setKeys(opacity, base, [{ t: 0.0, v: 0 }, { t: 0.1, v: 100 }]);
   } else if (anim === 'wave') {
     CP_setKeys(pos, base, [
       { t: 0.0, v: [0.5, 0.52] }, { t: 0.1, v: [0.5, 0.488] },

@@ -224,6 +224,118 @@
     }
   ];
 
+  function uc(s) { return String(s).toUpperCase(); }
+
+  /* The ten library categories the browser groups templates into. */
+  var CATEGORIES = [
+    'Bold Creator', 'Minimal Professional', 'Dynamic Highlight', 'Social Growth',
+    'Podcast Pro', 'Storytelling', 'Gaming Stream', 'Cinematic', 'Motivation', 'Education'
+  ];
+
+  /* Library metadata for the nine base presets (category / popularity /
+     layout / keyword-highlight default). */
+  var _baseMeta = {
+    hormozi:        { category: 'Bold Creator',          popularity: 99, layout: 'bottom', keyword: true },
+    karaoke:        { category: 'Dynamic Highlight',     popularity: 95, layout: 'bottom', keyword: false },
+    'highlight-box':{ category: 'Social Growth',         popularity: 92, layout: 'bottom', keyword: true },
+    minimal:        { category: 'Minimal Professional',  popularity: 80, layout: 'bottom', keyword: false },
+    neon:           { category: 'Gaming Stream',         popularity: 88, layout: 'center', keyword: true },
+    typewriter:     { category: 'Storytelling',          popularity: 70, layout: 'center', keyword: false },
+    boldyellow:     { category: 'Motivation',            popularity: 90, layout: 'bottom', keyword: true },
+    cleanwhite:     { category: 'Minimal Professional',  popularity: 78, layout: 'bottom', keyword: false },
+    tvnews:         { category: 'Podcast Pro',           popularity: 65, layout: 'bottom', keyword: false }
+  };
+  for (var _i = 0; _i < STYLE_PRESETS.length; _i++) {
+    var _m = _baseMeta[STYLE_PRESETS[_i].id] || {};
+    STYLE_PRESETS[_i].category = _m.category || 'Bold Creator';
+    STYLE_PRESETS[_i].popularity = _m.popularity || 60;
+    STYLE_PRESETS[_i].layout = _m.layout || 'bottom';
+    STYLE_PRESETS[_i].keyword = !!_m.keyword;
+  }
+
+  /* Extra professionally-designed templates fleshing out every category.
+     Names echo the short-form template aesthetic (Impact, Volt, Chalk…). */
+  var MORE_TEMPLATES = [
+    { id: 'impact', name: 'Impact II', category: 'Bold Creator', popularity: 97, layout: 'bottom', keyword: true,
+      font: 'Anton', fallbackFonts: ['Bebas Neue', 'Impact', 'Arial Black'],
+      fontSize: 92, fill: '#FFFFFF', highlight: '#FFE53B', stroke: '#000000', strokeWidth: 13,
+      uppercase: true, wordsPerCue: 1, anim: 'pop' },
+    { id: 'prime', name: 'Prime', category: 'Bold Creator', popularity: 94, layout: 'center', keyword: true,
+      font: 'Archivo Black', fallbackFonts: ['Montserrat', 'Arial Black'],
+      fontSize: 86, fill: '#FFFFFF', highlight: '#7C5CFF', stroke: '#000000', strokeWidth: 10,
+      uppercase: true, wordsPerCue: 2, anim: 'zoom' },
+    { id: 'byline', name: 'Byline', category: 'Minimal Professional', popularity: 82, layout: 'bottom', keyword: false,
+      font: 'Inter', fallbackFonts: ['Helvetica Neue', 'Arial'],
+      fontSize: 50, fill: '#FFFFFF', highlight: '#9AD0FF', stroke: '#000000', strokeWidth: 3,
+      uppercase: false, wordsPerCue: 0, anim: 'fade' },
+    { id: 'magazine', name: 'Magazine', category: 'Minimal Professional', popularity: 74, layout: 'center', keyword: false,
+      font: 'Georgia', fallbackFonts: ['Times New Roman', 'serif'],
+      fontSize: 58, fill: '#F5F1E8', highlight: '#D9B36A', stroke: null, strokeWidth: 0,
+      letterSpacing: 1, uppercase: false, wordsPerCue: 0, anim: 'fade' },
+    { id: 'focus', name: 'Focus', category: 'Dynamic Highlight', popularity: 93, layout: 'bottom', keyword: true,
+      font: 'Poppins', fallbackFonts: ['Inter', 'Arial'],
+      fontSize: 66, fill: '#FFFFFF', highlight: '#FF3B6B', boxColor: '#FF3B6B', boxRadius: 12, stroke: null, strokeWidth: 0,
+      uppercase: false, wordsPerCue: 3, anim: 'bounce' },
+    { id: 'volt', name: 'Volt', category: 'Dynamic Highlight', popularity: 91, layout: 'bottom', keyword: true,
+      font: 'Bebas Neue', fallbackFonts: ['Anton', 'Impact'],
+      fontSize: 82, fill: '#FFFFFF', highlight: '#39FF14', stroke: '#000000', strokeWidth: 8,
+      uppercase: true, wordsPerCue: 3, anim: 'pop' },
+    { id: 'rocket', name: 'Rocket', category: 'Social Growth', popularity: 90, layout: 'bottom', keyword: true,
+      font: 'Montserrat', fallbackFonts: ['Inter', 'Arial Black'],
+      fontSize: 70, fill: '#FFFFFF', highlight: '#FFFFFF', boxColor: '#FF2D7E', boxRadius: 14, stroke: null, strokeWidth: 0,
+      uppercase: true, wordsPerCue: 2, anim: 'bounce' },
+    { id: 'mars', name: 'Mars', category: 'Social Growth', popularity: 87, layout: 'bottom', keyword: true,
+      font: 'Inter', fallbackFonts: ['Helvetica', 'Arial'],
+      fontSize: 64, fill: '#111111', highlight: '#111111', boxColor: '#FFE53B', boxRadius: 10, stroke: null, strokeWidth: 0,
+      uppercase: false, wordsPerCue: 2, anim: 'pop' },
+    { id: 'lift', name: 'Lift', category: 'Podcast Pro', popularity: 76, layout: 'bottom', keyword: false,
+      font: 'Inter', fallbackFonts: ['Helvetica Neue', 'Arial'],
+      fontSize: 52, fill: '#FFFFFF', highlight: '#5CC8FF', stroke: '#000000', strokeWidth: 4,
+      uppercase: false, wordsPerCue: 0, anim: 'slide' },
+    { id: 'lumen', name: 'Lumen', category: 'Storytelling', popularity: 72, layout: 'center', keyword: false,
+      font: 'Georgia', fallbackFonts: ['Times New Roman', 'serif'],
+      fontSize: 56, fill: '#F3EEE6', highlight: '#E0C189', stroke: null, strokeWidth: 0,
+      uppercase: false, wordsPerCue: 0, anim: 'fade' },
+    { id: 'ember', name: 'Ember', category: 'Storytelling', popularity: 68, layout: 'center', keyword: false,
+      font: 'Georgia', fallbackFonts: ['serif'],
+      fontSize: 54, fill: '#FFE9D6', highlight: '#FF9E5A', stroke: '#1a1a1a', strokeWidth: 2,
+      uppercase: false, wordsPerCue: 0, anim: 'fade' },
+    { id: 'rebel', name: 'Rebel', category: 'Gaming Stream', popularity: 85, layout: 'center', keyword: true,
+      font: 'Bebas Neue', fallbackFonts: ['Anton', 'Impact'],
+      fontSize: 84, fill: '#C6FF00', highlight: '#FFFFFF', stroke: '#000000', strokeWidth: 9, glow: '#C6FF00',
+      uppercase: true, wordsPerCue: 1, anim: 'shake' },
+    { id: 'cinema', name: 'Cinematic', category: 'Cinematic', popularity: 79, layout: 'bottom', keyword: false,
+      font: 'Futura', fallbackFonts: ['Oswald', 'Helvetica'],
+      fontSize: 44, fill: '#EDEDED', highlight: '#EDEDED', stroke: null, strokeWidth: 0,
+      letterSpacing: 4, uppercase: true, wordsPerCue: 0, anim: 'fade' },
+    { id: 'align', name: 'Align', category: 'Cinematic', popularity: 71, layout: 'center', keyword: false,
+      font: 'JetBrains Mono', fallbackFonts: ['Courier New', 'monospace'],
+      fontSize: 40, fill: '#FFFFFF', highlight: '#9AD0FF', stroke: null, strokeWidth: 0,
+      letterSpacing: 6, uppercase: true, wordsPerCue: 0, anim: 'fade' },
+    { id: 'grind', name: 'Grind', category: 'Motivation', popularity: 89, layout: 'bottom', keyword: true,
+      font: 'Anton', fallbackFonts: ['Bebas Neue', 'Impact'],
+      fontSize: 90, fill: '#FFFFFF', highlight: '#FFD400', stroke: '#000000', strokeWidth: 12,
+      uppercase: true, wordsPerCue: 1, anim: 'scale' },
+    { id: 'chalk', name: 'Chalk', category: 'Education', popularity: 73, layout: 'bottom', keyword: true,
+      font: 'Bradley Hand', fallbackFonts: ['Comic Sans MS', 'cursive'],
+      fontSize: 64, fill: '#FFFFFF', highlight: '#FFE53B', stroke: '#000000', strokeWidth: 5,
+      uppercase: false, wordsPerCue: 2, anim: 'wave' },
+    { id: 'paper', name: 'Paper II', category: 'Education', popularity: 75, layout: 'bottom', keyword: true,
+      font: 'Inter', fallbackFonts: ['Helvetica', 'Arial'],
+      fontSize: 58, fill: '#1A1A1A', highlight: '#1A1A1A', boxColor: '#FFFFFF', boxRadius: 8, stroke: null, strokeWidth: 0,
+      uppercase: false, wordsPerCue: 2, anim: 'pop' }
+  ];
+
+  /* The full catalog the library browses (base + extras). */
+  var TEMPLATES = STYLE_PRESETS.concat(MORE_TEMPLATES);
+
+  /* Niche → recommended template id (the "AI Caption Styling" suggester). */
+  var NICHE_RECOMMEND = {
+    Podcast: 'lift', Business: 'byline', Finance: 'minimal', Education: 'paper',
+    Fitness: 'grind', Motivation: 'boldyellow', Gaming: 'neon', Tech: 'align', Vlog: 'cleanwhite'
+  };
+  var NICHES = ['Podcast', 'Business', 'Finance', 'Education', 'Fitness', 'Motivation', 'Gaming', 'Tech', 'Vlog'];
+
   /* Curated font list for the customizer. First fallback keeps it readable
      if the chosen face is not installed on the editing machine. */
   var FONTS = [
@@ -251,6 +363,7 @@
       boxColor: (o.boxColor !== undefined) ? o.boxColor : (preset.boxColor || null),
       boxRadius: (o.boxRadius != null) ? o.boxRadius : (preset.boxRadius || 10),
       glow: (o.glow !== undefined) ? o.glow : (preset.glow || null),
+      letterSpacing: (o.letterSpacing != null) ? o.letterSpacing : (preset.letterSpacing || 0),
       uppercase: (o.uppercase != null) ? o.uppercase : !!preset.uppercase,
       yPct: (o.yPct != null) ? o.yPct : 0.76
     };
@@ -265,6 +378,7 @@
   var ANIMATIONS = [
     { id: 'pop',        name: 'Pop',        kind: 'keyframed', demo: 'anim-pop',    description: 'Word scales in with a punchy overshoot' },
     { id: 'scale',      name: 'Scale',      kind: 'keyframed', demo: 'anim-scale',  description: 'Smooth grow-in, no overshoot' },
+    { id: 'zoom',       name: 'Zoom',       kind: 'keyframed', demo: 'anim-zoom',   description: 'Zooms in from oversized to settle' },
     { id: 'bounce',     name: 'Bounce',     kind: 'keyframed', demo: 'anim-bounce', description: 'Drops in and settles with a bounce' },
     { id: 'slide',      name: 'Slide up',   kind: 'keyframed', demo: 'anim-slide',  description: 'Rises from below while fading in' },
     { id: 'wave',       name: 'Wave',       kind: 'keyframed', demo: 'anim-wave',   description: 'Gentle vertical wave on entry' },
@@ -327,11 +441,117 @@
   }
 
   function getPreset(id) {
-    for (var i = 0; i < STYLE_PRESETS.length; i++) {
-      if (STYLE_PRESETS[i].id === id) return STYLE_PRESETS[i];
+    for (var i = 0; i < TEMPLATES.length; i++) {
+      if (TEMPLATES[i].id === id) return TEMPLATES[i];
     }
     return null;
   }
+
+  /* Resolve a template's `anim` (which may be a concept name like
+     'pop-scale' or a direct engine id like 'zoom') to a real animation id. */
+  function animIdForConcept(concept) {
+    if (PRESET_ANIM_MAP[concept]) return PRESET_ANIM_MAP[concept];
+    if (getAnimation(concept).id === concept) return concept;
+    return 'pop';
+  }
+
+  // ----------------------------------------------- keyword highlight engine --
+  var CTA_WORDS = {
+    subscribe: 1, follow: 1, like: 1, share: 1, comment: 1, now: 1, free: 1,
+    today: 1, new: 1, watch: 1, click: 1, save: 1, join: 1, download: 1,
+    limited: 1, secret: 1, proven: 1, instantly: 1, guaranteed: 1, never: 1,
+    best: 1, viral: 1, money: 1, growth: 1, results: 1, win: 1, stop: 1, start: 1
+  };
+  var STOP_WORDS = {
+    the: 1, a: 1, an: 1, and: 1, or: 1, but: 1, of: 1, to: 1, in: 1, on: 1,
+    for: 1, is: 1, are: 1, was: 1, it: 1, this: 1, that: 1, with: 1, as: 1,
+    at: 1, by: 1, be: 1, you: 1, your: 1, i: 1, we: 1, they: 1, he: 1, she: 1,
+    my: 1, me: 1, so: 1, if: 1, do: 1, not: 1, can: 1, will: 1, just: 1
+  };
+
+  function _clean(w) { return String(w).replace(/[^A-Za-z0-9$%']/g, ''); }
+
+  /*
+   * Decide which words in a list to highlight.
+   * opts.mode: 'smart' (numbers + CTAs + capitalized names + the longest
+   * content word), 'numbers', 'cta', 'names', 'keywords' (longest words),
+   * 'all'. Returns a boolean[] aligned to `words`. Pure + tested.
+   */
+  function markKeywords(words, opts) {
+    opts = opts || {};
+    var mode = opts.mode || 'smart';
+    var flags = [];
+    var i, w, clean, lc;
+    for (i = 0; i < words.length; i++) flags.push(false);
+    if (mode === 'all') { for (i = 0; i < words.length; i++) flags[i] = true; return flags; }
+
+    var longestIdx = -1, longestLen = 0;
+    for (i = 0; i < words.length; i++) {
+      w = words[i]; clean = _clean(w); lc = clean.toLowerCase();
+      var hasNum = /\d/.test(w);
+      var isCta = !!CTA_WORDS[lc];
+      var isName = /^[A-Z][a-z]{2,}$/.test(clean) && i > 0;
+      var isContent = clean.length >= 4 && !STOP_WORDS[lc];
+
+      if (mode === 'numbers' && hasNum) flags[i] = true;
+      else if (mode === 'cta' && isCta) flags[i] = true;
+      else if (mode === 'names' && isName) flags[i] = true;
+      else if (mode === 'keywords' && isContent && clean.length > longestLen) { longestLen = clean.length; longestIdx = i; }
+      else if (mode === 'smart') {
+        if (hasNum || isCta || isName) flags[i] = true;
+        else if (isContent && clean.length > longestLen) { longestLen = clean.length; longestIdx = i; }
+      }
+    }
+    if ((mode === 'keywords' || mode === 'smart') && longestIdx >= 0) flags[longestIdx] = true;
+    return flags;
+  }
+
+  /*
+   * Single entry point that turns cues into render-ready frames for any
+   * animation, applying words-per-cue, casing, and keyword highlighting.
+   * opts: { anim, wordsPerCue, uppercase, keyword:{on,mode} }
+   * Frame shapes:
+   *   keyframed/word/line -> { start, end, words:[...], highlightSet:[bool] }
+   *   karaoke             -> { start, end, words:[...], active, highlightSet }
+   *   typewriter          -> { start, end, text }
+   * Pure + tested.
+   */
+  function buildCaptionFrames(cues, opts) {
+    opts = opts || {};
+    var anim = opts.anim || 'pop';
+    var wpc = opts.wordsPerCue || 0;
+    var up = !!opts.uppercase;
+    var kw = opts.keyword || {};
+    var i, f, frames;
+
+    if (anim === 'karaoke') {
+      frames = planKaraoke(cues, Math.max(2, wpc || 3));
+      for (i = 0; i < frames.length; i++) {
+        f = frames[i];
+        if (up) f.words = f.words.map(uc);
+        if (kw.on) f.highlightSet = markKeywords(f.words, kw);
+      }
+      return frames;
+    }
+    if (anim === 'typewriter') {
+      frames = planTypewriter(cues);
+      if (up) for (i = 0; i < frames.length; i++) frames[i].text = frames[i].text.toUpperCase();
+      return frames;
+    }
+
+    var src = (wpc > 0)
+      ? explodeWords(cues, { wordsPerCue: wpc, uppercase: up })
+      : cues.map(function (c) { return { start: c.start, end: c.end, text: up ? c.text.toUpperCase() : c.text }; });
+
+    return src.map(function (c) {
+      var words = c.text.replace(/\s+/g, ' ').trim().split(' ');
+      if (up) words = words.map(uc);
+      var frame = { start: c.start, end: c.end, words: words };
+      if (kw.on) frame.highlightSet = markKeywords(words, kw);
+      return frame;
+    });
+  }
+
 
   return {
     srtTimeToSeconds: srtTimeToSeconds,
@@ -341,13 +561,20 @@
     explodeWords: explodeWords,
     remapCuesToKeeps: remapCuesToKeeps,
     STYLE_PRESETS: STYLE_PRESETS,
+    TEMPLATES: TEMPLATES,
+    CATEGORIES: CATEGORIES,
+    NICHES: NICHES,
+    NICHE_RECOMMEND: NICHE_RECOMMEND,
     getPreset: getPreset,
+    animIdForConcept: animIdForConcept,
     FONTS: FONTS,
     mergeStyle: mergeStyle,
     ANIMATIONS: ANIMATIONS,
     getAnimation: getAnimation,
     PRESET_ANIM_MAP: PRESET_ANIM_MAP,
     planKaraoke: planKaraoke,
-    planTypewriter: planTypewriter
+    planTypewriter: planTypewriter,
+    markKeywords: markKeywords,
+    buildCaptionFrames: buildCaptionFrames
   };
 });

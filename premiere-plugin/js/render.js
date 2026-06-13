@@ -53,6 +53,7 @@
       boxColor: box,
       boxRadius: Math.round(((o.boxRadius != null ? o.boxRadius : preset.boxRadius) || 10) * scale),
       glow: (o.glow !== undefined) ? o.glow : (preset.glow || null),
+      letterSpacing: Math.round(((o.letterSpacing != null ? o.letterSpacing : (preset.letterSpacing || 0))) * scale),
       uppercase: o.uppercase != null ? o.uppercase : preset.uppercase,
       yPct: o.yPct != null ? o.yPct : 0.76,
       maxWidthPct: 0.86,
@@ -82,6 +83,7 @@
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
     ctx.font = '900 ' + style.size + 'px "' + style.font + '", "' + style.fallbacks + '", sans-serif';
+    if (style.letterSpacing) { try { ctx.letterSpacing = style.letterSpacing + 'px'; } catch (eLS) {} }
 
     var words = frame.words ? frame.words.slice() : String(frame.text).split(' ');
     if (style.uppercase) {
@@ -114,7 +116,9 @@
 
       for (var wi = 0; wi < lineWords.length; wi++) {
         var word = lineWords[wi];
-        var isActive = frame.words != null && wordIndex === frame.active;
+        var isActive = frame.words != null &&
+          (wordIndex === frame.active ||
+           (frame.highlightSet && frame.highlightSet[wordIndex]));
 
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;

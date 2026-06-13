@@ -95,7 +95,31 @@ Restart Premiere and open **Window → Extensions → CutPilot**.
    review the per-segment angle list, then **Apply plan** — CutPilot
    enables the chosen camera and disables the others per segment.
 
-The Captions tab is a live caption studio, like Captions.ai / Submagic.
+The Captions tab is a caption template studio, like Captions.ai / Submagic.
+It has two sub-views — **📚 Templates** (a browsable library) and **🎨 Editor**
+(the live customizer).
+
+### Template library
+
+A grid of professionally designed templates (24+), each a visual card with a
+looping animated preview, name, category, 🔥 popularity, and a ☆ favorite
+toggle. Across ten categories: Bold Creator, Minimal Professional, Dynamic
+Highlight, Social Growth, Podcast Pro, Storytelling, Gaming Stream,
+Cinematic, Motivation, Education.
+
+- **Search** by style / color / industry / animation, and **sort** by
+  Popular / Recent / Favorites / A–Z.
+- **Category chips** (plus All, Favorites, Recent, My Templates).
+- **✨ Suggest for** — pick your niche (Podcast, Business, Finance,
+  Education, Fitness, Motivation, Gaming, Tech, Vlog) and CutPilot jumps to a
+  recommended template.
+- **Tap a card to apply** it — loads into the Editor in one click.
+- **Save / Duplicate / Export / Import** custom templates (＋ Save, ⧉, ⤴ in
+  the Editor; ⤓ Import in the library). Custom templates persist locally and
+  appear under **My Templates**; export/import are `.cutpilot.json` files for
+  sharing.
+
+### Editor (live customizer)
 
 **Live preview.** A 16:9 preview at the top shows your caption with the
 current style and animation, looping in real time. Everything you change
@@ -115,11 +139,15 @@ Bar) to load a starting look — then tweak it.
 
 **Customize (always visible).** Full control, just like the AI caption apps:
 - **Font** (curated trending list), **Size**, **Position** sliders
+- **Layout** quick buttons (Top / Center / Bottom)
 - **Text**, **Highlight**, **Outline**, **Box** color swatches
 - **Outline width** slider, **Box** on/off, **CAPS** on/off
 - **Words at a time** (1 = word-by-word pop, 0 = full lines)
-- **Animation**: Pop, Scale, Bounce, Slide up, Wave, Shake, Fade, Glitch,
-  Karaoke, Typewriter, None
+- **✨ Auto-highlight keywords** — automatically emphasizes the strongest
+  word, numbers, names, or call-to-action words in your chosen highlight
+  color (Smart / Longest word / Numbers / CTA / Names)
+- **Animation**: Pop, Scale, Zoom, Bounce, Slide up, Wave, Shake, Fade,
+  Glitch, Karaoke, Typewriter, None
 
 Then press **✨ Add captions**. The built-in engine renders every caption
 frame to a transparent PNG with your exact look and places it on a new top

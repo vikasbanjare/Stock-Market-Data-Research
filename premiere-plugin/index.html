@@ -21,81 +21,137 @@
   <!-- ============================== CAPTIONS ============================= -->
   <section id="tab-captions" class="tab-page active">
 
-    <!-- LIVE PREVIEW -->
-    <div class="preview-wrap">
-      <div class="preview-frame" id="preview-frame">
-        <div class="preview-caption" id="preview-caption">YOUR CAPTION</div>
-      </div>
-      <button id="btn-replay" class="replay-btn" title="Replay animation">▶</button>
+    <div class="subview-switch" id="cap-view">
+      <button data-view="templates" class="on">📚 Templates</button>
+      <button data-view="editor">🎨 Editor</button>
     </div>
 
-    <!-- TRANSCRIPT (single confirmed line) -->
-    <div class="tr-bar" id="tr-bar">
-      <span class="tr-ico" id="tr-ico">🔎</span>
-      <span class="tr-text" id="tr-text">looking for your words…</span>
-      <button class="link-btn" id="btn-tr-change">Change</button>
-    </div>
-    <div id="tr-help" class="help-box hidden">
-      <b>No transcript yet? Premiere writes one in about a minute:</b><br>
-      1 · Open <i>Window → Text</i> and click <b>Transcribe sequence</b><br>
-      2 · When done, open the <b>···</b> menu → <i>Export to SRT file</i><br>
-      3 · Save it <b>next to your video</b>, then tap <b>Find again</b>.
-      <div class="row tight">
-        <button id="btn-tr-again" class="chip-btn">↻ Find again</button>
-        <button id="btn-tr-pick" class="chip-btn">Choose a file…</button>
+    <!-- ===================== TEMPLATE LIBRARY (browser) ==================== -->
+    <div id="view-templates" class="subview">
+      <div class="lib-toolbar">
+        <input type="text" id="lib-search" placeholder="🔍 Search style, color, industry…">
+        <select id="lib-sort">
+          <option value="popular">Popular</option>
+          <option value="recent">Recent</option>
+          <option value="favorites">Favorites</option>
+          <option value="az">A–Z</option>
+        </select>
+      </div>
+      <div class="niche-row">
+        <span class="dim">✨ Suggest for</span>
+        <select id="lib-niche">
+          <option value="">choose your content…</option>
+        </select>
+      </div>
+      <div class="cat-chips" id="lib-cats"></div>
+      <div class="tpl-grid" id="tpl-grid"></div>
+      <div class="row tight" style="justify-content:center">
+        <button id="btn-tpl-import" class="chip-btn">⤓ Import template</button>
       </div>
     </div>
 
-    <!-- QUICK STYLES -->
-    <div class="section-label">Quick styles <span class="dim">— tap one, then tweak below</span></div>
-    <div id="style-rail" class="style-rail"></div>
+    <!-- ============================ EDITOR ================================= -->
+    <div id="view-editor" class="subview hidden">
 
-    <!-- CUSTOMIZER (always visible) -->
-    <div class="section-label">Customize</div>
-    <div class="customizer">
-      <label class="full">Font
-        <select id="c-font"></select>
-      </label>
-
-      <div class="ctrl-row">
-        <label>Size <span class="val" id="c-size-val"></span>
-          <input type="range" id="c-size" min="32" max="160" value="90">
-        </label>
-        <label>Position <span class="val" id="c-pos-val"></span>
-          <input type="range" id="c-pos" min="10" max="92" value="76">
-        </label>
+      <div class="editor-head">
+        <button id="btn-back-lib" class="chip-btn">‹ Library</button>
+        <span class="editor-tpl-name" id="editor-tpl-name">Hormozi Bold</span>
+        <span class="spacer"></span>
+        <button id="btn-save-tpl" class="chip-btn" title="Save as custom template">＋ Save</button>
+        <button id="btn-dup-tpl" class="chip-btn" title="Duplicate">⧉</button>
+        <button id="btn-export-tpl" class="chip-btn" title="Export to file">⤴</button>
       </div>
 
-      <div class="swatches">
-        <label class="sw">Text<input type="color" id="c-fill" value="#ffffff"></label>
-        <label class="sw">Highlight<input type="color" id="c-hl" value="#ffd400"></label>
-        <label class="sw">Outline<input type="color" id="c-stroke" value="#000000"></label>
-        <label class="sw">Box<input type="color" id="c-box" value="#ff3b6b"></label>
+      <!-- LIVE PREVIEW -->
+      <div class="preview-wrap">
+        <div class="preview-frame" id="preview-frame">
+          <div class="preview-caption" id="preview-caption">YOUR CAPTION</div>
+        </div>
+        <button id="btn-replay" class="replay-btn" title="Replay animation">▶</button>
       </div>
 
-      <div class="ctrl-row">
-        <label>Outline width <span class="val" id="c-strokew-val"></span>
-          <input type="range" id="c-strokew" min="0" max="24" value="10">
-        </label>
-        <label class="toggles">
-          <span class="check"><input type="checkbox" id="c-box-on"> Box</span>
-          <span class="check"><input type="checkbox" id="c-upper" checked> CAPS</span>
-        </label>
+      <!-- TRANSCRIPT -->
+      <div class="tr-bar" id="tr-bar">
+        <span class="tr-ico" id="tr-ico">🔎</span>
+        <span class="tr-text" id="tr-text">looking for your words…</span>
+        <button class="link-btn" id="btn-tr-change">Change</button>
+      </div>
+      <div id="tr-help" class="help-box hidden">
+        <b>No transcript yet? Premiere writes one in about a minute:</b><br>
+        1 · Open <i>Window → Text</i> and click <b>Transcribe sequence</b><br>
+        2 · When done, open the <b>···</b> menu → <i>Export to SRT file</i><br>
+        3 · Save it <b>next to your video</b>, then tap <b>Find again</b>.
+        <div class="row tight">
+          <button id="btn-tr-again" class="chip-btn">↻ Find again</button>
+          <button id="btn-tr-pick" class="chip-btn">Choose a file…</button>
+        </div>
       </div>
 
-      <div class="ctrl-row">
-        <label>Words at a time
-          <input type="number" id="c-words" min="0" max="8" value="1">
+      <!-- CUSTOMIZER -->
+      <div class="section-label">Customize</div>
+      <div class="customizer">
+        <label class="full">Font
+          <select id="c-font"></select>
         </label>
-        <label class="dim-note">1 = word-by-word · 0 = full lines</label>
+
+        <div class="ctrl-row">
+          <label>Size <span class="val" id="c-size-val"></span>
+            <input type="range" id="c-size" min="32" max="160" value="90">
+          </label>
+          <label>Position <span class="val" id="c-pos-val"></span>
+            <input type="range" id="c-pos" min="10" max="92" value="76">
+          </label>
+        </div>
+
+        <label>Layout
+          <div class="seg-control mini" id="c-layout">
+            <button data-pos="18">Top</button>
+            <button data-pos="50">Center</button>
+            <button data-pos="76" class="on">Bottom</button>
+          </div>
+        </label>
+
+        <div class="swatches">
+          <label class="sw">Text<input type="color" id="c-fill" value="#ffffff"></label>
+          <label class="sw">Highlight<input type="color" id="c-hl" value="#ffd400"></label>
+          <label class="sw">Outline<input type="color" id="c-stroke" value="#000000"></label>
+          <label class="sw">Box<input type="color" id="c-box" value="#ff3b6b"></label>
+        </div>
+
+        <div class="ctrl-row">
+          <label>Outline width <span class="val" id="c-strokew-val"></span>
+            <input type="range" id="c-strokew" min="0" max="24" value="10">
+          </label>
+          <label class="toggles">
+            <span class="check"><input type="checkbox" id="c-box-on"> Box</span>
+            <span class="check"><input type="checkbox" id="c-upper" checked> CAPS</span>
+          </label>
+        </div>
+
+        <div class="ctrl-row">
+          <label>Words at a time
+            <input type="number" id="c-words" min="0" max="8" value="1">
+          </label>
+          <label class="dim-note">1 = word-by-word · 0 = full lines</label>
+        </div>
+
+        <label class="check kw-toggle"><input type="checkbox" id="c-kw"> ✨ Auto-highlight keywords</label>
+        <label id="c-kw-mode-wrap" class="hidden">Highlight which words
+          <select id="c-kw-mode">
+            <option value="smart">Smart — numbers, names &amp; key words</option>
+            <option value="keywords">The strongest word</option>
+            <option value="numbers">Numbers</option>
+            <option value="cta">Call-to-action words</option>
+            <option value="names">Names</option>
+          </select>
+        </label>
+
+        <div class="section-label sub">Animation</div>
+        <div id="anim-rail" class="anim-rail"></div>
       </div>
 
-      <div class="section-label sub">Animation</div>
-      <div id="anim-rail" class="anim-rail"></div>
-    </div>
-
-    <button id="btn-magic" class="hero-btn">✨ Add captions</button>
-    <div id="cap-progress" class="progress hidden"></div>
+      <button id="btn-magic" class="hero-btn">✨ Add captions</button>
+      <div id="cap-progress" class="progress hidden"></div>
 
     <!-- ADVANCED: Premiere templates + plain track -->
     <details class="advanced">
@@ -135,6 +191,7 @@
         <button id="btn-native-apply" class="hero-btn small">Add plain caption track</button>
       </div>
     </details>
+    </div><!-- /view-editor -->
   </section>
 
   <!-- ============================== SMART CUT ============================ -->
@@ -239,7 +296,7 @@
       <label class="check"><input type="checkbox" id="set-dropframe"> Drop-frame timecode (29.97 / 59.94)</label>
       <button id="btn-save-settings" class="hero-btn small">Save settings</button>
     </div>
-    <p class="hint center">CutPilot v0.4 · silence cutting · multicam · caption studio</p>
+    <p class="hint center">CutPilot v0.5 · silence cutting · multicam · caption template studio</p>
   </section>
 
   <footer><div id="log" class="log"></div></footer>

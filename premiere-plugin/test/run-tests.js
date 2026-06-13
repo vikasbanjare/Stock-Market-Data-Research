@@ -187,6 +187,75 @@ console.log('render.js (pure layout helpers)');
          'uppercase override wins over preset');
 }
 
+// ------------------------------------------------- template library ----
+console.log('captions.js (template library)');
+{
+  assert(CPCaptions.TEMPLATES.length >= 24, 'catalog has 24+ templates');
+  // every template carries the library metadata the browser needs
+  CPCaptions.TEMPLATES.forEach(function (t) {
+    if (!t.category || t.popularity == null || !t.layout) {
+      assert(false, 'template "' + t.id + '" missing library metadata');
+    }
+  });
+  passed++; console.log('  ✓ every template has category/popularity/layout');
+
+  // every category is represented
+  const cats = {};
+  CPCaptions.TEMPLATES.forEach(function (t) { cats[t.category] = 1; });
+  assert(CPCaptions.CATEGORIES.every(function (c) { return cats[c]; }),
+         'all 10 categories have at least one template');
+
+  // niche recommendations resolve to real templates
+  assert(CPCaptions.NICHES.every(function (n) {
+    return !!CPCaptions.getPreset(CPCaptions.NICHE_RECOMMEND[n]);
+  }), 'every niche maps to a real template');
+
+  assert(CPCaptions.getPreset('impact').name === 'Impact II', 'getPreset finds new templates');
+  assert(CPCaptions.animIdForConcept('pop-scale') === 'pop', 'concept name resolves to engine id');
+  assert(CPCaptions.animIdForConcept('zoom') === 'zoom', 'direct engine id passes through');
+  assert(CPCaptions.animIdForConcept('bogus') === 'pop', 'unknown concept falls back to pop');
+  assert(CPCaptions.getAnimation('zoom').id === 'zoom', 'zoom animation exists');
+}
+
+// ------------------------------------------------- keyword highlight ----
+console.log('captions.js (keyword engine)');
+{
+  const mk = CPCaptions.markKeywords;
+  assert(JSON.stringify(mk(['Want', 'more', 'views'], { mode: 'keywords' })) === '[false,false,true]',
+         'keywords mode flags the longest content word');
+  assert(mk(['I', 'made', '5000', 'dollars'], { mode: 'numbers' })[2] === true,
+         'numbers mode flags numeric words');
+  assert(mk(['please', 'subscribe', 'now'], { mode: 'cta' })[1] === true,
+         'cta mode flags call-to-action words');
+  const smart = mk(['Meet', 'Sarah', 'today'], { mode: 'smart' });
+  assert(smart[1] === true, 'smart mode flags a capitalized name');
+  assert(mk(['a', 'b', 'c'], { mode: 'all' }).every(Boolean), 'all mode flags everything');
+  // smart always flags numbers
+  assert(mk(['get', '3', 'tips'], { mode: 'smart' })[1] === true, 'smart flags numbers too');
+}
+
+// ------------------------------------------------- buildCaptionFrames ----
+console.log('captions.js (buildCaptionFrames)');
+{
+  const cues = [{ start: 0, end: 4, text: 'get more views now' }];
+
+  const word = CPCaptions.buildCaptionFrames(cues, { anim: 'pop', wordsPerCue: 1, uppercase: true });
+  assert(word.length === 4 && word[0].words[0] === 'GET', 'word mode: one uppercase word per frame');
+
+  const line = CPCaptions.buildCaptionFrames(cues, { anim: 'fade', wordsPerCue: 0, uppercase: false });
+  assert(line.length === 1 && line[0].words.length === 4, 'line mode: one frame with all words');
+  assert(!line[0].highlightSet, 'no highlightSet when keyword off');
+
+  const kw = CPCaptions.buildCaptionFrames(cues, { anim: 'fade', wordsPerCue: 0, keyword: { on: true, mode: 'cta' } });
+  assert(kw[0].highlightSet && kw[0].highlightSet[3] === true, 'keyword on: CTA word "now" flagged in highlightSet');
+
+  const kara = CPCaptions.buildCaptionFrames(cues, { anim: 'karaoke', wordsPerCue: 2 });
+  assert(kara.length === 4 && kara[0].active === 0, 'karaoke mode produces active-word frames');
+
+  const tw = CPCaptions.buildCaptionFrames(cues, { anim: 'typewriter', uppercase: true });
+  assert(tw[tw.length - 1].text === 'GET MORE VIEWS NOW', 'typewriter mode accumulates uppercased text');
+}
+
 // ------------------------------------------------------------ multicam ----
 console.log('multicam.js');
 {
