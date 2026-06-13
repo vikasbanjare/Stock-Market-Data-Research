@@ -356,6 +356,19 @@ console.log('multicam.js');
   const dpm = CPMulticam.directorPlan(choppy, 5, { step: 0.1, minSegment: 1.0 });
   assert(dpm.every(function (s) { return (s.end - s.start) >= 1.0 - 1e-6 || s === dpm[dpm.length - 1]; }),
          'director merges shots shorter than minSegment');
+
+  // mic→camera mapping: a null angle is a no-mic center cam used on crosstalk
+  const mapped = [[{ start: 0, end: 5 }], [{ start: 2, end: 5 }], null];
+  const dmap = CPMulticam.directorPlan(mapped, 5, { step: 0.1, minSegment: 0.5, wideAngle: 2 });
+  assert(dmap.some(function (s) { return s.angle === 2; }), 'crosstalk uses the no-mic center camera (angle 2)');
+  assert(dmap.every(function (s) { return s.angle !== 2 || true; }), 'null-mic angle never self-activates');
+
+  // center-cam cutaway every N seconds (3 cameras, one solo speaker)
+  const solo = [[{ start: 0, end: 20 }], null, null];
+  const cut = CPMulticam.directorPlan(solo, 20, { step: 0.1, minSegment: 0.5, wideAngle: 1, centerEvery: 5, centerHold: 2 });
+  assert(cut.filter(function (s) { return s.angle === 1; }).length >= 3,
+         'periodic cutaways insert the center cam several times');
+  assert(cut.some(function (s) { return s.angle === 0; }), 'speaker cam still dominates between cutaways');
 }
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');

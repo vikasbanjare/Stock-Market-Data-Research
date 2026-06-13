@@ -288,14 +288,11 @@
 
       <!-- follow-the-speaker (FireCut-style) options -->
       <div id="mc-speaker-opts">
-        <label>Wide / group shot (when nobody or everybody talks)
-          <select id="mc-wide">
-            <option value="-1">None — hold the last camera</option>
-            <option value="0">V1</option><option value="1">V2</option>
-            <option value="2">V3</option><option value="3">V4</option>
-            <option value="4">V5</option><option value="5">V6</option>
-            <option value="6">V7</option><option value="7">V8</option>
-          </select>
+        <div class="map-label">Which mic is on each camera?</div>
+        <div id="mc-map"></div>
+        <label id="mc-center-wrap" class="hidden">Cut to the center cam every
+          <span class="val" id="mc-center-val">off</span>
+          <input type="range" id="mc-center" min="0" max="30" step="1" value="0">
         </label>
         <label>Min shot length (s) <span class="val" id="mc-minseg-val">1.2</span>
           <input type="range" id="mc-minseg" min="0.5" max="5" step="0.1" value="1.2">

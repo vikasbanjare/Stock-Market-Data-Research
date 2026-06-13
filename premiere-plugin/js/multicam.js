@@ -129,35 +129,56 @@
     opts = opts || {};
     var step = opts.step || 0.12;
     var minSeg = opts.minSegment != null ? opts.minSegment : 1.2;
-    var wide = (opts.wideAngle != null) ? opts.wideAngle : -1;
+    var wide = (opts.wideAngle != null) ? opts.wideAngle : -1; // center/wide cam index, -1 = none
+    var centerEvery = opts.centerEvery || 0;                   // cutaway interval (s), 0 = off
+    var centerHold = opts.centerHold || Math.max(minSeg, 1.5);
     var nA = speakerRegions.length;
     if (!(duration > 0) || nA === 0) return [];
 
+    // a camera mapped to null (no mic) is never "active" on its own audio
     function activeAt(regions, t) {
+      if (!regions) return false;
       for (var i = 0; i < regions.length; i++) {
         if (t >= regions[i].start - 1e-6 && t < regions[i].end - 1e-6) return true;
       }
       return false;
     }
 
+    var n = Math.ceil(duration / step);
+    var arr = new Array(n);
     var prev = (wide >= 0) ? wide : 0;
-    var segs = [];
-    for (var t = 0; t < duration - 1e-9; t += step) {
+    for (var s = 0; s < n; s++) {
+      var t = s * step;
       var actives = [];
       for (var a = 0; a < nA; a++) if (activeAt(speakerRegions[a], t)) actives.push(a);
       var angle;
-      if (actives.length === 1) angle = actives[0];
-      else if (actives.length > 1) angle = (wide >= 0) ? wide : prev;
-      else angle = (wide >= 0 && opts.wideOnSilence) ? wide : prev;
+      if (actives.length === 1) angle = actives[0];                       // one person talking → their cam
+      else if (actives.length > 1) angle = (wide >= 0) ? wide : prev;      // crosstalk → center/wide
+      else angle = (wide >= 0 && opts.wideOnSilence) ? wide : prev;        // silence → center or hold
+      arr[s] = angle;
       prev = angle;
-      var end = Math.min(duration, t + step);
-      if (segs.length && segs[segs.length - 1].angle === angle) segs[segs.length - 1].end = end;
-      else segs.push({ start: t, end: end, angle: angle });
     }
 
+    // periodic cutaways to the center/wide camera to break up long shots
+    if (wide >= 0 && centerEvery > 0) {
+      for (var c = centerEvery; c < duration; c += centerEvery) {
+        var s0 = Math.floor(c / step);
+        var s1 = Math.min(n, Math.floor((c + centerHold) / step));
+        for (var k = s0; k < s1; k++) arr[k] = wide;
+      }
+    }
+
+    // coalesce equal consecutive samples into shots
+    var segs = [];
+    for (s = 0; s < n; s++) {
+      var end = Math.min(duration, (s + 1) * step);
+      if (segs.length && segs[segs.length - 1].angle === arr[s]) segs[segs.length - 1].end = end;
+      else segs.push({ start: s * step, end: end, angle: arr[s] });
+    }
     // merge shots shorter than minSegment into the preceding shot
     var merged = [];
-    for (var i = 0; i < segs.length; i++) {
+    var i;
+    for (i = 0; i < segs.length; i++) {
       if (merged.length && (segs[i].end - segs[i].start) < minSeg) {
         merged[merged.length - 1].end = segs[i].end;
       } else {

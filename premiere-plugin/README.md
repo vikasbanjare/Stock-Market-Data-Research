@@ -92,10 +92,12 @@ Restart Premiere and open **Window → Extensions → CutPilot**.
 Stack each camera on its own video track (V1, V2, …), then pick **how to
 switch** — no Smart Cut required:
 
-- **🎙️ Follow the speaker** *(FireCut-style)* — one mic per camera
-  (V1↔A1, V2↔A2, …). CutPilot listens to each mic, works out who's speaking,
-  and cuts to that camera. Set a **Wide / group shot** for when nobody or
-  everybody talks, and a **Min shot length** so it never flickers.
+- **🎙️ Follow the speaker** *(FireCut-style)* — you **map each camera to its
+  mic** (V1 → A1, V2 → A2, …) right in the panel. CutPilot reads each mic's
+  waveform to find when that person is talking and cuts to their camera. Map
+  a camera to **Center / wide (no mic)** to use it during crosstalk and
+  silence, and dial **Cut to the center cam every N seconds** for automatic
+  cutaways that break up long shots. **Min shot length** stops flicker.
 - **🗣️ Switch on speech** — for **one main or mixed audio track** (any
   layout). Pick the **Main audio track**; CutPilot cuts to a new camera at
   each new sentence / talk burst, using your switching style below.

@@ -23,6 +23,10 @@
     tplSource: 'installed',  // installed | file
     installedMogrts: [],
     mogrtFile: null,
+    // multicam
+    mcAudioTracks: null,
+    mcAudioEnd: 0,
+    mcMap: null,
     // template library
     customTemplates: [],
     favs: {},
@@ -95,6 +99,11 @@
       if (this.dataset.tab === 'captions' && CPBridge.isCEP()) {
         if (!state.transcript) findTranscript();
         renderPreview();
+      }
+      if (this.dataset.tab === 'multicam' && CPBridge.isCEP()) {
+        // re-read the timeline's audio tracks in case it changed
+        state.mcAudioTracks = null; _mainTracksLoaded = false;
+        syncMcSource();
       }
     });
   }
@@ -1049,17 +1058,85 @@
     // the rotate/random pattern applies to everything except follow-the-speaker
     $('mc-pattern-opts').classList.toggle('hidden', src === 'follow');
     if (src === 'speech') populateMainTracks();
+    if (src === 'follow') renderMcMap();
   }
   $('mc-source').addEventListener('change', syncMcSource);
+  $('mc-angles').addEventListener('change', function () {
+    if ($('mc-source').value === 'follow') renderMcMap();
+  });
+  $('mc-center').addEventListener('input', function () {
+    $('mc-center-val').textContent = (parseInt(this.value, 10) || 0) === 0 ? 'off' : this.value + 's';
+  });
   syncMcSource();
+
+  // cache the timeline's audio tracks (the per-speaker mics)
+  function ensureAudioTracks() {
+    if (state.mcAudioTracks) return Promise.resolve(state.mcAudioTracks);
+    return CPBridge.callHost('CP_getAudioTracks').then(function (r) {
+      state.mcAudioTracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; });
+      state.mcAudioEnd = r.end || 0;
+      if (!state.mcAudioTracks.length) throw new Error('No audio on the timeline.');
+      return state.mcAudioTracks;
+    });
+  }
+
+  function syncCenterCtrl() {
+    var has = (state.mcMap || []).indexOf(-1) >= 0;
+    $('mc-center-wrap').classList.toggle('hidden', !has);
+  }
+
+  /* Render a "V1 mic: [A1 ▾]" row per camera so the user maps mics manually. */
+  function renderMcMap() {
+    ensureAudioTracks().then(function (tracks) {
+      var n = parseInt($('mc-angles').value, 10) || 2;
+      var box = $('mc-map');
+      box.innerHTML = '';
+      state.mcMap = state.mcMap || [];
+      for (var i = 0; i < n; i++) {
+        var row = document.createElement('div');
+        row.className = 'map-row';
+        var lab = document.createElement('span');
+        lab.className = 'map-cam';
+        lab.textContent = 'V' + (i + 1);
+        row.appendChild(lab);
+
+        var sel = document.createElement('select');
+        sel.dataset.angle = String(i);
+        tracks.forEach(function (t, ti) {
+          var o = document.createElement('option');
+          o.value = String(ti);
+          o.textContent = t.name || ('A' + (t.index + 1));
+          sel.appendChild(o);
+        });
+        var oc = document.createElement('option');
+        oc.value = '-1';
+        oc.textContent = 'Center / wide (no mic)';
+        sel.appendChild(oc);
+
+        var def = (state.mcMap[i] != null) ? state.mcMap[i] : (i < tracks.length ? i : -1);
+        sel.value = String(def);
+        state.mcMap[i] = def;
+        sel.addEventListener('change', function () {
+          state.mcMap[parseInt(this.dataset.angle, 10)] = parseInt(this.value, 10);
+          syncCenterCtrl();
+        });
+        row.appendChild(sel);
+        box.appendChild(row);
+      }
+      state.mcMap.length = n;
+      syncCenterCtrl();
+    }).catch(function (e) {
+      $('mc-map').innerHTML = '<p class="hint">' +
+        (CPBridge.isCEP() ? 'No audio tracks found yet. Add your audio, then reopen this tab.' :
+         'Open inside Premiere to map your mics.') + '</p>';
+    });
+  }
 
   var _mainTracksLoaded = false;
   function populateMainTracks() {
     if (_mainTracksLoaded) return;
-    CPBridge.callHost('CP_getAudioTracks').then(function (r) {
+    ensureAudioTracks().then(function (tracks) {
       var sel = $('mc-main-track');
-      var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; });
-      if (!tracks.length) return;
       sel.innerHTML = '';
       tracks.forEach(function (t, i) {
         var o = document.createElement('option');
@@ -1118,12 +1195,10 @@
   /* "Switch on speech": one main/mixed track → cut to a new camera at each
      new talk burst (sentence/pause boundary). Returns Promise of segments. */
   function mcSpeechBurstSegments() {
-    return CPBridge.callHost('CP_getAudioTracks').then(function (r) {
-      var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; });
-      if (!tracks.length) throw new Error('No audio on the timeline. Add your podcast audio first.');
+    return ensureAudioTracks().then(function (tracks) {
       var idx = parseInt($('mc-main-track').value, 10) || 0;
       var track = tracks[idx] || tracks[0];
-      var dur = r.end || (state.env && state.env.endSeconds) || 0;
+      var dur = state.mcAudioEnd || (state.env && state.env.endSeconds) || 0;
       capMcProgress('Listening to ' + (track.name || 'the main track') + '…');
       return analyzeSpeech(track).then(function (speech) {
         capMcProgress(null);
@@ -1136,22 +1211,36 @@
     });
   }
 
-  /* FireCut-style: cut to whoever is talking (a mic per camera). */
+  /* FireCut-style: cut to whoever is talking, using the manual mic→camera map.
+     A camera mapped to "Center / wide (no mic)" is used during crosstalk,
+     silence, and as a periodic cutaway. */
   function mcSpeakerPlan(numAngles) {
-    return CPBridge.callHost('CP_getAudioTracks').then(function (r) {
-      var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; }).slice(0, numAngles);
-      if (tracks.length < 2) {
-        throw new Error('"Follow the speaker" needs one mic per camera (A1, A2…) — found ' + tracks.length + '. Try "Switch on speech" for a single/mixed track.');
+    return ensureAudioTracks().then(function (tracks) {
+      var map = state.mcMap || [];
+      var dur = state.mcAudioEnd || (state.env && state.env.endSeconds) || 0;
+      var center = -1;
+      var jobs = [];
+      for (var i = 0; i < numAngles; i++) {
+        var mi = (map[i] != null) ? map[i] : (i < tracks.length ? i : -1);
+        if (mi < 0 || !tracks[mi]) { if (center < 0) center = i; jobs.push(Promise.resolve(null)); }
+        else jobs.push(analyzeSpeech(tracks[mi]));
       }
-      state.env = state.env || {};
-      var dur = r.end || state.env.endSeconds || 0;
-      capMcProgress('Listening to ' + tracks.length + ' mics…');
-      return Promise.all(tracks.map(analyzeSpeech)).then(function (regions) {
+      var micCams = jobs.length - jobs.filter(function (j, idx) {
+        var mi = (map[idx] != null) ? map[idx] : (idx < tracks.length ? idx : -1);
+        return mi < 0 || !tracks[mi];
+      }).length;
+      if (micCams < 1) throw new Error('Assign at least one camera to a mic (V1 → A1, …).');
+
+      capMcProgress('Listening to ' + micCams + ' mic' + (micCams > 1 ? 's' : '') + '…');
+      return Promise.all(jobs).then(function (regions) {
         capMcProgress(null);
+        var minSeg = parseFloat($('mc-minseg').value) || 1.2;
         return CPMulticam.directorPlan(regions, dur, {
-          minSegment: parseFloat($('mc-minseg').value) || 1.2,
-          wideAngle: parseInt($('mc-wide').value, 10),
-          wideOnSilence: false
+          minSegment: minSeg,
+          wideAngle: center,
+          wideOnSilence: center >= 0,
+          centerEvery: parseInt($('mc-center').value, 10) || 0,
+          centerHold: Math.max(1.2, minSeg)
         });
       });
     });
