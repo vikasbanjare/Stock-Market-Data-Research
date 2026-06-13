@@ -16,12 +16,10 @@
     keepsMedia: [],
     keepsSeq: [],
     plan: null,
-    sources: [],        // transcript candidates
-    sourceIdx: -1,
+    transcript: null,        // { label, path } — the one chosen transcript
     presetId: 'hormozi',
     animId: 'pop',
     mcMode: 'rotate',
-    capMode: 'animated',     // animated | template | native
     tplSource: 'installed',  // installed | file
     installedMogrts: [],
     mogrtFile: null
@@ -85,6 +83,12 @@
       document.querySelector('.tab-page.active').classList.remove('active');
       this.classList.add('active');
       $('tab-' + this.dataset.tab).classList.add('active');
+      // Re-check for a transcript when returning to Captions (e.g. after
+      // exporting one), and refresh the preview now the frame has a size.
+      if (this.dataset.tab === 'captions' && CPBridge.isCEP()) {
+        if (!state.transcript) findTranscript();
+        renderPreview();
+      }
     });
   }
 
@@ -92,14 +96,18 @@
   function boot() {
     $('set-ffmpeg').value = settings.ffmpegPath || '';
     $('set-dropframe').checked = !!settings.dropFrame;
+    buildFontSelect();
     buildStyleRail();
     buildAnimRail();
-    wireModePicker();
+    wireCustomizer();
+    wireTranscriptBar();
+    wireAltMode();
+    applyPresetToControls(currentPreset());  // seeds controls + first preview
 
     if (!CPBridge.isCEP()) {
       $('env-status').textContent = 'browser preview';
       $('env-status').className = 'env-status err';
-      renderSources();
+      setTranscriptBar('warn', '⚠️', 'Open this inside Premiere to find your transcript', 'How?');
       return;
     }
     CPBridge.callHost('CP_getEnv').then(function (env) {
@@ -110,11 +118,11 @@
       $('env-status').textContent = e.message;
       $('env-status').className = 'env-status err';
     });
-    scanTranscripts();
+    findTranscript();
   }
 
-  // ================================================== TRANSCRIPT FINDER ====
-  function listCaptionFilesIn(dir, sub) {
+  // ===================================================== TRANSCRIPT (1-line) ==
+  function listCaptionFilesIn(dir) {
     var out = [];
     try {
       var fs = nodeReq('fs');
@@ -125,102 +133,147 @@
           var full = pathMod.join(dir, names[i]);
           var mtime = 0;
           try { mtime = fs.statSync(full).mtimeMs; } catch (eS) {}
-          out.push({ label: names[i], sub: sub, path: full, mtime: mtime });
+          out.push({ label: names[i], path: full, mtime: mtime });
         }
       }
     } catch (e) {}
     return out;
   }
 
-  function scanTranscripts() {
-    $('tr-badge').textContent = 'searching…';
-    $('tr-badge').className = 'badge';
+  function setTranscriptBar(cls, ico, text, btn) {
+    $('tr-bar').className = 'tr-bar' + (cls ? ' ' + cls : '');
+    $('tr-ico').textContent = ico;
+    $('tr-text').textContent = text;
+    var b = $('btn-tr-change');
+    if (btn) { b.textContent = btn; b.classList.remove('hidden'); }
+    else b.classList.add('hidden');
+  }
+
+  /* Find the single best transcript and confirm it in the bar. */
+  function findTranscript() {
+    setTranscriptBar('', '🔎', 'looking for your words…', null);
     var found = [];
     var seen = {};
-    function add(src) {
-      var key = (src.path || '').toLowerCase();
-      if (key && seen[key]) return;
-      seen[key] = true;
-      found.push(src);
+    function add(s) {
+      var k = (s.path || '').toLowerCase();
+      if (!k || seen[k]) return; seen[k] = true; found.push(s);
     }
-
     var pathMod = null;
     try { pathMod = nodeReq('path'); } catch (e) {}
 
     CPBridge.callHost('CP_findProjectSrts').then(function (r) {
-      (r.items || []).forEach(function (it) {
-        add({ label: it.name, sub: 'already in your project', path: it.path, mtime: 1e15 });
-      });
+      (r.items || []).forEach(function (it) { add({ label: it.name, path: it.path, mtime: 1e15 }); });
       return CPBridge.callHost('CP_getSelectedClip').catch(function () { return null; });
     }).then(function (sel) {
       if (sel && sel.clip && sel.clip.mediaPath && pathMod) {
         var dir = pathMod.dirname(sel.clip.mediaPath);
         var base = pathMod.basename(sel.clip.mediaPath).replace(/\.[^.]+$/, '').toLowerCase();
-        listCaptionFilesIn(dir, 'next to your footage').forEach(function (s) {
-          if (s.label.toLowerCase().indexOf(base) === 0) s.mtime += 1e14; // same name first
+        listCaptionFilesIn(dir).forEach(function (s) {
+          if (s.label.toLowerCase().indexOf(base) === 0) s.mtime += 1e14;
           add(s);
         });
       }
       return CPBridge.callHost('CP_getProjectInfo').catch(function () { return null; });
     }).then(function (proj) {
-      if (proj && proj.path && pathMod) {
-        listCaptionFilesIn(pathMod.dirname(proj.path), 'next to your project').forEach(add);
-      }
+      if (proj && proj.path && pathMod) listCaptionFilesIn(pathMod.dirname(proj.path)).forEach(add);
       found.sort(function (a, b) { return b.mtime - a.mtime; });
-      state.sources = found;
-      state.sourceIdx = found.length ? 0 : -1;
-      renderSources();
+      if (found.length) {
+        state.transcript = found[0];
+        setTranscriptBar('ok', '✅', 'Using ' + found[0].label, 'Change');
+      } else {
+        state.transcript = null;
+        setTranscriptBar('warn', '⚠️', 'No transcript found yet', 'Get one →');
+      }
     }).catch(function () {
-      state.sources = [];
-      state.sourceIdx = -1;
-      renderSources();
+      state.transcript = null;
+      setTranscriptBar('warn', '⚠️', 'No transcript found yet', 'Get one →');
     });
   }
 
-  function renderSources() {
-    var box = $('tr-sources');
-    box.innerHTML = '';
-    if (!state.sources.length) {
-      $('tr-badge').textContent = 'none found yet';
-      $('tr-badge').className = 'badge warn';
-      var empty = document.createElement('div');
-      empty.className = 'source-empty';
-      empty.textContent = 'No transcript found. Premiere can make one for you — tap "How do I make one?" (takes ~1 minute), or choose a file.';
-      box.appendChild(empty);
-      return;
+  function wireTranscriptBar() {
+    $('btn-tr-change').addEventListener('click', function () {
+      if (state.transcript) {
+        var p = pickFile('Choose a caption file (.srt / .vtt)', ['srt', 'vtt']);
+        if (p) {
+          state.transcript = { label: p.split(/[\\/]/).pop(), path: p, mtime: 1e16 };
+          setTranscriptBar('ok', '✅', 'Using ' + state.transcript.label, 'Change');
+        }
+      } else {
+        $('tr-help').classList.toggle('hidden');
+      }
+    });
+    $('btn-tr-again').addEventListener('click', findTranscript);
+    $('btn-tr-pick').addEventListener('click', function () {
+      var p = pickFile('Choose a caption file (.srt / .vtt)', ['srt', 'vtt']);
+      if (!p) return;
+      state.transcript = { label: p.split(/[\\/]/).pop(), path: p, mtime: 1e16 };
+      setTranscriptBar('ok', '✅', 'Using ' + state.transcript.label, 'Change');
+      $('tr-help').classList.add('hidden');
+    });
+  }
+
+  function readSelectedTranscript() {
+    if (!state.transcript) throw new Error('No transcript yet — tap "Get one →" for the 1-minute steps.');
+    var text = nodeReq('fs').readFileSync(state.transcript.path, 'utf8');
+    var cues = CPCaptions.parseSRT(text);
+    if (!cues.length) throw new Error('No captions found inside ' + state.transcript.label);
+    return cues;
+  }
+
+  // ===================================================== STYLE + CUSTOMIZER ==
+  function currentPreset() {
+    return CPCaptions.getPreset(state.presetId) || CPCaptions.STYLE_PRESETS[0];
+  }
+
+  function buildFontSelect() {
+    var sel = $('c-font');
+    CPCaptions.FONTS.forEach(function (f) {
+      var o = document.createElement('option');
+      o.value = f; o.textContent = f; o.style.fontFamily = '"' + f + '", sans-serif';
+      sel.appendChild(o);
+    });
+  }
+
+  function setFontValue(font) {
+    var sel = $('c-font');
+    var has = false;
+    for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === font) has = true;
+    if (!has) {
+      var o = document.createElement('option');
+      o.value = font; o.textContent = font;
+      sel.insertBefore(o, sel.firstChild);
     }
-    $('tr-badge').textContent = state.sources.length + ' found';
-    $('tr-badge').className = 'badge ok';
-    state.sources.forEach(function (src, i) {
-      var el = document.createElement('div');
-      el.className = 'source-item' + (i === state.sourceIdx ? ' on' : '');
-      el.innerHTML =
-        '<span class="src-ico">📄</span>' +
-        '<span><div class="src-name"></div><div class="src-sub"></div></span>' +
-        '<span class="src-check">✓</span>';
-      el.querySelector('.src-name').textContent = src.label;
-      el.querySelector('.src-sub').textContent = src.sub;
-      el.addEventListener('click', function () {
-        state.sourceIdx = i;
-        renderSources();
-      });
-      box.appendChild(el);
-    });
+    sel.value = font;
   }
 
-  $('btn-tr-rescan').addEventListener('click', scanTranscripts);
-  $('btn-tr-help').addEventListener('click', function () {
-    $('tr-help').classList.toggle('hidden');
-  });
-  $('btn-tr-manual').addEventListener('click', function () {
-    var p = pickFile('Choose a caption file (.srt / .vtt)', ['srt', 'vtt']);
-    if (!p) return;
-    state.sources.unshift({ label: p.split(/[\\/]/).pop(), sub: 'chosen by you', path: p, mtime: 1e16 });
-    state.sourceIdx = 0;
-    renderSources();
-  });
+  function toHex(c, fb) {
+    return (typeof c === 'string' && /^#[0-9a-fA-F]{6}$/.test(c)) ? c : (fb || '#ffffff');
+  }
 
-  // ======================================================= STYLE PICKER ====
+  /* Load a preset into all customizer controls, then refresh the preview. */
+  function applyPresetToControls(p) {
+    state.presetId = p.id;
+    var on = $('style-rail').querySelector('.style-card.on');
+    if (on) on.classList.remove('on');
+    var card = $('style-rail').querySelector('[data-id="' + p.id + '"]');
+    if (card) card.classList.add('on');
+
+    setFontValue(p.font);
+    $('c-size').value = p.fontSize;
+    $('c-pos').value = 76;
+    $('c-fill').value = toHex(p.fill, '#ffffff');
+    $('c-hl').value = toHex(p.highlight, '#ffd400');
+    $('c-stroke').value = toHex(p.stroke, '#000000');
+    $('c-strokew').value = p.strokeWidth || 0;
+    $('c-box-on').checked = !!p.boxColor;
+    $('c-box').value = toHex(p.boxColor, '#ff3b6b');
+    $('c-upper').checked = !!p.uppercase;
+    $('c-words').value = p.wordsPerCue;
+    selectAnim(CPCaptions.PRESET_ANIM_MAP[p.anim] || 'pop');
+    updateVals();
+    renderPreview();
+  }
+
   function buildStyleRail() {
     var rail = $('style-rail');
     CPCaptions.STYLE_PRESETS.forEach(function (p) {
@@ -234,7 +287,7 @@
       var animId = CPCaptions.PRESET_ANIM_MAP[p.anim] || 'pop';
       var animDef = CPCaptions.getAnimation(animId);
       if (animDef.demo) word.className = animDef.demo;
-      word.textContent = p.uppercase ? 'POP' : 'Pop';
+      word.textContent = p.uppercase ? 'Aa' : 'Aa';
       word.style.color = p.fill;
       word.style.fontFamily = '"' + p.font + '", ' + (p.fallbackFonts || []).join(', ') + ', sans-serif';
       if (p.stroke && p.strokeWidth) {
@@ -253,21 +306,8 @@
       name.className = 's-name';
       name.textContent = p.name;
       card.appendChild(name);
-      var sub = document.createElement('div');
-      sub.className = 's-sub';
-      sub.textContent = p.font;
-      card.appendChild(sub);
 
-      card.addEventListener('click', function () {
-        state.presetId = p.id;
-        var on = rail.querySelector('.style-card.on');
-        if (on) on.classList.remove('on');
-        card.classList.add('on');
-        // preset carries its own defaults; user can still override below
-        $('cap-words').value = p.wordsPerCue;
-        $('cap-upper').checked = !!p.uppercase;
-        selectAnim(animId);
-      });
+      card.addEventListener('click', function () { applyPresetToControls(p); });
       rail.appendChild(card);
     });
   }
@@ -280,7 +320,7 @@
       chip.dataset.id = a.id;
       chip.textContent = a.name;
       chip.title = a.description;
-      chip.addEventListener('click', function () { selectAnim(a.id); });
+      chip.addEventListener('click', function () { selectAnim(a.id); renderPreview(); });
       rail.appendChild(chip);
     });
   }
@@ -293,14 +333,193 @@
     }
   }
 
-  // ======================================================= MODE PICKER ====
-  function wireModePicker() {
-    var cards = document.querySelectorAll('#cap-mode .mode-card');
-    for (var i = 0; i < cards.length; i++) {
-      cards[i].addEventListener('click', function () {
-        document.querySelector('#cap-mode .mode-card.on').classList.remove('on');
+  function updateVals() {
+    $('c-size-val').textContent = $('c-size').value;
+    $('c-pos-val').textContent = $('c-pos').value + '%';
+    $('c-strokew-val').textContent = $('c-strokew').value;
+  }
+
+  function wireCustomizer() {
+    var ids = ['c-font', 'c-size', 'c-pos', 'c-fill', 'c-hl', 'c-stroke', 'c-box',
+               'c-strokew', 'c-box-on', 'c-upper', 'c-words'];
+    ids.forEach(function (id) {
+      $(id).addEventListener('input', function () { updateVals(); renderPreview(); });
+      $(id).addEventListener('change', function () { updateVals(); renderPreview(); });
+    });
+    $('btn-replay').addEventListener('click', renderPreview);
+  }
+
+  /* Read the customizer into an overrides object for mergeStyle / render. */
+  function readOverrides() {
+    return {
+      font: $('c-font').value,
+      fontSize: parseInt($('c-size').value, 10),
+      yPct: parseInt($('c-pos').value, 10) / 100,
+      fill: $('c-fill').value,
+      highlight: $('c-hl').value,
+      stroke: $('c-stroke').value,
+      strokeWidth: parseInt($('c-strokew').value, 10),
+      boxColor: $('c-box-on').checked ? $('c-box').value : null,
+      uppercase: $('c-upper').checked
+    };
+  }
+
+  function fontStack(font, fallbacks) {
+    return '"' + font + '", "' + (fallbacks || []).join('", "') + '", sans-serif';
+  }
+
+  // --------------------------------------------------------- live preview ----
+  var previewTimer = null;
+  var SAMPLE = ['THIS', 'LOOKS', 'INSANE'];
+
+  function renderPreview() {
+    if (previewTimer) { clearInterval(previewTimer); previewTimer = null; }
+    var st = CPCaptions.mergeStyle(currentPreset(), readOverrides());
+    var cap = $('preview-caption');
+    var frame = $('preview-frame');
+    var frameH = frame.clientHeight || 168;
+    var px = Math.max(11, Math.round(st.fontSize * frameH / 1080));
+
+    cap.style.fontFamily = fontStack(st.font, st.fallbackFonts);
+    cap.style.fontSize = px + 'px';
+    cap.style.color = st.fill;
+    cap.style.top = Math.max(2, Math.round(st.yPct * frameH - px)) + 'px';
+
+    // outline / glow
+    var shadow = '';
+    if (st.stroke && st.strokeWidth) {
+      var sw = Math.max(1, Math.round(st.strokeWidth * frameH / 1080));
+      shadow = [-sw + 'px -' + sw + 'px 0 ' + st.stroke, sw + 'px -' + sw + 'px 0 ' + st.stroke,
+                '-' + sw + 'px ' + sw + 'px 0 ' + st.stroke, sw + 'px ' + sw + 'px 0 ' + st.stroke].join(', ');
+    }
+    if (st.glow) shadow = (shadow ? shadow + ', ' : '') + '0 0 ' + Math.round(px * 0.5) + 'px ' + st.glow;
+    cap.style.textShadow = shadow;
+
+    // background box
+    if (st.boxColor) {
+      cap.style.background = st.boxColor;
+      cap.style.borderRadius = Math.round((st.boxRadius || 10) * frameH / 1080) + 'px';
+      cap.style.padding = '2px ' + Math.round(px * 0.3) + 'px';
+    } else {
+      cap.style.background = 'transparent';
+      cap.style.padding = '2px 6px';
+    }
+
+    var anim = state.animId;
+    var words = parseInt($('c-words').value, 10) || 0;
+    var caps = st.uppercase;
+
+    // reset animation classes
+    cap.className = 'preview-caption';
+
+    if (anim === 'karaoke') {
+      var idx = 0;
+      var paint = function () {
+        cap.innerHTML = SAMPLE.map(function (word, i) {
+          var t = caps ? word.toUpperCase() : word.charAt(0) + word.slice(1).toLowerCase();
+          return i === idx ? '<span style="color:' + st.highlight + '">' + t + '</span>' : t;
+        }).join(' ');
+        idx = (idx + 1) % SAMPLE.length;
+      };
+      paint();
+      previewTimer = setInterval(paint, 520);
+    } else if (anim === 'typewriter') {
+      var full = SAMPLE.map(function (s) { return caps ? s : s.charAt(0) + s.slice(1).toLowerCase(); });
+      var n = 1;
+      var typ = function () {
+        cap.textContent = full.slice(0, n).join(' ');
+        n = n >= full.length ? 1 : n + 1;
+      };
+      typ();
+      previewTimer = setInterval(typ, 480);
+    } else {
+      cap.textContent = words === 1
+        ? (caps ? 'INSANE' : 'Insane')
+        : (caps ? 'THIS LOOKS INSANE' : 'This looks insane');
+      if (anim !== 'none') {
+        // re-trigger the CSS animation
+        void cap.offsetWidth;
+        cap.classList.add('pa-' + anim);
+      }
+    }
+  }
+
+  // ============================================================ ADD CAPTIONS ==
+  function capProgress(msg) {
+    var el = $('cap-progress');
+    if (msg == null) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    el.textContent = msg;
+  }
+
+  function textCues(cues, words, upper) {
+    if (words > 0) return CPCaptions.explodeWords(cues, { wordsPerCue: words, uppercase: upper });
+    if (upper) return cues.map(function (c) { return { start: c.start, end: c.end, text: c.text.toUpperCase() }; });
+    return cues;
+  }
+
+  // ---- main button: the animated engine ----
+  $('btn-magic').addEventListener('click', function () {
+    var cues;
+    try { cues = readSelectedTranscript(); }
+    catch (e) { return toast(e.message, true); }
+    if (!state.env) return toast('Open a sequence in Premiere first.', true);
+
+    var preset = currentPreset();
+    var overrides = readOverrides();
+    var words = parseInt($('c-words').value, 10) || 0;
+    var anim = state.animId;
+
+    var frames;
+    if (anim === 'karaoke') frames = CPCaptions.planKaraoke(cues, Math.max(2, words || 3));
+    else if (anim === 'typewriter') frames = CPCaptions.planTypewriter(cues);
+    else if (words > 0) frames = CPCaptions.explodeWords(cues, { wordsPerCue: words });
+    else frames = cues.map(function (c) { return { start: c.start, end: c.end, text: c.text }; });
+
+    if (frames.length > 1500 &&
+        !confirm(frames.length + ' caption frames will be rendered — that can take a few minutes. Continue?')) return;
+
+    var outDir;
+    try {
+      var pm = nodeReq('path');
+      outDir = pm.join(nodeReq('os').tmpdir(), 'cutpilot-frames-' + Date.now());
+    } catch (e) { return toast('Node unavailable: ' + e.message, true); }
+
+    $('btn-magic').disabled = true;
+    capProgress('Rendering 0 / ' + frames.length);
+    CPRender.renderFrames(frames, {
+      width: state.env.width || 1920,
+      height: state.env.height || 1080,
+      preset: preset,
+      overrides: overrides,
+      outDir: outDir,
+      onProgress: function (done, total) { capProgress('Rendering ' + done + ' / ' + total); }
+    }).then(function (items) {
+      capProgress('Placing ' + items.length + ' captions in your timeline');
+      return CPBridge.callHost('CP_placeCaptionImages', { items: items, anim: anim });
+    }).then(function (r) {
+      $('btn-magic').disabled = false;
+      capProgress(null);
+      toast('🎉 ' + r.placed + ' captions added on V' + r.track +
+            (r.animated ? ' with ' + CPCaptions.getAnimation(anim).name + ' animation' : ''));
+    }).catch(function (e) {
+      $('btn-magic').disabled = false;
+      capProgress(null);
+      toast('Captions failed: ' + e.message, true);
+    });
+  });
+
+  // ---- advanced: Premiere template / plain track ----
+  function wireAltMode() {
+    var modeBtns = document.querySelectorAll('#cap-altmode button');
+    for (var i = 0; i < modeBtns.length; i++) {
+      modeBtns[i].addEventListener('click', function () {
+        document.querySelector('#cap-altmode button.on').classList.remove('on');
         this.classList.add('on');
-        selectCapMode(this.dataset.mode);
+        var m = this.dataset.mode;
+        $('alt-template').classList.toggle('hidden', m !== 'template');
+        $('alt-native').classList.toggle('hidden', m !== 'native');
+        if (m === 'template' && !state.installedMogrts.length) scanInstalledMogrts();
       });
     }
     var subs = document.querySelectorAll('#tpl-source button');
@@ -320,14 +539,8 @@
       state.mogrtFile = p;
       $('tpl-file-name').textContent = p.split(/[\\/]/).pop();
     });
-  }
-
-  function selectCapMode(mode) {
-    state.capMode = mode;
-    $('mode-animated').classList.toggle('hidden', mode !== 'animated');
-    $('mode-template').classList.toggle('hidden', mode !== 'template');
-    $('mode-native').classList.toggle('hidden', mode !== 'native');
-    if (mode === 'template' && !state.installedMogrts.length) scanInstalledMogrts();
+    $('btn-alt-apply').addEventListener('click', applyTemplate);
+    $('btn-native-apply').addEventListener('click', applyNative);
   }
 
   function scanInstalledMogrts() {
@@ -337,14 +550,14 @@
       state.installedMogrts = r.items || [];
       sel.innerHTML = '';
       if (!state.installedMogrts.length) {
-        sel.innerHTML = '<option value="">No installed templates found</option>';
+        sel.innerHTML = '<option value="">No installed templates</option>';
         $('tpl-installed-hint').textContent =
-          'No templates installed yet. Add one in Premiere (Essential Graphics → ' +
-          'Install Motion Graphics Template), or use "From a file" — then tap ↻.';
+          'No Motion Graphics Templates are installed in Premiere yet. Install one ' +
+          '(Essential Graphics panel → Install Motion Graphics Template), or use "From a ' +
+          'file". Note: this lists Essential Graphics templates, not the Effects panel.';
         return;
       }
-      var lastCat = null;
-      var group = null;
+      var lastCat = null, group = null;
       state.installedMogrts.forEach(function (m, i) {
         if (m.category !== lastCat) {
           group = document.createElement('optgroup');
@@ -353,160 +566,66 @@
           lastCat = m.category;
         }
         var o = document.createElement('option');
-        o.value = String(i);
-        o.textContent = m.name;
+        o.value = String(i); o.textContent = m.name;
         group.appendChild(o);
       });
       $('tpl-installed-hint').textContent =
-        state.installedMogrts.length + ' templates found in your Premiere. ' +
-        'Pick one — CutPilot adds it per line and types in the words.';
+        state.installedMogrts.length + ' templates found in your Premiere.';
     }).catch(function (e) {
       sel.innerHTML = '<option value="">scan failed</option>';
       $('tpl-installed-hint').textContent = e.message;
     });
   }
 
-  function currentPreset() {
-    return CPCaptions.getPreset(state.presetId) || CPCaptions.STYLE_PRESETS[0];
-  }
-
-  // ===================================================== ADD CAPTIONS ====
-  function readSelectedTranscript() {
-    if (state.sourceIdx < 0) throw new Error('No transcript yet — hit Rescan or "How do I make one?"');
-    var src = state.sources[state.sourceIdx];
-    var text = nodeReq('fs').readFileSync(src.path, 'utf8');
-    var cues = CPCaptions.parseSRT(text);
-    if (!cues.length) throw new Error('No captions found inside ' + src.label);
-    return cues;
-  }
-
-  function capProgress(msg) {
-    var el = $('cap-progress');
-    if (msg == null) { el.classList.add('hidden'); return; }
-    el.classList.remove('hidden');
-    el.textContent = msg;
-  }
-
-  /* Apply words-at-a-time + casing to plain text cues (native + template). */
-  function textCues(cues, words, upper) {
-    if (words > 0) return CPCaptions.explodeWords(cues, { wordsPerCue: words, uppercase: upper });
-    if (upper) return cues.map(function (c) { return { start: c.start, end: c.end, text: c.text.toUpperCase() }; });
-    return cues;
-  }
-
-  $('btn-magic').addEventListener('click', function () {
+  function applyTemplate() {
     var cues;
-    try { cues = readSelectedTranscript(); }
-    catch (e) { return toast(e.message, true); }
-
-    var preset = currentPreset();
-    var words = parseInt($('cap-words').value, 10) || 0;
-    var upper = $('cap-upper').checked;
-
-    // -------- Plain: native, editable caption track --------
-    if (state.capMode === 'native') {
-      var ncues = textCues(cues, words, upper);
-      try {
-        var pathMod = nodeReq('path');
-        var out = pathMod.join(nodeReq('os').tmpdir(), 'cutpilot-' + Date.now() + '.srt');
-        nodeReq('fs').writeFileSync(out, CPCaptions.toSRT(ncues), 'utf8');
-        capProgress('Creating caption track');
-        CPBridge.callHost('CP_importSrtCaptions', { srtPath: out }).then(function () {
-          capProgress(null);
-          toast('✓ Caption track added (' + ncues.length + ' lines). Style it once in Essential Graphics: ' +
-                preset.font + ' ' + preset.fontSize + 'px, ' + preset.fill +
-                (preset.stroke ? ' + stroke ' + preset.stroke : ''));
-        }).catch(function (e) { capProgress(null); toast(e.message, true); });
-      } catch (e) { capProgress(null); toast(e.message, true); }
-      return;
-    }
-
-    // -------- Template: Premiere MOGRT (installed or file) --------
-    if (state.capMode === 'template') {
-      var mogrtPath = null;
-      if (state.tplSource === 'installed') {
-        var idx = parseInt($('tpl-select').value, 10);
-        if (isNaN(idx) || !state.installedMogrts[idx]) {
-          return toast('Pick an installed template, or switch to "From a file".', true);
-        }
-        mogrtPath = state.installedMogrts[idx].path;
-      } else {
-        if (!state.mogrtFile) return toast('Choose a .mogrt file first.', true);
-        mogrtPath = state.mogrtFile;
+    try { cues = readSelectedTranscript(); } catch (e) { return toast(e.message, true); }
+    var mogrtPath = null;
+    if (state.tplSource === 'installed') {
+      var idx = parseInt($('tpl-select').value, 10);
+      if (isNaN(idx) || !state.installedMogrts[idx]) {
+        return toast('Pick an installed template, or switch to "From a file".', true);
       }
-      var tcues = textCues(cues, words, upper);
-      if (tcues.length > 400 &&
-          !confirm(tcues.length + ' graphics will be added (one per line). Continue?')) return;
-      capProgress('Adding ' + tcues.length + ' template graphics');
-      $('btn-magic').disabled = true;
-      CPBridge.callHost('CP_insertMogrtCaptions', {
-        mogrtPath: mogrtPath, cues: tcues, videoTrack: null, audioTrack: 0
-      }).then(function (r) {
-        $('btn-magic').disabled = false;
-        capProgress(null);
-        toast('🎬 Added ' + r.inserted + ' template captions' +
-              (r.textSet ? ' (' + r.textSet + ' with text)' : '') +
-              (r.failed ? ' · ' + r.failed + ' failed' : '') +
-              (r.textSet === 0 && r.inserted ? ' — this template has no editable text field.' : ''),
-              r.inserted === 0);
-      }).catch(function (e) {
-        $('btn-magic').disabled = false;
-        capProgress(null);
-        toast(e.message, true);
-      });
-      return;
-    }
-
-    // -------- Animated: CutPilot's built-in engine --------
-    if (!state.env) return toast('Open a sequence in Premiere first.', true);
-    var anim = state.animId;
-    var frames;
-    if (anim === 'karaoke') {
-      frames = CPCaptions.planKaraoke(cues, Math.max(2, words || 3));
-    } else if (anim === 'typewriter') {
-      frames = CPCaptions.planTypewriter(cues);
-    } else if (words > 0) {
-      frames = CPCaptions.explodeWords(cues, { wordsPerCue: words });
+      mogrtPath = state.installedMogrts[idx].path;
     } else {
-      frames = cues.map(function (c) { return { start: c.start, end: c.end, text: c.text }; });
+      if (!state.mogrtFile) return toast('Choose a .mogrt file first.', true);
+      mogrtPath = state.mogrtFile;
     }
-    if (frames.length > 1500 &&
-        !confirm(frames.length + ' caption frames will be rendered — that can take a few minutes. Continue?')) return;
-
-    var sizeOverride = parseInt($('cap-size').value, 10) || 0;
-    var outDir;
-    try {
-      var pm = nodeReq('path');
-      outDir = pm.join(nodeReq('os').tmpdir(), 'cutpilot-frames-' + Date.now());
-    } catch (e) { return toast('Node unavailable: ' + e.message, true); }
-
-    $('btn-magic').disabled = true;
-    capProgress('Rendering 0 / ' + frames.length);
-    CPRender.renderFrames(frames, {
-      width: state.env.width || 1920,
-      height: state.env.height || 1080,
-      preset: preset,
-      overrides: {
-        uppercase: upper,
-        fontSize: sizeOverride || null,
-        yPct: (parseInt($('cap-ypos').value, 10) || 76) / 100
-      },
-      outDir: outDir,
-      onProgress: function (done, total) { capProgress('Rendering ' + done + ' / ' + total); }
-    }).then(function (items) {
-      capProgress('Placing ' + items.length + ' captions in your timeline');
-      return CPBridge.callHost('CP_placeCaptionImages', { items: items, anim: anim });
+    var tcues = textCues(cues, parseInt($('c-words').value, 10) || 0, $('c-upper').checked);
+    if (tcues.length > 400 &&
+        !confirm(tcues.length + ' graphics will be added (one per line). Continue?')) return;
+    capProgress('Adding ' + tcues.length + ' template graphics');
+    $('btn-alt-apply').disabled = true;
+    CPBridge.callHost('CP_insertMogrtCaptions', {
+      mogrtPath: mogrtPath, cues: tcues, videoTrack: null, audioTrack: 0
     }).then(function (r) {
-      $('btn-magic').disabled = false;
+      $('btn-alt-apply').disabled = false;
       capProgress(null);
-      toast('🎉 ' + r.placed + ' captions added on V' + r.track +
-            (r.animated ? ' with ' + CPCaptions.getAnimation(anim).name + ' animation' : ''));
-    }).catch(function (e) {
-      $('btn-magic').disabled = false;
-      capProgress(null);
-      toast('Captions failed: ' + e.message, true);
-    });
-  });
+      toast('🎬 Added ' + r.inserted + ' template captions' +
+            (r.failed ? ' · ' + r.failed + ' failed' : '') +
+            (r.textSet === 0 && r.inserted ? ' — this template has no editable text field.' : ''),
+            r.inserted === 0);
+    }).catch(function (e) { $('btn-alt-apply').disabled = false; capProgress(null); toast(e.message, true); });
+  }
+
+  function applyNative() {
+    var cues;
+    try { cues = readSelectedTranscript(); } catch (e) { return toast(e.message, true); }
+    var preset = currentPreset();
+    var ncues = textCues(cues, parseInt($('c-words').value, 10) || 0, $('c-upper').checked);
+    try {
+      var pathMod = nodeReq('path');
+      var out = pathMod.join(nodeReq('os').tmpdir(), 'cutpilot-' + Date.now() + '.srt');
+      nodeReq('fs').writeFileSync(out, CPCaptions.toSRT(ncues), 'utf8');
+      capProgress('Creating caption track');
+      CPBridge.callHost('CP_importSrtCaptions', { srtPath: out }).then(function () {
+        capProgress(null);
+        toast('✓ Caption track added (' + ncues.length + ' lines). Style it once in Essential ' +
+              'Graphics: ' + preset.font + ' ' + preset.fontSize + 'px, ' + preset.fill +
+              (preset.stroke ? ' + stroke ' + preset.stroke : ''));
+      }).catch(function (e) { capProgress(null); toast(e.message, true); });
+    } catch (e) { capProgress(null); toast(e.message, true); }
+  }
 
   // ========================================================== SMART CUT ====
   function selectedSilences() {

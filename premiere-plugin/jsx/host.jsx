@@ -557,6 +557,22 @@ function CP_animateClip(clip, anim) {
     CP_setKeys(scale, base, [
       { t: 0.0, v: 12 }, { t: 0.09, v: 108 }, { t: 0.16, v: 100 }
     ]);
+  } else if (anim === 'scale') {
+    CP_setKeys(scale, base, [
+      { t: 0.0, v: 40 }, { t: 0.16, v: 100 }
+    ]);
+    CP_setKeys(opacity, base, [{ t: 0.0, v: 0 }, { t: 0.12, v: 100 }]);
+  } else if (anim === 'wave') {
+    CP_setKeys(pos, base, [
+      { t: 0.0, v: [0.5, 0.52] }, { t: 0.1, v: [0.5, 0.488] },
+      { t: 0.2, v: [0.5, 0.506] }, { t: 0.3, v: [0.5, 0.5] }
+    ]);
+    CP_setKeys(opacity, base, [{ t: 0.0, v: 0 }, { t: 0.1, v: 100 }]);
+  } else if (anim === 'shake') {
+    CP_setKeys(pos, base, [
+      { t: 0.0, v: [0.487, 0.5] }, { t: 0.05, v: [0.513, 0.5] },
+      { t: 0.1, v: [0.492, 0.5] }, { t: 0.15, v: [0.5, 0.5] }
+    ]);
   } else if (anim === 'bounce') {
     CP_setKeys(pos, base, [
       { t: 0.0, v: [0.5, 0.56] }, { t: 0.11, v: [0.5, 0.487] },

@@ -193,8 +193,68 @@
       fontSize: 54, fill: '#EAEAEA', highlight: null, stroke: null, strokeWidth: 0,
       uppercase: false, wordsPerCue: 0, anim: 'typewriter',
       animNotes: 'Per-character reveal at ~30 chars/sec with caret.'
+    },
+    {
+      id: 'boldyellow',
+      name: 'Bold Yellow',
+      description: 'Solid yellow ALL-CAPS with a heavy black stroke — high energy, very legible.',
+      font: 'Anton', fallbackFonts: ['Bebas Neue', 'Impact', 'Arial Black'],
+      fontSize: 88, fill: '#FFD400', highlight: '#FFFFFF', stroke: '#000000', strokeWidth: 12,
+      uppercase: true, wordsPerCue: 1, anim: 'pop-scale',
+      animNotes: 'Punchy scale-in; emphasized words flip to white.'
+    },
+    {
+      id: 'cleanwhite',
+      name: 'Clean White',
+      description: 'White words with a crisp thin outline and a soft scale-in. Goes with anything.',
+      font: 'Poppins SemiBold', fallbackFonts: ['Inter', 'Helvetica', 'Arial'],
+      fontSize: 64, fill: '#FFFFFF', highlight: '#FFD400', stroke: '#000000', strokeWidth: 5,
+      uppercase: false, wordsPerCue: 2, anim: 'fade',
+      animNotes: 'Gentle scale + fade.'
+    },
+    {
+      id: 'tvnews',
+      name: 'News Bar',
+      description: 'White text on a translucent dark bar, lower third. Interviews and explainers.',
+      font: 'Inter Medium', fallbackFonts: ['Helvetica Neue', 'Arial'],
+      fontSize: 46, fill: '#FFFFFF', highlight: '#33C1FF', stroke: null, strokeWidth: 0,
+      boxColor: '#000000', boxRadius: 6,
+      uppercase: false, wordsPerCue: 0, anim: 'fade',
+      animNotes: 'Bar slides/fades in along the lower third.'
     }
   ];
+
+  /* Curated font list for the customizer. First fallback keeps it readable
+     if the chosen face is not installed on the editing machine. */
+  var FONTS = [
+    'Montserrat', 'Anton', 'Bebas Neue', 'Poppins', 'Inter', 'Oswald',
+    'Archivo Black', 'Impact', 'Arial Black', 'Roboto', 'Helvetica',
+    'Futura', 'Georgia', 'Verdana', 'JetBrains Mono', 'Courier New'
+  ];
+
+  /*
+   * Merge a base preset with explicit user overrides into a flat style
+   * object (absolute 1080p sizes — the renderer scales later). Empty/null
+   * overrides fall back to the preset. Pure + tested.
+   */
+  function mergeStyle(preset, o) {
+    o = o || {};
+    function has(k) { return o[k] !== undefined && o[k] !== null && o[k] !== ''; }
+    return {
+      font: has('font') ? o.font : preset.font,
+      fallbackFonts: preset.fallbackFonts || [],
+      fontSize: has('fontSize') ? o.fontSize : preset.fontSize,
+      fill: has('fill') ? o.fill : preset.fill,
+      highlight: has('highlight') ? o.highlight : (preset.highlight || '#FFD400'),
+      stroke: (o.stroke !== undefined) ? o.stroke : (preset.stroke || null),
+      strokeWidth: (o.strokeWidth != null) ? o.strokeWidth : (preset.strokeWidth || 0),
+      boxColor: (o.boxColor !== undefined) ? o.boxColor : (preset.boxColor || null),
+      boxRadius: (o.boxRadius != null) ? o.boxRadius : (preset.boxRadius || 10),
+      glow: (o.glow !== undefined) ? o.glow : (preset.glow || null),
+      uppercase: (o.uppercase != null) ? o.uppercase : !!preset.uppercase,
+      yPct: (o.yPct != null) ? o.yPct : 0.76
+    };
+  }
 
   /*
    * Built-in animation catalog (CutPilot's own engine — no MOGRTs needed).
@@ -204,8 +264,11 @@
    */
   var ANIMATIONS = [
     { id: 'pop',        name: 'Pop',        kind: 'keyframed', demo: 'anim-pop',    description: 'Word scales in with a punchy overshoot' },
+    { id: 'scale',      name: 'Scale',      kind: 'keyframed', demo: 'anim-scale',  description: 'Smooth grow-in, no overshoot' },
     { id: 'bounce',     name: 'Bounce',     kind: 'keyframed', demo: 'anim-bounce', description: 'Drops in and settles with a bounce' },
     { id: 'slide',      name: 'Slide up',   kind: 'keyframed', demo: 'anim-slide',  description: 'Rises from below while fading in' },
+    { id: 'wave',       name: 'Wave',       kind: 'keyframed', demo: 'anim-wave',   description: 'Gentle vertical wave on entry' },
+    { id: 'shake',      name: 'Shake',      kind: 'keyframed', demo: 'anim-shake',  description: 'Quick attention-grabbing shake' },
     { id: 'fade',       name: 'Fade',       kind: 'keyframed', demo: 'anim-fade',   description: 'Soft opacity fade-in' },
     { id: 'glitch',     name: 'Glitch',     kind: 'keyframed', demo: 'anim-glitch', description: 'Two-frame jitter + flicker on entry' },
     { id: 'karaoke',    name: 'Karaoke',    kind: 'framed',    demo: 'anim-sweep',  description: 'Phrase stays up, spoken word lights up' },
@@ -279,6 +342,8 @@
     remapCuesToKeeps: remapCuesToKeeps,
     STYLE_PRESETS: STYLE_PRESETS,
     getPreset: getPreset,
+    FONTS: FONTS,
+    mergeStyle: mergeStyle,
     ANIMATIONS: ANIMATIONS,
     getAnimation: getAnimation,
     PRESET_ANIM_MAP: PRESET_ANIM_MAP,

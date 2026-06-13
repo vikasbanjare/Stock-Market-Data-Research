@@ -120,10 +120,45 @@ console.log('captions.js (animation engine)');
          'typewriter: words accumulate');
   assert(close(tw[3].end, 4), 'typewriter: last frame ends at cue end');
 
-  assert(CPCaptions.ANIMATIONS.length >= 8, 'animation catalog has 8+ entries');
+  assert(CPCaptions.ANIMATIONS.length >= 11, 'animation catalog has 11+ entries');
   assert(CPCaptions.getAnimation('karaoke').kind === 'framed', 'karaoke is a framed animation');
   assert(CPCaptions.getAnimation('nonsense').id === 'pop', 'unknown animation falls back to pop');
   assert(CPCaptions.PRESET_ANIM_MAP['color-sweep'] === 'karaoke', 'preset anim concepts map to engine ids');
+  ['scale', 'wave', 'shake'].forEach(function (id) {
+    assert(CPCaptions.getAnimation(id).id === id, 'new animation present: ' + id);
+  });
+}
+
+// ----------------------------------------------------- style merge / fonts ----
+console.log('captions.js (style customizer)');
+{
+  assert(CPCaptions.STYLE_PRESETS.length >= 9, '9+ style presets');
+  assert(CPCaptions.FONTS.length >= 12 && CPCaptions.FONTS.indexOf('Montserrat') >= 0,
+         'font catalog includes trending faces');
+
+  const base = CPCaptions.getPreset('hormozi');
+  const merged = CPCaptions.mergeStyle(base, {});
+  assert(merged.font === base.font && merged.fontSize === base.fontSize,
+         'empty overrides fall back to preset');
+
+  const custom = CPCaptions.mergeStyle(base, {
+    font: 'Oswald', fontSize: 120, fill: '#00ff00', stroke: '#111111',
+    strokeWidth: 0, boxColor: '#222222', uppercase: false, yPct: 0.5
+  });
+  assert(custom.font === 'Oswald' && custom.fontSize === 120, 'font/size overrides win');
+  assert(custom.fill === '#00ff00' && custom.boxColor === '#222222', 'color/box overrides win');
+  assert(custom.strokeWidth === 0, 'strokeWidth 0 override is honored (not treated as falsy fallback)');
+  assert(custom.uppercase === false && custom.yPct === 0.5, 'boolean/number overrides honored');
+
+  const noBox = CPCaptions.mergeStyle(CPCaptions.getPreset('highlight-box'), { boxColor: null });
+  assert(noBox.boxColor === null, 'explicit null boxColor removes the box');
+
+  // render.styleForFrame scales and applies the same precedence
+  const CPRender2 = require(path.join(__dirname, '..', 'js', 'render.js'));
+  const sf = CPRender2.styleForFrame(base, 540, { fontSize: 100, boxColor: '#abcdef', strokeWidth: 0 });
+  assert(sf.size === 50, 'styleForFrame scales font to frame height');
+  assert(sf.boxColor === '#abcdef', 'styleForFrame honors boxColor override');
+  assert(sf.strokeWidth === 0, 'styleForFrame honors strokeWidth 0 override');
 }
 
 // --------------------------------------------------------------- render ----

@@ -33,23 +33,28 @@
     return lines;
   }
 
-  /* Resolve a preset into concrete pixel values for a given frame height. */
-  function styleForFrame(preset, frameH, overrides) {
-    overrides = overrides || {};
+  /*
+   * Resolve a preset + user overrides into concrete pixel values for a
+   * given frame height. Override precedence matches CPCaptions.mergeStyle.
+   */
+  function styleForFrame(preset, frameH, o) {
+    o = o || {};
     var scale = frameH / 1080;
+    var strokeW = (o.strokeWidth != null) ? o.strokeWidth : (preset.strokeWidth || 0);
+    var box = (o.boxColor !== undefined) ? o.boxColor : (preset.boxColor || null);
     return {
-      font: overrides.font || preset.font,
+      font: o.font || preset.font,
       fallbacks: (preset.fallbackFonts || []).join('", "'),
-      size: Math.round((overrides.fontSize || preset.fontSize) * scale),
-      fill: overrides.fill || preset.fill,
-      highlight: overrides.highlight || preset.highlight || '#FFD400',
-      stroke: preset.stroke,
-      strokeWidth: Math.round((preset.strokeWidth || 0) * scale),
-      boxColor: preset.boxColor || null,
-      boxRadius: Math.round((preset.boxRadius || 10) * scale),
-      glow: preset.glow || null,
-      uppercase: overrides.uppercase != null ? overrides.uppercase : preset.uppercase,
-      yPct: overrides.yPct != null ? overrides.yPct : 0.76,
+      size: Math.round((o.fontSize || preset.fontSize) * scale),
+      fill: o.fill || preset.fill,
+      highlight: o.highlight || preset.highlight || '#FFD400',
+      stroke: (o.stroke !== undefined) ? o.stroke : (preset.stroke || null),
+      strokeWidth: Math.round(strokeW * scale),
+      boxColor: box,
+      boxRadius: Math.round(((o.boxRadius != null ? o.boxRadius : preset.boxRadius) || 10) * scale),
+      glow: (o.glow !== undefined) ? o.glow : (preset.glow || null),
+      uppercase: o.uppercase != null ? o.uppercase : preset.uppercase,
+      yPct: o.yPct != null ? o.yPct : 0.76,
       maxWidthPct: 0.86,
       lineGap: 1.18
     };
