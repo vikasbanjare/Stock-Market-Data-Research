@@ -368,6 +368,22 @@ input[type="range"]::-webkit-slider-thumb {
 .seg-control.sub { margin: 0 0 10px; }
 .seg-control.mini { margin-top: 4px; }
 
+.wc-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 13px; margin-bottom: 8px; box-shadow: var(--shadow);
+}
+.wc-label { font-size: 12.5px; font-weight: 800; flex: 1; }
+.wc-btn {
+  width: 30px; height: 30px; border-radius: 9px; flex: none;
+  background: var(--ink); color: #fff; border: none;
+  font-size: 18px; font-weight: 700; line-height: 1; cursor: pointer;
+}
+.wc-btn:hover { opacity: .85; }
+.wc-bar b { font-size: 17px; font-weight: 800; min-width: 26px; text-align: center; }
+#wc-full.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.sync-line { margin: 0 0 12px; font-weight: 600; }
+
 .map-label { font-size: 11px; font-weight: 700; color: var(--dim); margin: 6px 0 7px; }
 .map-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
 .map-row .map-cam { flex: none; width: 36px; font-size: 11px; font-weight: 800; color: #fff; background: var(--grad); border-radius: 8px; padding: 5px 0; text-align: center; }

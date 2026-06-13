@@ -142,6 +142,7 @@
     wireSubviews();
     buildLibrary();
     applyTemplate(currentPreset(), { silent: true });  // seeds controls + first preview
+    updateSyncStat();
 
     if (!CPBridge.isCEP()) {
       $('env-status').textContent = 'browser preview';
@@ -651,27 +652,37 @@
     for (var h = 0; h < hb.length; h++) {
       hb[h].addEventListener('click', function () { syncHlStyleButtons(this.dataset.s); renderPreview(); });
     }
-    // caption rhythm buttons + live word-count slider (kept in sync)
-    var rb = document.querySelectorAll('#c-rhythm button');
-    for (var r = 0; r < rb.length; r++) {
-      rb[r].addEventListener('click', function () { setWordCount(parseInt(this.dataset.w, 10)); renderPreview(); });
-    }
-    function onSlider() { setWordCount(parseInt($('c-words-slider').value, 10)); renderPreview(); }
-    $('c-words-slider').addEventListener('input', onSlider);
-    $('c-words-slider').addEventListener('change', onSlider);
+    // prominent Words-per-caption stepper
+    $('wc-minus').addEventListener('click', function () {
+      var w = parseInt($('c-words').value, 10) || 0;
+      setWordCount(w <= 1 ? 1 : w - 1); renderPreview();
+    });
+    $('wc-plus').addEventListener('click', function () {
+      var w = parseInt($('c-words').value, 10) || 0;
+      setWordCount(w === 0 ? 1 : w + 1); renderPreview();
+    });
+    $('wc-full').addEventListener('click', function () {
+      var w = parseInt($('c-words').value, 10) || 0;
+      setWordCount(w === 0 ? 1 : 0); renderPreview();
+    });
+    $('c-sync').addEventListener('change', updateSyncStat);
     $('btn-replay').addEventListener('click', renderPreview);
+  }
+
+  function updateSyncStat() {
+    var el = $('sync-stat'); if (!el) return;
+    if (!$('c-sync').checked) { el.textContent = '(off)'; return; }
+    el.textContent = resolveFfmpeg() ? '· ready' : '· needs ffmpeg (Settings)';
   }
 
   /* Single source of truth for words-per-caption; keeps the hidden input,
      the slider, its label, and the quick buttons all in sync. */
   function setWordCount(w) {
-    w = isNaN(w) ? 1 : w;
+    w = isNaN(w) ? 1 : Math.max(0, Math.min(10, w));
     $('c-words').value = w;
-    $('c-words-slider').value = w;
-    $('c-words-val').textContent = (w === 0) ? 'Full line' : (w === 1 ? '1 word' : w + ' words');
-    var target = (w === 0) ? 0 : (w >= 2 ? 3 : 1);
-    var rb = document.querySelectorAll('#c-rhythm button');
-    for (var i = 0; i < rb.length; i++) rb[i].classList.toggle('on', parseInt(rb[i].dataset.w, 10) === target);
+    $('wc-num').textContent = (w === 0) ? '—' : w;
+    var full = document.getElementById('wc-full');
+    if (full) full.classList.toggle('on', w === 0);
   }
 
   function readKeyword() {
