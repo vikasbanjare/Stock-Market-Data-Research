@@ -30,6 +30,7 @@
     // mogrt gallery
     userMogrts: [],
     selectedMogrt: null,
+    mogrtWords: 0,   // words per MOGRT graphic (0 = full line)
     // template library
     customTemplates: [],
     favs: {},
@@ -498,6 +499,14 @@
   }
 
   function wireMogrtSheet() {
+    var wb = document.querySelectorAll('#ms-words button');
+    for (var i = 0; i < wb.length; i++) {
+      wb[i].addEventListener('click', function () {
+        document.querySelector('#ms-words button.on').classList.remove('on');
+        this.classList.add('on');
+        state.mogrtWords = parseInt(this.dataset.w, 10) || 0;
+      });
+    }
     $('ms-close').addEventListener('click', function () { $('mogrt-sheet').classList.add('hidden'); });
     $('mogrt-sheet').addEventListener('click', function (e) {
       if (e.target === this) this.classList.add('hidden'); // tap backdrop to close
@@ -1089,19 +1098,37 @@
     applyMogrtWithPath(path, $('btn-alt-apply'));
   }
 
+  /* Make sure the project is saved (MOGRT/media import is unreliable on an
+     unsaved project). Resolves true to proceed, false to stop. */
+  function ensureProjectSaved() {
+    return CPBridge.callHost('CP_saveProject').then(function (r) {
+      if (r.needsSaveAs) {
+        toast('Save your Premiere project once first (⌘S / Ctrl+S), then try again.', true);
+        return false;
+      }
+      return true;
+    }).catch(function () { return true; });  // if save errors, proceed anyway
+  }
+
   /* Caption the whole transcript with a specific .mogrt (used by the gallery
-     sheet and the advanced section). */
+     sheet and the advanced section). Honors the MOGRT word-count control. */
   function applyMogrtWithPath(mogrtPath, btn) {
     var cues;
     try { cues = readSelectedTranscript(); } catch (e) { return toast(e.message, true); }
-    var tcues = textCues(cues, parseInt($('c-words').value, 10) || 0, $('c-upper').checked);
+    var words = (state.mogrtWords != null) ? state.mogrtWords : (parseInt($('c-words').value, 10) || 0);
+    var tcues = textCues(cues, words, $('c-upper').checked);
     if (tcues.length > 400 &&
         !confirm(tcues.length + ' graphics will be added (one per line). Continue?')) return;
-    capProgress('Adding ' + tcues.length + ' template graphics');
     if (btn) btn.disabled = true;
-    CPBridge.callHost('CP_insertMogrtCaptions', {
-      mogrtPath: mogrtPath, cues: tcues, videoTrack: null, audioTrack: 0
+    capProgress('Saving project…');
+    ensureProjectSaved().then(function (ok) {
+      if (!ok) { if (btn) btn.disabled = false; capProgress(null); return null; }
+      capProgress('Adding ' + tcues.length + ' template graphics');
+      return CPBridge.callHost('CP_insertMogrtCaptions', {
+        mogrtPath: mogrtPath, cues: tcues, videoTrack: null, audioTrack: 0
+      });
     }).then(function (r) {
+      if (r == null) return;
       if (btn) btn.disabled = false;
       capProgress(null);
       if (r.inserted === 0) {

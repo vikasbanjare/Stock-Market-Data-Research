@@ -167,6 +167,16 @@ function CP_getProjectInfo() {
   } catch (e) { return CP_fail(e.message); }
 }
 
+/* Save the project (needed before importing external media/MOGRTs reliably).
+   If it was never saved, report needsSaveAs so the panel can ask the user. */
+function CP_saveProject() {
+  try {
+    if (!app.project.path) return CP_ok({ saved: false, needsSaveAs: true });
+    app.project.save();
+    return CP_ok({ saved: true, path: app.project.path });
+  } catch (e) { return CP_fail(e.message); }
+}
+
 /* Scan the project for already-imported caption files (.srt/.vtt). */
 function CP_findProjectSrts() {
   try {
