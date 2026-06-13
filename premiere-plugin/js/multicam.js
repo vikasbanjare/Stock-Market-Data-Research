@@ -194,6 +194,74 @@
     return out;
   }
 
+  /*
+   * Relative "who is loudest" → per-angle active regions.
+   * dbGrids: array indexed by angle; each is a dB value per time-window on a
+   *   SHARED grid (step seconds apart). Missing/quiet windows can be -100.
+   * At each window the loudest mic wins, but only if it's above `gate` and
+   *   beats the runner-up by `margin` dB (so room tone / bleed doesn't cause
+   *   false cuts). Returns per-angle [{start,end}] in seconds. Pure + tested.
+   */
+  function loudnessToRegions(dbGrids, step, opts) {
+    opts = opts || {};
+    var gate = opts.gate != null ? opts.gate : -50;
+    var margin = opts.margin != null ? opts.margin : 2;
+    var nA = dbGrids.length;
+    var regions = [];
+    if (!nA) return regions;
+    var len = 0, a, w;
+    for (a = 0; a < nA; a++) { regions.push([]); len = Math.max(len, dbGrids[a].length); }
+    var open = [];
+    for (a = 0; a < nA; a++) open.push(-1);
+
+    for (w = 0; w < len; w++) {
+      var best = -1, bestDb = -Infinity, second = -Infinity;
+      for (a = 0; a < nA; a++) {
+        var d = (dbGrids[a][w] == null) ? -100 : dbGrids[a][w];
+        if (d > bestDb) { second = bestDb; bestDb = d; best = a; }
+        else if (d > second) second = d;
+      }
+      var active = (bestDb > gate && (bestDb - second) >= margin) ? best : -1;
+      for (a = 0; a < nA; a++) {
+        if (a === active) { if (open[a] < 0) open[a] = w * step; }
+        else if (open[a] >= 0) { regions[a].push({ start: open[a], end: w * step }); open[a] = -1; }
+      }
+    }
+    for (a = 0; a < nA; a++) if (open[a] >= 0) regions[a].push({ start: open[a], end: len * step });
+    return regions;
+  }
+
+  /*
+   * Single-mic talk-burst starts (for "switch on speech").
+   * env: [{t, db}]. Computes an adaptive threshold from the mic's own noise
+   * floor (percentile + offset), then returns the start time of each talk
+   * burst (a run above threshold). Pure + tested.
+   */
+  function burstStarts(env, opts) {
+    opts = opts || {};
+    if (!env || !env.length) return [];
+    var dbs = env.map(function (s) { return s.db; }).slice().sort(function (x, y) { return x - y; });
+    var floorIdx = Math.floor(dbs.length * (opts.floorPct != null ? opts.floorPct : 0.4));
+    var floor = dbs[Math.min(dbs.length - 1, floorIdx)];
+    var thr = floor + (opts.offset != null ? opts.offset : 8);
+    var minGap = opts.minGap != null ? opts.minGap : 0.6; // quiet needed before a new burst
+    var starts = [];
+    var talking = false, quietSince = -1;
+    for (var i = 0; i < env.length; i++) {
+      var loud = env[i].db >= thr;
+      if (loud) {
+        if (!talking && (quietSince < 0 || (env[i].t - quietSince) >= minGap || !starts.length)) {
+          starts.push(env[i].t);
+        }
+        talking = true; quietSince = -1;
+      } else {
+        if (talking) quietSince = env[i].t;
+        talking = false;
+      }
+    }
+    return starts;
+  }
+
   /* Quick stats for the UI: how many cuts per angle. */
   function planStats(plan, numAngles) {
     var counts = [];
@@ -212,6 +280,8 @@
     segmentsByInterval: segmentsByInterval,
     segmentsFromBoundaries: segmentsFromBoundaries,
     directorPlan: directorPlan,
+    loudnessToRegions: loudnessToRegions,
+    burstStarts: burstStarts,
     _mulberry32: mulberry32
   };
 });

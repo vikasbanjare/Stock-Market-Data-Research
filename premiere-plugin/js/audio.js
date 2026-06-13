@@ -135,10 +135,59 @@
     });
   }
 
+  /*
+   * Extract a loudness envelope via ffmpeg: per-window RMS level in dB.
+   * Returns Promise of { samples:[{t, db}], duration }. Used for relative
+   * "who is loudest" multicam, which beats fixed-threshold silence on mics
+   * with room tone / bleed.
+   */
+  function ffmpegEnvelope(mediaPath, ffmpegPath, windowSec) {
+    return new Promise(function (resolve, reject) {
+      var cp = nodeRequire('child_process');
+      var rate = 8000;
+      var n = Math.max(160, Math.round((windowSec || 0.2) * rate));
+      var args = [
+        '-hide_banner', '-nostats', '-i', mediaPath, '-vn',
+        '-af', 'aresample=' + rate + ',aformat=channel_layouts=mono,' +
+               'asetnsamples=n=' + n + ':p=0,astats=metadata=1:reset=1,' +
+               'ametadata=print:key=lavfi.astats.Overall.RMS_level',
+        '-f', 'null', '-'
+      ];
+      var proc, out = '', err = '', settled = false;
+      try { proc = cp.spawn(ffmpegPath, args); }
+      catch (e) { return reject(new Error('Could not launch ffmpeg: ' + e.message)); }
+      var timer = setTimeout(function () { try { proc.kill(); } catch (eK) {} finish(); }, 180000);
+      function finish() {
+        if (settled) return; settled = true; clearTimeout(timer);
+        var text = out + '\n' + err;
+        var lines = text.split('\n');
+        var samples = [], lastT = 0, duration = null;
+        var dm = /Duration:\s*(\d+):(\d+):(\d+\.?\d*)/.exec(text);
+        if (dm) duration = (+dm[1]) * 3600 + (+dm[2]) * 60 + (+dm[3]);
+        for (var i = 0; i < lines.length; i++) {
+          var tm = /pts_time:([\d.]+)/.exec(lines[i]);
+          if (tm) { lastT = parseFloat(tm[1]); continue; }
+          var rm = /RMS_level=(-?[\d.]+|-?inf|nan)/.exec(lines[i]);
+          if (rm) {
+            var v = rm[1];
+            var db = (v === '-inf' || v === 'inf' || v === 'nan') ? -100 : parseFloat(v);
+            samples.push({ t: lastT, db: db });
+          }
+        }
+        resolve({ samples: samples, duration: duration });
+      }
+      proc.stdout.on('data', function (d) { out += d.toString(); });
+      proc.stderr.on('data', function (d) { err += d.toString(); });
+      proc.on('error', function (e) { if (!settled) { settled = true; clearTimeout(timer); reject(new Error('ffmpeg error: ' + e.message)); } });
+      proc.on('close', function () { finish(); });
+    });
+  }
+
   return {
     readFileArrayBuffer: readFileArrayBuffer,
     toMono: toMono,
     webAudioDetect: webAudioDetect,
-    ffmpegDetect: ffmpegDetect
+    ffmpegDetect: ffmpegDetect,
+    ffmpegEnvelope: ffmpegEnvelope
   };
 });

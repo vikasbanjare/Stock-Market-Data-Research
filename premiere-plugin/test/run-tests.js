@@ -369,6 +369,28 @@ console.log('multicam.js');
   assert(cut.filter(function (s) { return s.angle === 1; }).length >= 3,
          'periodic cutaways insert the center cam several times');
   assert(cut.some(function (s) { return s.angle === 0; }), 'speaker cam still dominates between cutaways');
+
+  // relative loudness: whoever is loudest wins (robust to room tone/bleed)
+  // window:  0 1 2 3 4 5  (step 1s)
+  // mic0 loud at 0-2, mic1 loud at 3-5; both have -45 room tone otherwise
+  const g0 = [-12, -12, -12, -45, -45, -45];
+  const g1 = [-45, -45, -45, -12, -12, -12];
+  const reg = CPMulticam.loudnessToRegions([g0, g1], 1, { gate: -50, margin: 2 });
+  assert(reg.length === 2, 'loudnessToRegions returns per-angle regions');
+  assert(reg[0].length === 1 && close(reg[0][0].start, 0) && close(reg[0][0].end, 3), 'mic0 active 0–3s');
+  assert(reg[1].length === 1 && close(reg[1][0].start, 3) && close(reg[1][0].end, 6), 'mic1 active 3–6s');
+  // when both are equally loud (crosstalk), neither wins (margin not met)
+  const both = CPMulticam.loudnessToRegions([[-12, -12], [-12, -12]], 1, { gate: -50, margin: 2 });
+  assert(both[0].length === 0 && both[1].length === 0, 'equal loudness → no clear winner (handled as crosstalk)');
+
+  // adaptive talk-burst detection from an envelope
+  const env = [];
+  for (let i = 0; i < 20; i++) env.push({ t: i * 0.2, db: -45 });   // room tone floor
+  for (let i = 5; i < 9; i++) env[i].db = -15;                       // burst 1
+  for (let i = 13; i < 17; i++) env[i].db = -15;                     // burst 2
+  const bs = CPMulticam.burstStarts(env, { offset: 8, minGap: 0.4 });
+  assert(bs.length === 2, 'burstStarts finds two talk bursts');
+  assert(close(bs[0], 1.0, 0.01) && close(bs[1], 2.6, 0.01), 'burst start times are correct');
 }
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');

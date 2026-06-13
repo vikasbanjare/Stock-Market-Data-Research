@@ -1420,65 +1420,73 @@
   }
 
   /* Analyze one audio track's speech regions (sequence time). */
-  function analyzeSpeech(track) {
-    var thr = -40;
+  var MC_STEP = 0.2; // loudness window / grid resolution in seconds
+
+  /* Get a mic's loudness envelope (Promise of {samples,duration}); ffmpeg only. */
+  function micEnvelope(track) {
     var ff = resolveFfmpeg();
-    var detect = ff
-      ? CPAudio.ffmpegDetect(track.mediaPath, ff, thr, 0.3, CPSilence)
-      : CPAudio.webAudioDetect(track.mediaPath, { thresholdDb: thr }, CPSilence);
-    return detect.then(function (det) {
-      var dur = det.duration || track.outPoint;
-      var sil = CPSilence.refineSilences(det.silences, { minSilence: 0.4, padding: 0.05, totalDuration: dur });
-      var clipSil = sil.map(function (s) { return { start: s.start - track.inPoint, end: s.end - track.inPoint }; });
-      var clipDur = track.outPoint - track.inPoint;
-      // speech = the kept (non-silent) regions, mapped back to sequence time
-      return CPSilence.invertToKeep(clipSil, clipDur, 0.15).map(function (k) {
-        return { start: track.seqStart + k.start, end: track.seqStart + k.end };
-      });
-    });
+    if (!ff) return Promise.reject(new Error('ffmpeg is required to read audio — install it (brew install ffmpeg) and re-check in Settings.'));
+    return CPAudio.ffmpegEnvelope(track.mediaPath, ff, MC_STEP);
   }
 
-  /* "Switch on speech": one main/mixed track → cut to a new camera at each
-     new talk burst (sentence/pause boundary). Returns Promise of segments. */
+  /* Resample a mic envelope onto the shared sequence-time grid. A mic clip's
+     inPoint is the sync offset: sequence time 0 = media time inPoint. */
+  function envToSeqGrid(env, track, nWindows) {
+    var grid = new Array(nWindows);
+    var s = env.samples || [];
+    for (var k = 0; k < nWindows; k++) {
+      var mediaT = k * MC_STEP + (track.inPoint || 0);
+      var idx = Math.round(mediaT / MC_STEP);
+      grid[k] = (idx >= 0 && idx < s.length) ? s[idx].db : -100;
+    }
+    return grid;
+  }
+
+  /* "Switch on speech": one main/mixed mic → cut at each talk burst. */
   function mcSpeechBurstSegments() {
     return ensureAudioTracks().then(function (tracks) {
       var idx = parseInt($('mc-main-track').value, 10) || 0;
       var track = tracks[idx] || tracks[0];
       var dur = state.mcAudioEnd || (state.env && state.env.endSeconds) || 0;
       capMcProgress('Listening to ' + (track.name || 'the main track') + '…');
-      return analyzeSpeech(track).then(function (speech) {
+      return micEnvelope(track).then(function (env) {
         capMcProgress(null);
-        // a new shot begins where each talk burst begins
-        var bounds = speech.map(function (s) { return s.start; });
-        var segs = CPMulticam.segmentsFromBoundaries(bounds, dur);
-        if (!segs.length) throw new Error('No speech detected on that track.');
+        var starts = CPMulticam.burstStarts(env.samples, { offset: 8, minGap: 0.6 })
+          .map(function (mt) { return mt - (track.inPoint || 0); })   // media → sequence time
+          .filter(function (t) { return t > 0.3 && t < dur; });
+        var segs = CPMulticam.segmentsFromBoundaries(starts, dur);
+        if (segs.length < 2) throw new Error('Couldn\'t hear distinct talk bursts on that track. Try the "Every few seconds" mode.');
         return segs;
       });
     });
   }
 
-  /* FireCut-style: cut to whoever is talking, using the manual mic→camera map.
-     A camera mapped to "Center / wide (no mic)" is used during crosstalk,
-     silence, and as a periodic cutaway. */
+  /* FireCut-style: cut to whoever is LOUDEST, using the manual mic→camera map.
+     Relative loudness beats fixed silence thresholds on mics with room tone. */
   function mcSpeakerPlan(numAngles) {
     return ensureAudioTracks().then(function (tracks) {
       var map = state.mcMap || [];
       var dur = state.mcAudioEnd || (state.env && state.env.endSeconds) || 0;
       var center = -1;
-      var jobs = [];
+      var micFor = [];   // angle → track (or null for center)
       for (var i = 0; i < numAngles; i++) {
         var mi = (map[i] != null) ? map[i] : (i < tracks.length ? i : -1);
-        if (mi < 0 || !tracks[mi]) { if (center < 0) center = i; jobs.push(Promise.resolve(null)); }
-        else jobs.push(analyzeSpeech(tracks[mi]));
+        if (mi < 0 || !tracks[mi]) { if (center < 0) center = i; micFor.push(null); }
+        else micFor.push(tracks[mi]);
       }
-      var micCams = jobs.length - jobs.filter(function (j, idx) {
-        var mi = (map[idx] != null) ? map[idx] : (idx < tracks.length ? idx : -1);
-        return mi < 0 || !tracks[mi];
-      }).length;
-      if (micCams < 1) throw new Error('Assign at least one camera to a mic (V1 → A1, …).');
+      var micCount = micFor.filter(function (t) { return t; }).length;
+      if (micCount < 1) throw new Error('Assign at least one camera to a mic (V1 → A1, …).');
 
-      capMcProgress('Listening to ' + micCams + ' mic' + (micCams > 1 ? 's' : '') + '…');
-      return Promise.all(jobs).then(function (regions) {
+      capMcProgress('Listening to ' + micCount + ' mic' + (micCount > 1 ? 's' : '') + '…');
+      var jobs = micFor.map(function (t) { return t ? micEnvelope(t) : Promise.resolve(null); });
+      return Promise.all(jobs).then(function (envs) {
+        capMcProgress('Working out who is talking…');
+        var nWin = Math.ceil(dur / MC_STEP);
+        var dbGrids = [];
+        for (var a = 0; a < numAngles; a++) {
+          dbGrids.push(envs[a] ? envToSeqGrid(envs[a], micFor[a], nWin) : []);
+        }
+        var regions = CPMulticam.loudnessToRegions(dbGrids, MC_STEP, { gate: -50, margin: 2 });
         capMcProgress(null);
         var minSeg = parseFloat($('mc-minseg').value) || 1.2;
         return CPMulticam.directorPlan(regions, dur, {
