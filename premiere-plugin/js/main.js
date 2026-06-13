@@ -656,7 +656,9 @@
     for (var r = 0; r < rb.length; r++) {
       rb[r].addEventListener('click', function () { setWordCount(parseInt(this.dataset.w, 10)); renderPreview(); });
     }
-    $('c-words-slider').addEventListener('input', function () { setWordCount(parseInt(this.value, 10)); renderPreview(); });
+    function onSlider() { setWordCount(parseInt($('c-words-slider').value, 10)); renderPreview(); }
+    $('c-words-slider').addEventListener('input', onSlider);
+    $('c-words-slider').addEventListener('change', onSlider);
     $('btn-replay').addEventListener('click', renderPreview);
   }
 
@@ -806,6 +808,12 @@
   // --------------------------------------------------------- live preview ----
   var previewTimer = null;
   var SAMPLE = ['THIS', 'LOOKS', 'INSANE'];
+  var SAMPLE_SENTENCE = ['THIS', 'IS', 'EXACTLY', 'HOW', 'YOUR', 'CAPTIONS', 'WILL', 'LOOK'];
+  function longestIdx(arr) {
+    var best = 0, bl = 0;
+    for (var i = 0; i < arr.length; i++) { var l = arr[i].replace(/[^A-Za-z]/g, '').length; if (l > bl) { bl = l; best = i; } }
+    return best;
+  }
 
   function renderPreview() {
     if (previewTimer) { clearInterval(previewTimer); previewTimer = null; }
@@ -873,37 +881,33 @@
     // reset animation classes
     cap.className = 'preview-caption';
 
+    // show exactly the number of words the slider selects (0 = full line)
+    var kwOn = $('c-kw').checked;
+    function cased(w) { return caps ? w.toUpperCase() : (w.charAt(0) + w.slice(1).toLowerCase()); }
+    var nShow = (words === 0) ? 6 : Math.min(words, SAMPLE_SENTENCE.length);
+    var shown = SAMPLE_SENTENCE.slice(0, Math.max(1, nShow)).map(cased);
+
     if (anim === 'karaoke') {
       var idx = 0;
       var paint = function () {
-        cap.innerHTML = SAMPLE.map(function (word, i) {
-          var t = caps ? word.toUpperCase() : word.charAt(0) + word.slice(1).toLowerCase();
-          return i === idx ? hlSpan(t) : t;
-        }).join(' ');
-        idx = (idx + 1) % SAMPLE.length;
+        cap.innerHTML = shown.map(function (word, i) { return i === idx ? hlSpan(word) : word; }).join(' ');
+        idx = (idx + 1) % shown.length;
       };
       paint();
       previewTimer = setInterval(paint, 520);
     } else if (anim === 'typewriter') {
-      var full = SAMPLE.map(function (s) { return caps ? s : s.charAt(0) + s.slice(1).toLowerCase(); });
       var n = 1;
       var typ = function () {
-        cap.textContent = full.slice(0, n).join(' ');
-        n = n >= full.length ? 1 : n + 1;
+        cap.textContent = shown.slice(0, n).join(' ');
+        n = n >= shown.length ? 1 : n + 1;
       };
       typ();
-      previewTimer = setInterval(typ, 480);
+      previewTimer = setInterval(typ, 420);
     } else {
-      var kwOn = $('c-kw').checked;
-      if (words === 1) {
-        var oneWord = caps ? 'INSANE' : 'Insane';
-        cap.innerHTML = kwOn ? hlSpan(oneWord) : oneWord;
-      } else {
-        var ws = caps ? ['THIS', 'LOOKS', 'INSANE'] : ['This', 'looks', 'insane'];
-        cap.innerHTML = ws.map(function (word, i) {
-          return (i === 2 && kwOn) ? hlSpan(word) : word;
-        }).join(' ');
-      }
+      var hi = kwOn ? longestIdx(shown) : -1;
+      cap.innerHTML = shown.map(function (word, i) {
+        return (i === hi || (shown.length === 1 && kwOn)) ? hlSpan(word) : word;
+      }).join(' ');
       if (anim !== 'none') {
         void cap.offsetWidth; // re-trigger the CSS animation
         cap.classList.add('pa-' + anim);
