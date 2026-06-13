@@ -1208,17 +1208,23 @@
       state.mcMode = this.dataset.mode;
     });
   }
-  /* Run an ffmpeg command, capturing stdout/stderr (panel-side via Node). */
-  function runFfmpeg(ffPath, args) {
+  /* Run an ffmpeg command, capturing stdout/stderr (panel-side via Node).
+     Kills the process after `timeoutMs` so it can never appear frozen. */
+  function runFfmpeg(ffPath, args, timeoutMs) {
     return new Promise(function (resolve) {
       try {
         var cp = nodeReq('child_process');
         var proc = cp.spawn(ffPath, args);
-        var out = '', err = '';
+        var out = '', err = '', done = false;
+        function finish(o) { if (done) return; done = true; resolve(o); }
+        var timer = setTimeout(function () {
+          try { proc.kill(); } catch (e) {}
+          finish({ code: -1, stdout: out, stderr: err, timedOut: true });
+        }, timeoutMs || 120000);
         proc.stdout.on('data', function (d) { out += d.toString(); });
         proc.stderr.on('data', function (d) { err += d.toString(); });
-        proc.on('error', function (e) { resolve({ error: e.message }); });
-        proc.on('close', function (code) { resolve({ code: code, stdout: out, stderr: err }); });
+        proc.on('error', function (e) { clearTimeout(timer); finish({ error: e.message }); });
+        proc.on('close', function (code) { clearTimeout(timer); finish({ code: code, stdout: out, stderr: err }); });
       } catch (e) { resolve({ error: e.message }); }
     });
   }
@@ -1247,9 +1253,9 @@
       var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; });
       if (!tracks.length) { report.push('No audio tracks with media found.'); box.textContent = report.join('\n'); return; }
       var t = tracks[0];
-      report.push('\nReading mic: ' + t.mediaPath);
-      return runFfmpeg(ff, ['-hide_banner', '-nostats', '-i', t.mediaPath,
-        '-af', 'silencedetect=noise=-40dB:d=0.3', '-f', 'null', '-']).then(function (res) {
+      report.push('\nReading first 60s of mic: ' + t.mediaPath);
+      return runFfmpeg(ff, ['-hide_banner', '-nostats', '-t', '60', '-i', t.mediaPath,
+        '-vn', '-ac', '1', '-af', 'silencedetect=noise=-40dB:d=0.3', '-f', 'null', '-'], 60000).then(function (res) {
         if (res.error) {
           report.push('COULD NOT RUN: ' + res.error);
         } else {
@@ -1637,10 +1643,11 @@
       tracks.forEach(function (t) { R.push('     ' + t.name + ' → ' + t.mediaPath.split('/').pop()); });
       show();
       if (ff && tracks.length) {
-        R.push('   testing ffmpeg on ' + tracks[0].name + '…'); show();
-        return runFfmpeg(ff, ['-hide_banner', '-nostats', '-i', tracks[0].mediaPath,
-          '-af', 'silencedetect=noise=-40dB:d=0.3', '-f', 'null', '-']).then(function (res) {
+        R.push('   testing ffmpeg on first 60s of ' + tracks[0].name + '…'); show();
+        return runFfmpeg(ff, ['-hide_banner', '-nostats', '-t', '60', '-i', tracks[0].mediaPath,
+          '-vn', '-ac', '1', '-af', 'silencedetect=noise=-40dB:d=0.3', '-f', 'null', '-'], 60000).then(function (res) {
           if (res.error) R.push('   ❌ ffmpeg could not run: ' + res.error);
+          else if (res.timedOut) R.push('   ⏱️ timed out at 60s — drive may be slow, but ffmpeg works');
           else {
             var sil = (String(res.stderr).match(/silence_start/g) || []).length;
             R.push('   exit ' + res.code + ', speech gaps: ' + sil + (sil ? '  ✅ multicam audio works' : '  ⚠️ no gaps detected'));

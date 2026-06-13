@@ -94,19 +94,33 @@
   function ffmpegDetect(mediaPath, ffmpegPath, thresholdDb, minSilence, CPSilenceLib) {
     return new Promise(function (resolve, reject) {
       var cp = nodeRequire('child_process');
+      // -vn skips video decoding (huge speedup for .MOV/.MP4 camera files);
+      // downmix to mono so silencedetect runs on the combined level.
       var args = [
         '-hide_banner', '-nostats',
         '-i', mediaPath,
+        '-vn', '-ac', '1',
         '-af', 'silencedetect=noise=' + thresholdDb + 'dB:d=' + minSilence,
         '-f', 'null', '-'
       ];
       var proc = cp.spawn(ffmpegPath, args);
-      var stderr = '';
+      var stderr = '', settled = false;
+      var timer = setTimeout(function () {
+        if (settled) return;
+        try { proc.kill(); } catch (eK) {}
+        // partial result is still usable — parse what we have
+        var d2 = /Duration:\s*(\d+):(\d+):(\d+\.?\d*)/.exec(stderr);
+        var dur2 = d2 ? (+d2[1]) * 3600 + (+d2[2]) * 60 + (+d2[3]) : null;
+        settled = true;
+        resolve({ silences: CPSilenceLib.parseFfmpegSilences(stderr, dur2), duration: dur2, timedOut: true });
+      }, 240000);
       proc.stderr.on('data', function (d) { stderr += d.toString(); });
       proc.on('error', function (e) {
+        if (settled) return; settled = true; clearTimeout(timer);
         reject(new Error('Could not launch ffmpeg at "' + ffmpegPath + '": ' + e.message));
       });
       proc.on('close', function (code) {
+        if (settled) return; settled = true; clearTimeout(timer);
         if (code !== 0 && stderr.indexOf('silence_') === -1) {
           return reject(new Error('ffmpeg exited with code ' + code + ':\n' + stderr.slice(-400)));
         }
