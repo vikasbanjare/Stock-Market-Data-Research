@@ -570,8 +570,8 @@
     $('c-box-on').checked = !!p.boxColor;
     $('c-box').value = toHex(p.boxColor, '#ff3b6b');
     $('c-upper').checked = !!p.uppercase;
-    $('c-words').value = p.wordsPerCue;
-    syncRhythmButtons(p.wordsPerCue);
+    setWordCount(p.wordsPerCue);
+    syncHlStyleButtons(p.highlightStyle || 'color');
     $('c-kw').checked = !!p.keyword;
     $('c-kw-mode-wrap').classList.toggle('hidden', !p.keyword);
     $('c-hl-scale').value = Math.round((p.highlightScale || 1) * 100);
@@ -637,19 +637,27 @@
       });
     }
     $('c-pos').addEventListener('input', function () { setLayoutButton(this.value); });
-    // caption rhythm: One word / Short phrase / Full line
+    // highlight look: colour vs box/pill
+    var hb = document.querySelectorAll('#c-hlstyle button');
+    for (var h = 0; h < hb.length; h++) {
+      hb[h].addEventListener('click', function () { syncHlStyleButtons(this.dataset.s); renderPreview(); });
+    }
+    // caption rhythm buttons + live word-count slider (kept in sync)
     var rb = document.querySelectorAll('#c-rhythm button');
     for (var r = 0; r < rb.length; r++) {
-      rb[r].addEventListener('click', function () {
-        $('c-words').value = this.dataset.w;
-        syncRhythmButtons(parseInt(this.dataset.w, 10));
-        renderPreview();
-      });
+      rb[r].addEventListener('click', function () { setWordCount(parseInt(this.dataset.w, 10)); renderPreview(); });
     }
+    $('c-words-slider').addEventListener('input', function () { setWordCount(parseInt(this.value, 10)); renderPreview(); });
     $('btn-replay').addEventListener('click', renderPreview);
   }
 
-  function syncRhythmButtons(w) {
+  /* Single source of truth for words-per-caption; keeps the hidden input,
+     the slider, its label, and the quick buttons all in sync. */
+  function setWordCount(w) {
+    w = isNaN(w) ? 1 : w;
+    $('c-words').value = w;
+    $('c-words-slider').value = w;
+    $('c-words-val').textContent = (w === 0) ? 'Full line' : (w === 1 ? '1 word' : w + ' words');
     var target = (w === 0) ? 0 : (w >= 2 ? 3 : 1);
     var rb = document.querySelectorAll('#c-rhythm button');
     for (var i = 0; i < rb.length; i++) rb[i].classList.toggle('on', parseInt(rb[i].dataset.w, 10) === target);
@@ -766,8 +774,18 @@
       strokeWidth: parseInt($('c-strokew').value, 10),
       boxColor: $('c-box-on').checked ? $('c-box').value : null,
       highlightScale: (parseInt($('c-hl-scale').value, 10) || 100) / 100,
+      highlightStyle: readHlStyle(),
       uppercase: $('c-upper').checked
     };
+  }
+
+  function readHlStyle() {
+    var on = document.querySelector('#c-hlstyle button.on');
+    return on ? on.dataset.s : 'color';
+  }
+  function syncHlStyleButtons(s) {
+    var b = document.querySelectorAll('#c-hlstyle button');
+    for (var i = 0; i < b.length; i++) b[i].classList.toggle('on', b[i].dataset.s === (s || 'color'));
   }
 
   function readSpeaker() { return { on: $('c-speaker').checked }; }
@@ -817,7 +835,19 @@
     var words = parseInt($('c-words').value, 10) || 0;
     var caps = st.uppercase;
     var hlPct = Math.round((st.highlightScale || 1) * 100);
+    var hlBox = readHlStyle() === 'box';
+    function contrastHex(hex) {
+      var m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '#ffd400'));
+      if (!m) return '#111';
+      var nn = parseInt(m[1], 16);
+      var lum = (0.299 * ((nn >> 16) & 255) + 0.587 * ((nn >> 8) & 255) + 0.114 * (nn & 255)) / 255;
+      return lum > 0.6 ? '#111' : '#fff';
+    }
     function hlSpan(t) {
+      if (hlBox) {
+        return '<span style="background:' + st.highlight + ';color:' + contrastHex(st.highlight) +
+               ';font-size:' + hlPct + '%;padding:1px 7px;border-radius:7px">' + t + '</span>';
+      }
       return '<span style="color:' + st.highlight + ';font-size:' + hlPct + '%">' + t + '</span>';
     }
 

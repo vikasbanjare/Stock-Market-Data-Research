@@ -55,11 +55,22 @@
       glow: (o.glow !== undefined) ? o.glow : (preset.glow || null),
       letterSpacing: Math.round(((o.letterSpacing != null ? o.letterSpacing : (preset.letterSpacing || 0))) * scale),
       highlightScale: (o.highlightScale != null) ? o.highlightScale : (preset.highlightScale || 1),
+      highlightStyle: o.highlightStyle || preset.highlightStyle || 'color',
       uppercase: o.uppercase != null ? o.uppercase : preset.uppercase,
       yPct: o.yPct != null ? o.yPct : 0.76,
       maxWidthPct: 0.86,
       lineGap: 1.18
     };
+  }
+
+  /* Pick black or white text for legibility on a given background hex. */
+  function contrastColor(hex) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '#ffd400'));
+    if (!m) return '#111111';
+    var n = parseInt(m[1], 16);
+    var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    var lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return lum > 0.6 ? '#111111' : '#ffffff';
   }
 
   function roundRect(ctx, x, y, w, h, r) {
@@ -167,15 +178,30 @@
       for (var wi = 0; wi < line.items.length; wi++) {
         var it = line.items[wi];
         setFont(it.px);
+        var boxed = it.hl && style.highlightStyle === 'box';
+
+        // Captions.ai signature: highlighted word sits on a rounded pill
+        if (boxed) {
+          var bpadX = it.px * 0.22, bpadY = it.px * 0.16;
+          var br = Math.min((it.px + 2 * bpadY) * 0.32, style.boxRadius || 14);
+          ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+          ctx.fillStyle = style.highlight;
+          roundRect(ctx, x - bpadX, y - it.px + it.px * 0.16 - bpadY,
+                    it.w + bpadX * 2, it.px + bpadY * 2, br);
+          ctx.fill();
+        }
+
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
-        if (style.glow) { ctx.shadowColor = style.glow; ctx.shadowBlur = it.px * 0.35; }
-        if (style.stroke && style.strokeWidth) {
+        if (style.glow && !boxed) { ctx.shadowColor = style.glow; ctx.shadowBlur = it.px * 0.35; }
+        // outline (skip on boxed words — the pill already separates them)
+        if (style.stroke && style.strokeWidth && !boxed) {
           ctx.strokeStyle = style.stroke;
           ctx.lineWidth = style.strokeWidth;
           ctx.strokeText(it.word, x, y);
         }
-        ctx.fillStyle = it.hl ? style.highlight : style.fill;
+        ctx.fillStyle = boxed ? contrastColor(style.highlight)
+                              : (it.hl ? style.highlight : style.fill);
         ctx.fillText(it.word, x, y);
         x += it.w + spaceW;
       }

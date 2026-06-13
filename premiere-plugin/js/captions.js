@@ -159,11 +159,11 @@
     {
       id: 'highlight-box',
       name: 'Highlight Box',
-      description: 'Words sit on a solid rounded box that snaps from word to word (Submagic/CapCut style).',
+      description: 'The spoken word sits on a solid rounded pill that snaps word to word (Submagic/CapCut style).',
       font: 'Inter Bold', fallbackFonts: ['Helvetica', 'Arial'],
-      fontSize: 64, fill: '#FFFFFF', highlight: '#FF3B6B', stroke: null, strokeWidth: 0,
-      boxColor: '#FF3B6B', boxRadius: 12,
-      uppercase: false, wordsPerCue: 2, anim: 'box-snap',
+      fontSize: 64, fill: '#FFFFFF', highlight: '#FF3B6B', stroke: '#000000', strokeWidth: 6,
+      boxRadius: 14, highlightStyle: 'box',
+      uppercase: false, wordsPerCue: 3, anim: 'box-snap',
       animNotes: 'Background box width-animates to each new word in ~80ms.'
     },
     {
@@ -276,16 +276,16 @@
       letterSpacing: 1, uppercase: false, wordsPerCue: 0, anim: 'fade' },
     { id: 'focus', name: 'Focus', category: 'Dynamic Highlight', popularity: 93, layout: 'bottom', keyword: true,
       font: 'Poppins', fallbackFonts: ['Inter', 'Arial'],
-      fontSize: 66, fill: '#FFFFFF', highlight: '#FF3B6B', boxColor: '#FF3B6B', boxRadius: 12, stroke: null, strokeWidth: 0,
-      uppercase: false, wordsPerCue: 3, anim: 'bounce' },
+      fontSize: 66, fill: '#FFFFFF', highlight: '#FF3B6B', boxRadius: 14, highlightStyle: 'box', stroke: '#000000', strokeWidth: 6,
+      uppercase: false, wordsPerCue: 3, anim: 'karaoke' },
     { id: 'volt', name: 'Volt', category: 'Dynamic Highlight', popularity: 91, layout: 'bottom', keyword: true,
       font: 'Bebas Neue', fallbackFonts: ['Anton', 'Impact'],
       fontSize: 82, fill: '#FFFFFF', highlight: '#39FF14', stroke: '#000000', strokeWidth: 8,
       uppercase: true, wordsPerCue: 3, anim: 'pop' },
     { id: 'rocket', name: 'Rocket', category: 'Social Growth', popularity: 90, layout: 'bottom', keyword: true,
       font: 'Montserrat', fallbackFonts: ['Inter', 'Arial Black'],
-      fontSize: 70, fill: '#FFFFFF', highlight: '#FFFFFF', boxColor: '#FF2D7E', boxRadius: 14, stroke: null, strokeWidth: 0,
-      uppercase: true, wordsPerCue: 2, anim: 'bounce' },
+      fontSize: 70, fill: '#FFFFFF', highlight: '#FF2D7E', boxRadius: 16, highlightStyle: 'box', stroke: '#000000', strokeWidth: 7,
+      uppercase: true, wordsPerCue: 3, anim: 'karaoke' },
     { id: 'mars', name: 'Mars', category: 'Social Growth', popularity: 87, layout: 'bottom', keyword: true,
       font: 'Inter', fallbackFonts: ['Helvetica', 'Arial'],
       fontSize: 64, fill: '#111111', highlight: '#111111', boxColor: '#FFE53B', boxRadius: 10, stroke: null, strokeWidth: 0,
@@ -410,6 +410,7 @@
       glow: (o.glow !== undefined) ? o.glow : (preset.glow || null),
       letterSpacing: (o.letterSpacing != null) ? o.letterSpacing : (preset.letterSpacing || 0),
       highlightScale: (o.highlightScale != null) ? o.highlightScale : (preset.highlightScale || 1),
+      highlightStyle: o.highlightStyle || preset.highlightStyle || 'color',
       uppercase: (o.uppercase != null) ? o.uppercase : !!preset.uppercase,
       yPct: (o.yPct != null) ? o.yPct : 0.76
     };
@@ -443,7 +444,7 @@
 
   /* Map preset.anim concept names onto engine animation ids. */
   var PRESET_ANIM_MAP = {
-    'pop-scale': 'pop', 'color-sweep': 'karaoke', 'box-snap': 'bounce',
+    'pop-scale': 'pop', 'color-sweep': 'karaoke', 'box-snap': 'karaoke',
     'fade': 'fade', 'glitch-in': 'glitch', 'typewriter': 'typewriter'
   };
 
