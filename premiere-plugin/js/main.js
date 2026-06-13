@@ -437,6 +437,8 @@
     $('c-words').value = p.wordsPerCue;
     $('c-kw').checked = !!p.keyword;
     $('c-kw-mode-wrap').classList.toggle('hidden', !p.keyword);
+    $('c-hl-scale').value = Math.round((p.highlightScale || 1) * 100);
+    $('c-speaker').checked = !!p.speaker;
     selectAnim(CPCaptions.animIdForConcept(p.anim));
     updateVals();
     renderPreview();
@@ -474,11 +476,13 @@
     $('c-size-val').textContent = $('c-size').value;
     $('c-pos-val').textContent = $('c-pos').value + '%';
     $('c-strokew-val').textContent = $('c-strokew').value;
+    $('c-hlscale-val').textContent = $('c-hl-scale').value + '%';
   }
 
   function wireCustomizer() {
     var ids = ['c-font', 'c-size', 'c-pos', 'c-fill', 'c-hl', 'c-stroke', 'c-box',
-               'c-strokew', 'c-box-on', 'c-upper', 'c-words', 'c-kw', 'c-kw-mode'];
+               'c-strokew', 'c-box-on', 'c-upper', 'c-words', 'c-kw', 'c-kw-mode',
+               'c-hl-scale', 'c-speaker'];
     ids.forEach(function (id) {
       $(id).addEventListener('input', function () { updateVals(); renderPreview(); });
       $(id).addEventListener('change', function () { updateVals(); renderPreview(); });
@@ -539,9 +543,11 @@
       boxColor: o.boxColor, boxRadius: currentPreset().boxRadius || 10,
       glow: currentPreset().glow || null,
       letterSpacing: currentPreset().letterSpacing || 0,
+      highlightScale: o.highlightScale,
       uppercase: o.uppercase,
       layout: o.yPct <= 0.3 ? 'top' : o.yPct >= 0.66 ? 'bottom' : 'center',
       keyword: $('c-kw').checked,
+      speaker: $('c-speaker').checked,
       wordsPerCue: parseInt($('c-words').value, 10) || 0,
       anim: state.animId
     };
@@ -607,9 +613,12 @@
       stroke: $('c-stroke').value,
       strokeWidth: parseInt($('c-strokew').value, 10),
       boxColor: $('c-box-on').checked ? $('c-box').value : null,
+      highlightScale: (parseInt($('c-hl-scale').value, 10) || 100) / 100,
       uppercase: $('c-upper').checked
     };
   }
+
+  function readSpeaker() { return { on: $('c-speaker').checked }; }
 
   function fontStack(font, fallbacks) {
     return '"' + font + '", "' + (fallbacks || []).join('", "') + '", sans-serif';
@@ -655,6 +664,20 @@
     var anim = state.animId;
     var words = parseInt($('c-words').value, 10) || 0;
     var caps = st.uppercase;
+    var hlPct = Math.round((st.highlightScale || 1) * 100);
+    function hlSpan(t) {
+      return '<span style="color:' + st.highlight + ';font-size:' + hlPct + '%">' + t + '</span>';
+    }
+
+    // speaker label preview
+    var spkEl = $('preview-speaker');
+    if ($('c-speaker').checked) {
+      spkEl.classList.remove('hidden');
+      spkEl.innerHTML = '<span style="color:' + st.highlight + '">HOST</span>';
+      spkEl.style.top = Math.max(2, Math.round(st.yPct * frameH - px) - 22) + 'px';
+    } else {
+      spkEl.classList.add('hidden');
+    }
 
     // reset animation classes
     cap.className = 'preview-caption';
@@ -664,7 +687,7 @@
       var paint = function () {
         cap.innerHTML = SAMPLE.map(function (word, i) {
           var t = caps ? word.toUpperCase() : word.charAt(0) + word.slice(1).toLowerCase();
-          return i === idx ? '<span style="color:' + st.highlight + '">' + t + '</span>' : t;
+          return i === idx ? hlSpan(t) : t;
         }).join(' ');
         idx = (idx + 1) % SAMPLE.length;
       };
@@ -683,11 +706,11 @@
       var kwOn = $('c-kw').checked;
       if (words === 1) {
         var oneWord = caps ? 'INSANE' : 'Insane';
-        cap.innerHTML = kwOn ? '<span style="color:' + st.highlight + '">' + oneWord + '</span>' : oneWord;
+        cap.innerHTML = kwOn ? hlSpan(oneWord) : oneWord;
       } else {
         var ws = caps ? ['THIS', 'LOOKS', 'INSANE'] : ['This', 'looks', 'insane'];
         cap.innerHTML = ws.map(function (word, i) {
-          return (i === 2 && kwOn) ? '<span style="color:' + st.highlight + '">' + word + '</span>' : word;
+          return (i === 2 && kwOn) ? hlSpan(word) : word;
         }).join(' ');
       }
       if (anim !== 'none') {
@@ -727,7 +750,8 @@
       anim: anim,
       wordsPerCue: words,
       uppercase: overrides.uppercase,
-      keyword: readKeyword()
+      keyword: readKeyword(),
+      speaker: readSpeaker()
     });
 
     if (frames.length > 1500 &&

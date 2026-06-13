@@ -235,15 +235,15 @@
   /* Library metadata for the nine base presets (category / popularity /
      layout / keyword-highlight default). */
   var _baseMeta = {
-    hormozi:        { category: 'Bold Creator',          popularity: 99, layout: 'bottom', keyword: true },
+    hormozi:        { category: 'Bold Creator',          popularity: 99, layout: 'bottom', keyword: true, highlightScale: 1.14 },
     karaoke:        { category: 'Dynamic Highlight',     popularity: 95, layout: 'bottom', keyword: false },
     'highlight-box':{ category: 'Social Growth',         popularity: 92, layout: 'bottom', keyword: true },
     minimal:        { category: 'Minimal Professional',  popularity: 80, layout: 'bottom', keyword: false },
     neon:           { category: 'Gaming Stream',         popularity: 88, layout: 'center', keyword: true },
     typewriter:     { category: 'Storytelling',          popularity: 70, layout: 'center', keyword: false },
-    boldyellow:     { category: 'Motivation',            popularity: 90, layout: 'bottom', keyword: true },
+    boldyellow:     { category: 'Motivation',            popularity: 90, layout: 'bottom', keyword: true, highlightScale: 1.14 },
     cleanwhite:     { category: 'Minimal Professional',  popularity: 78, layout: 'bottom', keyword: false },
-    tvnews:         { category: 'Podcast Pro',           popularity: 65, layout: 'bottom', keyword: false }
+    tvnews:         { category: 'Podcast Pro',           popularity: 65, layout: 'bottom', keyword: false, speaker: true }
   };
   for (var _i = 0; _i < STYLE_PRESETS.length; _i++) {
     var _m = _baseMeta[STYLE_PRESETS[_i].id] || {};
@@ -251,12 +251,14 @@
     STYLE_PRESETS[_i].popularity = _m.popularity || 60;
     STYLE_PRESETS[_i].layout = _m.layout || 'bottom';
     STYLE_PRESETS[_i].keyword = !!_m.keyword;
+    STYLE_PRESETS[_i].speaker = !!_m.speaker;
+    if (_m.highlightScale) STYLE_PRESETS[_i].highlightScale = _m.highlightScale;
   }
 
   /* Extra professionally-designed templates fleshing out every category.
      Names echo the short-form template aesthetic (Impact, Volt, Chalk…). */
   var MORE_TEMPLATES = [
-    { id: 'impact', name: 'Impact II', category: 'Bold Creator', popularity: 97, layout: 'bottom', keyword: true,
+    { id: 'impact', name: 'Impact II', category: 'Bold Creator', popularity: 97, layout: 'bottom', keyword: true, highlightScale: 1.18,
       font: 'Anton', fallbackFonts: ['Bebas Neue', 'Impact', 'Arial Black'],
       fontSize: 92, fill: '#FFFFFF', highlight: '#FFE53B', stroke: '#000000', strokeWidth: 13,
       uppercase: true, wordsPerCue: 1, anim: 'pop' },
@@ -288,7 +290,7 @@
       font: 'Inter', fallbackFonts: ['Helvetica', 'Arial'],
       fontSize: 64, fill: '#111111', highlight: '#111111', boxColor: '#FFE53B', boxRadius: 10, stroke: null, strokeWidth: 0,
       uppercase: false, wordsPerCue: 2, anim: 'pop' },
-    { id: 'lift', name: 'Lift', category: 'Podcast Pro', popularity: 76, layout: 'bottom', keyword: false,
+    { id: 'lift', name: 'Lift', category: 'Podcast Pro', popularity: 76, layout: 'bottom', keyword: false, speaker: true,
       font: 'Inter', fallbackFonts: ['Helvetica Neue', 'Arial'],
       fontSize: 52, fill: '#FFFFFF', highlight: '#5CC8FF', stroke: '#000000', strokeWidth: 4,
       uppercase: false, wordsPerCue: 0, anim: 'slide' },
@@ -312,7 +314,7 @@
       font: 'JetBrains Mono', fallbackFonts: ['Courier New', 'monospace'],
       fontSize: 40, fill: '#FFFFFF', highlight: '#9AD0FF', stroke: null, strokeWidth: 0,
       letterSpacing: 6, uppercase: true, wordsPerCue: 0, anim: 'fade' },
-    { id: 'grind', name: 'Grind', category: 'Motivation', popularity: 89, layout: 'bottom', keyword: true,
+    { id: 'grind', name: 'Grind', category: 'Motivation', popularity: 89, layout: 'bottom', keyword: true, highlightScale: 1.16,
       font: 'Anton', fallbackFonts: ['Bebas Neue', 'Impact'],
       fontSize: 90, fill: '#FFFFFF', highlight: '#FFD400', stroke: '#000000', strokeWidth: 12,
       uppercase: true, wordsPerCue: 1, anim: 'scale' },
@@ -364,6 +366,7 @@
       boxRadius: (o.boxRadius != null) ? o.boxRadius : (preset.boxRadius || 10),
       glow: (o.glow !== undefined) ? o.glow : (preset.glow || null),
       letterSpacing: (o.letterSpacing != null) ? o.letterSpacing : (preset.letterSpacing || 0),
+      highlightScale: (o.highlightScale != null) ? o.highlightScale : (preset.highlightScale || 1),
       uppercase: (o.uppercase != null) ? o.uppercase : !!preset.uppercase,
       yPct: (o.yPct != null) ? o.yPct : 0.76
     };
@@ -507,6 +510,20 @@
   }
 
   /*
+   * Split a leading "Name:" speaker prefix off a cue.
+   * "Sarah: let's begin" -> { speaker:'Sarah', text:"let's begin" }.
+   * Only fires for a short (<=3 word) name followed by a colon + space, so
+   * normal sentences with colons are left alone. Pure + tested.
+   */
+  function extractSpeaker(text) {
+    var m = /^\s*([A-Za-z][\w .'\-]{0,24}?)\s*[:：]\s+(.+)$/.exec(text || '');
+    if (m && m[2] && m[1].trim().split(/\s+/).length <= 3) {
+      return { speaker: m[1].trim(), text: m[2] };
+    }
+    return { speaker: null, text: text };
+  }
+
+  /*
    * Single entry point that turns cues into render-ready frames for any
    * animation, applying words-per-cue, casing, and keyword highlighting.
    * opts: { anim, wordsPerCue, uppercase, keyword:{on,mode} }
@@ -522,7 +539,20 @@
     var wpc = opts.wordsPerCue || 0;
     var up = !!opts.uppercase;
     var kw = opts.keyword || {};
+    var spk = opts.speaker || {};
     var i, f, frames;
+
+    // Pull "Name:" speaker prefixes off the cues so they don't pollute the
+    // caption words; remember them by time for a post-pass.
+    var speakers = null;
+    if (spk.on) {
+      speakers = [];
+      cues = cues.map(function (c) {
+        var s = extractSpeaker(c.text);
+        speakers.push({ start: c.start, end: c.end, speaker: s.speaker });
+        return { start: c.start, end: c.end, text: s.text };
+      });
+    }
 
     if (anim === 'karaoke') {
       frames = planKaraoke(cues, Math.max(2, wpc || 3));
@@ -531,25 +561,36 @@
         if (up) f.words = f.words.map(uc);
         if (kw.on) f.highlightSet = markKeywords(f.words, kw);
       }
-      return frames;
-    }
-    if (anim === 'typewriter') {
+    } else if (anim === 'typewriter') {
       frames = planTypewriter(cues);
       if (up) for (i = 0; i < frames.length; i++) frames[i].text = frames[i].text.toUpperCase();
-      return frames;
+    } else {
+      var src = (wpc > 0)
+        ? explodeWords(cues, { wordsPerCue: wpc, uppercase: up })
+        : cues.map(function (c) { return { start: c.start, end: c.end, text: up ? c.text.toUpperCase() : c.text }; });
+      frames = src.map(function (c) {
+        var words = c.text.replace(/\s+/g, ' ').trim().split(' ');
+        if (up) words = words.map(uc);
+        var frame = { start: c.start, end: c.end, words: words };
+        if (kw.on) frame.highlightSet = markKeywords(words, kw);
+        return frame;
+      });
     }
 
-    var src = (wpc > 0)
-      ? explodeWords(cues, { wordsPerCue: wpc, uppercase: up })
-      : cues.map(function (c) { return { start: c.start, end: c.end, text: up ? c.text.toUpperCase() : c.text }; });
-
-    return src.map(function (c) {
-      var words = c.text.replace(/\s+/g, ' ').trim().split(' ');
-      if (up) words = words.map(uc);
-      var frame = { start: c.start, end: c.end, words: words };
-      if (kw.on) frame.highlightSet = markKeywords(words, kw);
-      return frame;
-    });
+    // Attach the speaker label to every frame that falls inside its cue.
+    if (speakers) {
+      for (i = 0; i < frames.length; i++) {
+        for (var s = 0; s < speakers.length; s++) {
+          // start-inclusive, end-exclusive so a frame on a cue boundary
+          // belongs to the cue that is starting, not the one that ended
+          if (frames[i].start >= speakers[s].start - 1e-3 && frames[i].start < speakers[s].end - 1e-3) {
+            if (speakers[s].speaker) frames[i].speaker = speakers[s].speaker;
+            break;
+          }
+        }
+      }
+    }
+    return frames;
   }
 
 
@@ -575,6 +616,7 @@
     planKaraoke: planKaraoke,
     planTypewriter: planTypewriter,
     markKeywords: markKeywords,
+    extractSpeaker: extractSpeaker,
     buildCaptionFrames: buildCaptionFrames
   };
 });

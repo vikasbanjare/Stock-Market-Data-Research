@@ -54,6 +54,7 @@
       boxRadius: Math.round(((o.boxRadius != null ? o.boxRadius : preset.boxRadius) || 10) * scale),
       glow: (o.glow !== undefined) ? o.glow : (preset.glow || null),
       letterSpacing: Math.round(((o.letterSpacing != null ? o.letterSpacing : (preset.letterSpacing || 0))) * scale),
+      highlightScale: (o.highlightScale != null) ? o.highlightScale : (preset.highlightScale || 1),
       uppercase: o.uppercase != null ? o.uppercase : preset.uppercase,
       yPct: o.yPct != null ? o.yPct : 0.76,
       maxWidthPct: 0.86,
@@ -73,7 +74,10 @@
 
   /*
    * Draw one caption frame onto a canvas.
-   * frame: { text } or { words:[...], active } (karaoke).
+   * frame: { words:[...], active?, highlightSet?, speaker? } or { text }.
+   * Highlighted words (active OR in highlightSet) render in the highlight
+   * color and scaled up by style.highlightScale. A frame.speaker draws a
+   * small label pill above the caption.
    * Returns the canvas (caller turns it into a PNG).
    */
   function drawFrame(canvas, frame, style) {
@@ -82,60 +86,98 @@
     ctx.clearRect(0, 0, W, H);
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
-    ctx.font = '900 ' + style.size + 'px "' + style.font + '", "' + style.fallbacks + '", sans-serif';
     if (style.letterSpacing) { try { ctx.letterSpacing = style.letterSpacing + 'px'; } catch (eLS) {} }
 
-    var words = frame.words ? frame.words.slice() : String(frame.text).split(' ');
-    if (style.uppercase) {
-      for (var u = 0; u < words.length; u++) words[u] = words[u].toUpperCase();
+    function setFont(px) {
+      ctx.font = '900 ' + px + 'px "' + style.font + '", "' + style.fallbacks + '", sans-serif';
     }
+
+    var words = frame.words ? frame.words.slice() : String(frame.text).split(/\s+/);
+    if (style.uppercase) for (var u = 0; u < words.length; u++) words[u] = words[u].toUpperCase();
+
+    var base = style.size;
+    var hlSize = Math.round(base * (style.highlightScale || 1));
+    function isHL(i) {
+      return frame.words != null &&
+        (i === frame.active || (frame.highlightSet && frame.highlightSet[i]));
+    }
+
+    setFont(base);
+    var spaceW = ctx.measureText(' ').width;
+
+    // per-word metrics (highlighted words get the larger font)
+    var meta = [];
+    for (var i = 0; i < words.length; i++) {
+      var hp = isHL(i);
+      var px = hp ? hlSize : base;
+      setFont(px);
+      meta.push({ word: words[i], px: px, hl: hp, w: ctx.measureText(words[i]).width });
+    }
+
+    // greedy wrap into lines, tracking each line's tallest word
     var maxW = W * style.maxWidthPct;
-    var measure = function (s) { return ctx.measureText(s).width; };
-    var lines = wrapLines(words, maxW, measure);
+    var lines = [];
+    var cur = { items: [], width: 0, height: base };
+    for (i = 0; i < meta.length; i++) {
+      var add = meta[i].w + (cur.items.length ? spaceW : 0);
+      if (cur.items.length && cur.width + add > maxW) {
+        lines.push(cur);
+        cur = { items: [], width: 0, height: base };
+        add = meta[i].w;
+      }
+      cur.items.push(meta[i]);
+      cur.width += add;
+      cur.height = Math.max(cur.height, meta[i].px);
+    }
+    if (cur.items.length) lines.push(cur);
 
-    var lineH = style.size * style.lineGap;
-    var blockH = lines.length * lineH;
-    var baseY = H * style.yPct - blockH + lineH; // baseline of first line
+    var lineStep = hlSize * style.lineGap;
+    var blockH = lines.length * lineStep;
+    var baseY = H * style.yPct - blockH + lineStep; // baseline of first line
 
-    var wordIndex = 0;
+    // speaker label pill above the block
+    if (frame.speaker) {
+      var spk = String(frame.speaker).toUpperCase();
+      var spx = Math.max(16, Math.round(base * 0.5));
+      setFont(spx);
+      ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+      var swid = ctx.measureText(spk).width;
+      var sx = (W - swid) / 2;
+      var sy = Math.max(spx * 1.5, baseY - lines[0].height - spx * 0.6);
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      roundRect(ctx, sx - spx * 0.45, sy - spx, swid + spx * 0.9, spx * 1.4, spx * 0.35);
+      ctx.fill();
+      ctx.fillStyle = style.highlight || '#FFD400';
+      ctx.fillText(spk, sx, sy);
+    }
+
     for (var li = 0; li < lines.length; li++) {
-      var lineWords = lines[li];
-      var spaceW = measure(' ');
-      var lineW = measure(lineWords.join(' '));
-      var x = (W - lineW) / 2;
-      var y = baseY + li * lineH;
+      var line = lines[li];
+      var x = (W - line.width) / 2;
+      var y = baseY + li * lineStep;
 
-      // Background box behind the whole line (Highlight Box style)
       if (style.boxColor) {
-        var padX = style.size * 0.32, padY = style.size * 0.22;
+        var padX = base * 0.32, padY = base * 0.22;
         ctx.fillStyle = style.boxColor;
-        roundRect(ctx, x - padX, y - style.size - padY + style.size * 0.18,
-                  lineW + padX * 2, style.size + padY * 2, style.boxRadius);
+        roundRect(ctx, x - padX, y - line.height - padY + line.height * 0.18,
+                  line.width + padX * 2, line.height + padY * 2, style.boxRadius);
         ctx.fill();
       }
 
-      for (var wi = 0; wi < lineWords.length; wi++) {
-        var word = lineWords[wi];
-        var isActive = frame.words != null &&
-          (wordIndex === frame.active ||
-           (frame.highlightSet && frame.highlightSet[wordIndex]));
-
+      for (var wi = 0; wi < line.items.length; wi++) {
+        var it = line.items[wi];
+        setFont(it.px);
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
-        if (style.glow) {
-          ctx.shadowColor = style.glow;
-          ctx.shadowBlur = style.size * 0.35;
-        }
+        if (style.glow) { ctx.shadowColor = style.glow; ctx.shadowBlur = it.px * 0.35; }
         if (style.stroke && style.strokeWidth) {
           ctx.strokeStyle = style.stroke;
           ctx.lineWidth = style.strokeWidth;
-          ctx.strokeText(word, x, y);
+          ctx.strokeText(it.word, x, y);
         }
-        ctx.fillStyle = isActive ? style.highlight : style.fill;
-        ctx.fillText(word, x, y);
-
-        x += measure(word) + spaceW;
-        wordIndex++;
+        ctx.fillStyle = it.hl ? style.highlight : style.fill;
+        ctx.fillText(it.word, x, y);
+        x += it.w + spaceW;
       }
     }
     return canvas;

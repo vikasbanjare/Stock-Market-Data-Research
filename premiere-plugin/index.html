@@ -65,6 +65,7 @@
       <!-- LIVE PREVIEW -->
       <div class="preview-wrap">
         <div class="preview-frame" id="preview-frame">
+          <div class="preview-speaker hidden" id="preview-speaker"></div>
           <div class="preview-caption" id="preview-caption">YOUR CAPTION</div>
         </div>
         <button id="btn-replay" class="replay-btn" title="Replay animation">▶</button>
@@ -136,15 +137,22 @@
         </div>
 
         <label class="check kw-toggle"><input type="checkbox" id="c-kw"> ✨ Auto-highlight keywords</label>
-        <label id="c-kw-mode-wrap" class="hidden">Highlight which words
-          <select id="c-kw-mode">
-            <option value="smart">Smart — numbers, names &amp; key words</option>
-            <option value="keywords">The strongest word</option>
-            <option value="numbers">Numbers</option>
-            <option value="cta">Call-to-action words</option>
-            <option value="names">Names</option>
-          </select>
-        </label>
+        <div id="c-kw-mode-wrap" class="hidden">
+          <label>Highlight which words
+            <select id="c-kw-mode">
+              <option value="smart">Smart — numbers, names &amp; key words</option>
+              <option value="keywords">The strongest word</option>
+              <option value="numbers">Numbers</option>
+              <option value="cta">Call-to-action words</option>
+              <option value="names">Names</option>
+            </select>
+          </label>
+          <label>Keyword pop size <span class="val" id="c-hlscale-val"></span>
+            <input type="range" id="c-hl-scale" min="100" max="170" value="100">
+          </label>
+        </div>
+
+        <label class="check kw-toggle"><input type="checkbox" id="c-speaker"> 🎙️ Show speaker names <span class="dim">(podcasts — reads "Name:" lines)</span></label>
 
         <div class="section-label sub">Animation</div>
         <div id="anim-rail" class="anim-rail"></div>

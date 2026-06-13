@@ -256,6 +256,38 @@ console.log('captions.js (buildCaptionFrames)');
   assert(tw[tw.length - 1].text === 'GET MORE VIEWS NOW', 'typewriter mode accumulates uppercased text');
 }
 
+// ---------------------------------------------- speaker labels + pop ----
+console.log('captions.js (speaker labels & keyword pop)');
+{
+  const ex = CPCaptions.extractSpeaker;
+  assert(ex("Sarah: let's begin").speaker === 'Sarah', 'extractSpeaker pulls the name');
+  assert(ex("Sarah: let's begin").text === "let's begin", 'extractSpeaker strips the prefix from text');
+  assert(ex('Just a normal sentence').speaker === null, 'no false positive on plain text');
+  assert(ex('Visit https://x.com today').speaker === null, 'URL colon is not treated as a speaker');
+  assert(ex('John Paul Jones: hello').speaker === 'John Paul Jones', 'allows up to 3-word names');
+
+  const spkCues = [
+    { start: 0, end: 2, text: 'Host: welcome back' },
+    { start: 2, end: 4, text: 'Guest: thanks for having me' }
+  ];
+  const fr = CPCaptions.buildCaptionFrames(spkCues, { anim: 'fade', wordsPerCue: 0, speaker: { on: true } });
+  assert(fr.length === 2, 'speaker cues build line frames');
+  assert(fr[0].speaker === 'Host' && fr[1].speaker === 'Guest', 'each frame carries its speaker');
+  assert(fr[0].words.join(' ') === 'welcome back', 'speaker prefix removed from caption words');
+
+  const noSpk = CPCaptions.buildCaptionFrames(spkCues, { anim: 'fade', wordsPerCue: 0 });
+  assert(!noSpk[0].speaker && noSpk[0].words[0] === 'Host:', 'speaker off leaves the text untouched');
+
+  // highlightScale flows through mergeStyle and styleForFrame
+  const CPRender3 = require(path.join(__dirname, '..', 'js', 'render.js'));
+  const st = CPCaptions.mergeStyle(CPCaptions.getPreset('minimal'), { highlightScale: 1.3 });
+  assert(st.highlightScale === 1.3, 'mergeStyle carries highlightScale');
+  const sf = CPRender3.styleForFrame(CPCaptions.getPreset('minimal'), 1080, { highlightScale: 1.3 });
+  assert(sf.highlightScale === 1.3, 'styleForFrame carries highlightScale');
+  assert(CPCaptions.getPreset('hormozi').highlightScale > 1, 'bold presets ship a default keyword pop');
+  assert(CPCaptions.getPreset('lift').speaker === true, 'podcast preset enables speaker labels');
+}
+
 // ------------------------------------------------------------ multicam ----
 console.log('multicam.js');
 {
