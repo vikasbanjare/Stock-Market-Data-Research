@@ -8,7 +8,7 @@
 <body>
   <header>
     <div class="brand"><span class="logo">✦</span> CutPilot</div>
-    <span class="ver" id="ver">v0.6.3</span>
+    <span class="ver" id="ver">v0.6.4</span>
     <div id="env-status" class="env-status">connecting…</div>
   </header>
 
@@ -47,7 +47,22 @@
       <div class="cat-chips" id="lib-cats"></div>
       <div class="tpl-grid" id="tpl-grid"></div>
       <div class="row tight" style="justify-content:center">
-        <button id="btn-tpl-import" class="chip-btn">⤓ Import template</button>
+        <button id="btn-add-mogrt" class="chip-btn">➕ Add .mogrt file</button>
+        <button id="btn-tpl-import" class="chip-btn">⤓ Import style</button>
+      </div>
+    </div>
+
+    <!-- MOGRT action sheet -->
+    <div id="mogrt-sheet" class="mogrt-sheet hidden">
+      <div class="ms-card">
+        <div class="ms-name" id="ms-name">Template</div>
+        <p class="hint" id="ms-hint">Premiere Motion Graphics Template. Preview it on your
+           timeline, or use it to caption your whole transcript.</p>
+        <button id="ms-preview" class="hero-btn small alt">▶ Preview on timeline</button>
+        <button id="ms-use" class="hero-btn small">✨ Caption with this template</button>
+        <button id="ms-inspect" class="chip-btn">🔍 Inspect fields</button>
+        <pre id="ms-inspect-out" class="diag-out hidden"></pre>
+        <button id="ms-close" class="link-btn">Close</button>
       </div>
     </div>
 
@@ -326,6 +341,10 @@
     </div>
 
     <button id="btn-mc-plan" class="hero-btn alt">🎬 Build angle plan</button>
+    <div class="row tight" style="justify-content:center">
+      <button id="btn-mc-test" class="chip-btn">🔧 Test audio engine</button>
+    </div>
+    <pre id="mc-diag" class="diag-out hidden"></pre>
     <div id="mc-progress" class="progress hidden"></div>
     <div class="card hidden" id="mc-plan-card">
       <div id="mc-plan-view" class="seg-list"></div>
@@ -361,7 +380,7 @@
       <button id="btn-diag-copy" class="chip-btn">Copy results</button>
     </div>
 
-    <p class="hint center">CutPilot v0.6.3 · smart cut · auto multicam · caption template studio</p>
+    <p class="hint center">CutPilot v0.6.4 · smart cut · auto multicam · caption template studio</p>
   </section>
 
   <footer><div id="log" class="log"></div></footer>

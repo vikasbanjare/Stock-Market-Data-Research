@@ -852,6 +852,25 @@ function CP_inspectMogrt(argsJson) {
   } catch (e) { return CP_fail(e.message); }
 }
 
+/*
+ * Drop a single instance of a .mogrt at the playhead so the user can scrub
+ * Premiere's monitor and watch the animation. argsJson: { path, seconds }
+ */
+function CP_previewMogrt(argsJson) {
+  try {
+    var args = JSON.parse(argsJson);
+    var seq = CP_activeSequence();
+    var at = 0;
+    try { at = seq.getPlayerPosition().seconds; } catch (eP) {}
+    if (!(at >= 0)) at = 0;
+    var vTrack = seq.videoTracks.numTracks - 1;
+    var clip = seq.importMGT(args.path, CP_ticksFromSeconds(at), vTrack, 0);
+    if (!clip) return CP_fail('Premiere could not place this template.');
+    try { clip.end = CP_timeFromSeconds(at + (args.seconds || 4)); } catch (eE) {}
+    return CP_ok({ placedAt: at, track: vTrack + 1 });
+  } catch (e) { return CP_fail(e.message); }
+}
+
 /* Return sorted sequence-marker times (seconds) — a Smart-Cut-free source
    of multicam switch points. */
 function CP_getMarkers() {

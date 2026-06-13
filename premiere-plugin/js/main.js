@@ -27,6 +27,9 @@
     mcAudioTracks: null,
     mcAudioEnd: 0,
     mcMap: null,
+    // mogrt gallery
+    userMogrts: [],
+    selectedMogrt: null,
     // template library
     customTemplates: [],
     favs: {},
@@ -80,20 +83,18 @@
   /* Find an ffmpeg binary: the user's setting first, then common install
      locations. ffmpeg is what lets us read audio inside video files (Web
      Audio can't), so multicam/Smart-Cut work on real footage. Cached. */
-  var _ffmpeg, _ffmpegProbed = false;
+  var _ffmpeg = null;
   function resolveFfmpeg() {
-    if (_ffmpegProbed) return _ffmpeg;
-    _ffmpegProbed = true;
-    _ffmpeg = null;
+    if (_ffmpeg) return _ffmpeg;            // cache only a positive result
     var fs;
-    try { fs = nodeReq('fs'); } catch (e) { return (_ffmpeg = settings.ffmpegPath || null); }
+    try { fs = nodeReq('fs'); } catch (e) { return (settings.ffmpegPath || null); }
     var tryPath = function (p) { try { return p && fs.existsSync(p); } catch (e2) { return false; } };
     if (tryPath(settings.ffmpegPath)) return (_ffmpeg = settings.ffmpegPath);
     var cands = ['/opt/homebrew/bin/ffmpeg', '/usr/local/bin/ffmpeg', '/usr/bin/ffmpeg',
-                 '/opt/local/bin/ffmpeg', 'C:\\ffmpeg\\bin\\ffmpeg.exe',
-                 'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe'];
+                 '/opt/local/bin/ffmpeg', '/snap/bin/ffmpeg', '/Applications/ffmpeg',
+                 'C:\\ffmpeg\\bin\\ffmpeg.exe', 'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe'];
     for (var i = 0; i < cands.length; i++) if (tryPath(cands[i])) return (_ffmpeg = cands[i]);
-    return (_ffmpeg = null);
+    return null;  // not found — re-probe next call (picks up a fresh install)
   }
 
   function pickFile(title, exts) {
@@ -258,19 +259,39 @@
   }
 
   // ===================================================== TEMPLATE LIBRARY ====
-  var LS = { fav: 'cutpilot.favs', recent: 'cutpilot.recent', custom: 'cutpilot.custom' };
+  var MOGRT_CAT = 'Premiere (.mogrt)';
+  var LS = { fav: 'cutpilot.favs', recent: 'cutpilot.recent', custom: 'cutpilot.custom', mogrts: 'cutpilot.mogrts' };
 
   function loadLibraryPrefs() {
     try { state.favs = JSON.parse(localStorage.getItem(LS.fav)) || {}; } catch (e) { state.favs = {}; }
     try { state.recent = JSON.parse(localStorage.getItem(LS.recent)) || []; } catch (e2) { state.recent = []; }
     try { state.customTemplates = JSON.parse(localStorage.getItem(LS.custom)) || []; } catch (e3) { state.customTemplates = []; }
+    try { state.userMogrts = JSON.parse(localStorage.getItem(LS.mogrts)) || []; } catch (e4) { state.userMogrts = []; }
   }
   function saveFavs() { localStorage.setItem(LS.fav, JSON.stringify(state.favs)); }
   function saveRecent() { localStorage.setItem(LS.recent, JSON.stringify(state.recent.slice(0, 12))); }
   function saveCustom() { localStorage.setItem(LS.custom, JSON.stringify(state.customTemplates)); }
+  function saveUserMogrts() { localStorage.setItem(LS.mogrts, JSON.stringify(state.userMogrts)); }
 
-  /* All templates = built-ins + the user's saved custom ones. */
-  function allTemplates() { return CPCaptions.TEMPLATES.concat(state.customTemplates); }
+  /* MOGRT templates shown in the gallery: installed Premiere templates +
+     any .mogrt files the user added. Each is a card with mogrt:true. */
+  function mogrtTemplates() {
+    var out = [];
+    (state.installedMogrts || []).forEach(function (m) {
+      out.push({ id: 'mogrt:' + m.path, name: m.name, category: MOGRT_CAT, mogrt: true,
+                 path: m.path, popularity: 55, subcat: m.category });
+    });
+    (state.userMogrts || []).forEach(function (m) {
+      out.push({ id: 'mogrt:' + m.path, name: m.name, category: MOGRT_CAT, mogrt: true,
+                 path: m.path, popularity: 60, subcat: 'Added by you' });
+    });
+    return out;
+  }
+
+  /* All templates = built-in styles + user custom styles + MOGRT cards. */
+  function allTemplates() {
+    return CPCaptions.TEMPLATES.concat(state.customTemplates).concat(mogrtTemplates());
+  }
 
   function findTemplate(id) {
     var all = allTemplates();
@@ -293,7 +314,7 @@
     });
 
     // category chips
-    var cats = ['All', 'Favorites', 'Recent', 'My Templates'].concat(CPCaptions.CATEGORIES);
+    var cats = ['All', 'Favorites', 'Recent', 'My Templates', MOGRT_CAT].concat(CPCaptions.CATEGORIES);
     var chipBox = $('lib-cats');
     cats.forEach(function (c) {
       var chip = document.createElement('button');
@@ -311,7 +332,32 @@
     $('lib-search').addEventListener('input', function () { state.libSearch = this.value.toLowerCase(); renderTemplateGrid(); });
     $('lib-sort').addEventListener('change', function () { state.libSort = this.value; renderTemplateGrid(); });
     $('btn-tpl-import').addEventListener('click', importTemplate);
+    $('btn-add-mogrt').addEventListener('click', addMogrtFile);
+    wireMogrtSheet();
+
+    // pull in Premiere's installed templates so they appear as cards
+    if (CPBridge.isCEP() && !state.installedMogrts.length) {
+      CPBridge.callHost('CP_findInstalledMogrts').then(function (r) {
+        state.installedMogrts = r.items || [];
+        renderTemplateGrid();
+      }).catch(function () {});
+    }
     renderTemplateGrid();
+  }
+
+  function addMogrtFile() {
+    var p = pickFile('Choose a Motion Graphics Template (.mogrt)', ['mogrt']);
+    if (!p) return;
+    var name = p.split(/[\\/]/).pop().replace(/\.mogrt$/i, '');
+    state.userMogrts = (state.userMogrts || []).filter(function (m) { return m.path !== p; });
+    state.userMogrts.unshift({ name: name, path: p });
+    saveUserMogrts();
+    state.libCategory = MOGRT_CAT;
+    var on = $('lib-cats').querySelector('.cat-chip.on'); if (on) on.classList.remove('on');
+    var chips = document.querySelectorAll('#lib-cats .cat-chip');
+    for (var i = 0; i < chips.length; i++) if (chips[i].textContent === MOGRT_CAT) chips[i].classList.add('on');
+    renderTemplateGrid();
+    toast('Added "' + name + '" to your templates.');
   }
 
   function filteredTemplates() {
@@ -326,7 +372,7 @@
     if (state.libSearch) {
       var q = state.libSearch;
       list = list.filter(function (t) {
-        return (t.name + ' ' + t.category + ' ' + t.font + ' ' + (t.anim || '')).toLowerCase().indexOf(q) >= 0;
+        return (t.name + ' ' + t.category + ' ' + (t.font || '') + ' ' + (t.anim || '') + ' ' + (t.subcat || '')).toLowerCase().indexOf(q) >= 0;
       });
     }
     if (state.libSort === 'popular' && cat !== 'Recent') list.sort(function (a, b) { return (b.popularity || 0) - (a.popularity || 0); });
@@ -354,6 +400,31 @@
   }
 
   function buildTemplateCard(t) {
+    // MOGRT cards: distinct look + open the action sheet (preview / use)
+    if (t.mogrt) {
+      var mc = document.createElement('div');
+      mc.className = 'tpl-card is-mogrt';
+      var mthumb = document.createElement('div');
+      mthumb.className = 'tpl-thumb';
+      var mcap = document.createElement('div');
+      mcap.className = 't-cap';
+      mcap.textContent = '🎬';
+      mthumb.appendChild(mcap);
+      var badge = document.createElement('span');
+      badge.className = 'tpl-pop';
+      badge.textContent = 'MOGRT';
+      mthumb.appendChild(badge);
+      mc.appendChild(mthumb);
+      var mmeta = document.createElement('div');
+      mmeta.className = 'tpl-meta';
+      var mnm = document.createElement('span'); mnm.className = 'tpl-name'; mnm.textContent = t.name;
+      var mct = document.createElement('span'); mct.className = 'tpl-cat'; mct.textContent = t.subcat || 'Premiere';
+      mmeta.appendChild(mnm); mmeta.appendChild(mct);
+      mc.appendChild(mmeta);
+      mc.addEventListener('click', function () { openMogrtSheet(t); });
+      return mc;
+    }
+
     var card = document.createElement('div');
     card.className = 'tpl-card' + (t.id === state.presetId ? ' on' : '');
 
@@ -416,6 +487,43 @@
   function trackRecent(id) {
     state.recent = [id].concat(state.recent.filter(function (x) { return x !== id; }));
     saveRecent();
+  }
+
+  // ----------------------------------------------- MOGRT card action sheet ----
+  function openMogrtSheet(t) {
+    state.selectedMogrt = { path: t.path, name: t.name };
+    $('ms-name').textContent = t.name;
+    $('ms-inspect-out').classList.add('hidden');
+    $('mogrt-sheet').classList.remove('hidden');
+  }
+
+  function wireMogrtSheet() {
+    $('ms-close').addEventListener('click', function () { $('mogrt-sheet').classList.add('hidden'); });
+    $('mogrt-sheet').addEventListener('click', function (e) {
+      if (e.target === this) this.classList.add('hidden'); // tap backdrop to close
+    });
+    $('ms-preview').addEventListener('click', function () {
+      if (!state.selectedMogrt) return;
+      CPBridge.callHost('CP_previewMogrt', { path: state.selectedMogrt.path, seconds: 4 }).then(function (r) {
+        toast('▶ Placed "' + state.selectedMogrt.name + '" at the playhead on V' + r.track + ' — play to preview.');
+      }).catch(function (e) { toast(e.message, true); });
+    });
+    $('ms-use').addEventListener('click', function () {
+      if (!state.selectedMogrt) return;
+      $('mogrt-sheet').classList.add('hidden');
+      applyMogrtWithPath(state.selectedMogrt.path, $('ms-use'));
+    });
+    $('ms-inspect').addEventListener('click', function () {
+      if (!state.selectedMogrt) return;
+      var out = $('ms-inspect-out');
+      out.classList.remove('hidden'); out.className = 'diag-out'; out.textContent = 'Inspecting…';
+      CPBridge.callHost('CP_inspectMogrt', { path: state.selectedMogrt.path }).then(function (r) {
+        if (!r.props || !r.props.length) { out.textContent = 'No editable fields exposed.'; return; }
+        out.textContent = r.props.map(function (p) {
+          return '"' + p.name + '" [' + p.type + ']' + (p.type === 'string' ? ' = ' + p.sample : '');
+        }).join('\n');
+      }).catch(function (e) { out.className = 'diag-out err'; out.textContent = e.message; });
+    });
   }
 
   // ----------------------------------------------------- editor controls ----
@@ -904,42 +1012,38 @@
   }
 
   function applyMogrtTemplate() {
+    var path = selectedMogrtPath();
+    if (!path) return toast('Pick an installed template, or choose a .mogrt file.', true);
+    applyMogrtWithPath(path, $('btn-alt-apply'));
+  }
+
+  /* Caption the whole transcript with a specific .mogrt (used by the gallery
+     sheet and the advanced section). */
+  function applyMogrtWithPath(mogrtPath, btn) {
     var cues;
     try { cues = readSelectedTranscript(); } catch (e) { return toast(e.message, true); }
-    var mogrtPath = null;
-    if (state.tplSource === 'installed') {
-      var idx = parseInt($('tpl-select').value, 10);
-      if (isNaN(idx) || !state.installedMogrts[idx]) {
-        return toast('Pick an installed template, or switch to "From a file".', true);
-      }
-      mogrtPath = state.installedMogrts[idx].path;
-    } else {
-      if (!state.mogrtFile) return toast('Choose a .mogrt file first.', true);
-      mogrtPath = state.mogrtFile;
-    }
     var tcues = textCues(cues, parseInt($('c-words').value, 10) || 0, $('c-upper').checked);
     if (tcues.length > 400 &&
         !confirm(tcues.length + ' graphics will be added (one per line). Continue?')) return;
     capProgress('Adding ' + tcues.length + ' template graphics');
-    $('btn-alt-apply').disabled = true;
+    if (btn) btn.disabled = true;
     CPBridge.callHost('CP_insertMogrtCaptions', {
       mogrtPath: mogrtPath, cues: tcues, videoTrack: null, audioTrack: 0
     }).then(function (r) {
-      $('btn-alt-apply').disabled = false;
+      if (btn) btn.disabled = false;
       capProgress(null);
       if (r.inserted === 0) {
         var why = (r.sampleErrors && r.sampleErrors.length) ? ' (' + r.sampleErrors[0] + ')' : '';
-        return toast('Couldn\'t add this template' + why + '. Try a different .mogrt, or use an Animated style.', true);
+        return toast('Couldn\'t add this template' + why + '. Try another, or use an Animated style.', true);
       }
       if (r.textSet === 0) {
-        toast('Placed ' + r.inserted + ' graphics, but couldn\'t find a text field to fill. ' +
-              'Template fields: ' + ((r.fields && r.fields.join(', ')) || 'none exposed') +
-              '. Tell me one and I\'ll target it.', true);
+        toast('Placed ' + r.inserted + ' graphics, but couldn\'t find a text field. ' +
+              'Fields: ' + ((r.fields && r.fields.join(', ')) || 'none') + '. Tell me one and I\'ll target it.', true);
       } else {
         toast('🎬 Added ' + r.inserted + ' template captions (' + r.textSet + ' with text)' +
               (r.failed ? ' · ' + r.failed + ' failed' : '') + '.');
       }
-    }).catch(function (e) { $('btn-alt-apply').disabled = false; capProgress(null); toast(e.message, true); });
+    }).catch(function (e) { if (btn) btn.disabled = false; capProgress(null); toast(e.message, true); });
   }
 
   function applyNative() {
@@ -1104,6 +1208,63 @@
       state.mcMode = this.dataset.mode;
     });
   }
+  /* Run an ffmpeg command, capturing stdout/stderr (panel-side via Node). */
+  function runFfmpeg(ffPath, args) {
+    return new Promise(function (resolve) {
+      try {
+        var cp = nodeReq('child_process');
+        var proc = cp.spawn(ffPath, args);
+        var out = '', err = '';
+        proc.stdout.on('data', function (d) { out += d.toString(); });
+        proc.stderr.on('data', function (d) { err += d.toString(); });
+        proc.on('error', function (e) { resolve({ error: e.message }); });
+        proc.on('close', function (code) { resolve({ code: code, stdout: out, stderr: err }); });
+      } catch (e) { resolve({ error: e.message }); }
+    });
+  }
+
+  /* One-tap diagnostic: is ffmpeg found, can it read your mic, does it hear speech? */
+  function testAudioEngine() {
+    var box = $('mc-diag');
+    box.classList.remove('hidden'); box.className = 'diag-out';
+    box.textContent = 'Testing audio engine…';
+    var report = [];
+    _ffmpeg = null;
+    var ff = resolveFfmpeg();
+    report.push('ffmpeg: ' + (ff || 'NOT FOUND in common locations'));
+    if (!ff) {
+      report.push('\nFix: open Terminal, run  brew install ffmpeg  then tap Test again.');
+      report.push('Or set the exact path in Settings → ffmpeg path.');
+      box.textContent = report.join('\n');
+      return;
+    }
+    runFfmpeg(ff, ['-version']).then(function (v) {
+      if (v.error) { report.push('ffmpeg failed to launch: ' + v.error); box.textContent = report.join('\n'); return null; }
+      report.push('version: ' + String(v.stdout || '').split('\n')[0]);
+      return CPBridge.callHost('CP_getAudioTracks');
+    }).then(function (r) {
+      if (!r) return;
+      var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; });
+      if (!tracks.length) { report.push('No audio tracks with media found.'); box.textContent = report.join('\n'); return; }
+      var t = tracks[0];
+      report.push('\nReading mic: ' + t.mediaPath);
+      return runFfmpeg(ff, ['-hide_banner', '-nostats', '-i', t.mediaPath,
+        '-af', 'silencedetect=noise=-40dB:d=0.3', '-f', 'null', '-']).then(function (res) {
+        if (res.error) {
+          report.push('COULD NOT RUN: ' + res.error);
+        } else {
+          report.push('exit code: ' + res.code);
+          var sil = (String(res.stderr).match(/silence_start/g) || []).length;
+          report.push('speech gaps detected: ' + sil + (sil ? '  ✅ working!' : '  ⚠️ none — check threshold/audio'));
+          var dm = /Duration:\s*([\d:.]+)/.exec(res.stderr);
+          if (dm) report.push('duration read: ' + dm[1]);
+          report.push('\n--- ffmpeg output (tail) ---\n' + String(res.stderr).slice(-600));
+        }
+        box.textContent = report.join('\n');
+      });
+    }).catch(function (e) { report.push('ERROR: ' + e.message); box.textContent = report.join('\n'); });
+  }
+
   function updateMcFfmpegBanner() {
     var el = $('mc-ffmpeg');
     if (!el) return;
@@ -1123,7 +1284,7 @@
         'Then tap re-check. (Or set its path in Settings.)' +
         '<br><button class="chip-btn" id="mc-ff-recheck">↻ Re-check ffmpeg</button>';
       var btn = document.getElementById('mc-ff-recheck');
-      if (btn) btn.addEventListener('click', function () { _ffmpegProbed = false; updateMcFfmpegBanner(); refreshFfmpegStatus(); });
+      if (btn) btn.addEventListener('click', function () { _ffmpeg = null; updateMcFfmpegBanner(); refreshFfmpegStatus(); });
     }
   }
 
@@ -1356,8 +1517,16 @@
       if (!plan || !plan.length) return toast('No camera switches were produced.', true);
       state.plan = plan;
       renderMcPlan(numAngles);
-    }).catch(function (e) { capMcProgress(null); toast(e.message, true); });
+    }).catch(function (e) {
+      capMcProgress(null);
+      toast(e.message, true);
+      var box = $('mc-diag');
+      box.classList.remove('hidden'); box.className = 'diag-out err';
+      box.textContent = 'Build failed:\n' + e.message + '\n\nTap "Test audio engine" to check ffmpeg.';
+    });
   });
+
+  $('btn-mc-test').addEventListener('click', testAudioEngine);
 
   function renderMcPlan(numAngles) {
     var stats = CPMulticam.planStats(state.plan, numAngles);
@@ -1394,7 +1563,7 @@
 
   // =========================================================== SETTINGS ====
   function refreshFfmpegStatus() {
-    _ffmpegProbed = false; // re-probe
+    _ffmpeg = null; // re-probe
     var ff = resolveFfmpeg();
     var el = $('ffmpeg-status');
     if (ff) { el.textContent = '✅ ffmpeg found: ' + ff; el.className = 'hint'; }

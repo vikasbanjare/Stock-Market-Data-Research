@@ -377,6 +377,24 @@ input[type="range"]::-webkit-slider-thumb {
 .alt-title { font-size: 12.5px; font-weight: 800; margin-bottom: 5px; }
 
 /* diagnostics */
+.mogrt-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  background: rgba(11,12,16,.45); backdrop-filter: blur(3px);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0;
+}
+.mogrt-sheet .ms-card {
+  width: 100%; background: var(--card);
+  border-top-left-radius: 18px; border-top-right-radius: 18px;
+  border: 1px solid var(--line); padding: 16px 16px 14px;
+  box-shadow: 0 -10px 40px rgba(0,0,0,.3);
+}
+.ms-name { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+.ms-card .hero-btn { width: 100%; }
+.ms-card .link-btn { display: block; margin: 6px auto 0; }
+.tpl-card.is-mogrt .tpl-thumb { background: linear-gradient(150deg, #1f2433, #2a2140); }
+.tpl-card.is-mogrt .t-cap { font-size: 22px; }
+
 .ff-banner {
   background: #fff7ed; border: 1px solid #f4c789; border-left: 4px solid #e8920c;
   border-radius: 12px; padding: 11px 13px; margin-bottom: 12px;
