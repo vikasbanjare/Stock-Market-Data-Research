@@ -662,6 +662,31 @@ function CP_placeCaptionImages(argsJson) {
  * params when the template exposes them) into the graphic.
  * argsJson: { mogrtPath, cues:[{start,end,text}], videoTrack, audioTrack }
  */
+/* Try every known way to push a string into a MOGRT text property. */
+function CP_setMgrtText(prop, text) {
+  // Newer Premiere wraps source text as JSON; replace the text field if so.
+  try {
+    var cur = prop.getValue ? prop.getValue() : null;
+    if (typeof cur === 'string' && cur.charAt(0) === '{' && cur.indexOf('"text"') !== -1) {
+      var obj = JSON.parse(cur);
+      obj.text = text;
+      try { prop.setValue(JSON.stringify(obj), true); return true; } catch (eJ1) {}
+      try { prop.setValue(JSON.stringify(obj)); return true; } catch (eJ2) {}
+    }
+  } catch (eCur) {}
+  try { prop.setValue(text, true); return true; } catch (e1) {}
+  try { prop.setValue(text); return true; } catch (e2) {}
+  return false;
+}
+
+/* True if a property currently holds a plain string (likely a text param). */
+function CP_propIsString(prop) {
+  try {
+    var v = prop.getValue ? prop.getValue() : null;
+    return typeof v === 'string';
+  } catch (e) { return false; }
+}
+
 function CP_insertMogrtCaptions(argsJson) {
   try {
     var args = JSON.parse(argsJson);
@@ -670,6 +695,10 @@ function CP_insertMogrtCaptions(argsJson) {
     var aTrack = args.audioTrack != null ? args.audioTrack : 0;
     var inserted = 0, textSet = 0;
     var errors = [];
+    var fieldNames = null; // captured once for diagnostics
+
+    var KEYS = ['text', 'source', 'caption', 'title', 'subtitle', 'headline',
+                'body', 'content', 'label', 'name', 'word'];
 
     for (var i = 0; i < args.cues.length; i++) {
       var cue = args.cues[i];
@@ -687,12 +716,26 @@ function CP_insertMogrtCaptions(argsJson) {
 
       try {
         var comp = clip.getMGTComponent();
-        if (comp) {
-          for (var pIdx = 0; pIdx < comp.properties.numItems; pIdx++) {
-            var prop = comp.properties[pIdx];
-            var dn = String(prop.displayName || '').toLowerCase();
-            if (dn.indexOf('text') !== -1 || dn.indexOf('source') !== -1) {
-              try { prop.setValue(cue.text, true); textSet++; break; } catch (eSet) {}
+        if (comp && comp.properties) {
+          var props = comp.properties;
+          if (!fieldNames) {
+            fieldNames = [];
+            for (var fn = 0; fn < props.numItems; fn++) fieldNames.push(String(props[fn].displayName || ('#' + fn)));
+          }
+          var done = false;
+          // 1) match by display-name keyword
+          for (var k = 0; k < KEYS.length && !done; k++) {
+            for (var pIdx = 0; pIdx < props.numItems && !done; pIdx++) {
+              var dn = String(props[pIdx].displayName || '').toLowerCase();
+              if (dn.indexOf(KEYS[k]) !== -1 && CP_setMgrtText(props[pIdx], cue.text)) {
+                textSet++; done = true;
+              }
+            }
+          }
+          // 2) fallback: first property that currently holds a string
+          for (var p2 = 0; p2 < props.numItems && !done; p2++) {
+            if (CP_propIsString(props[p2]) && CP_setMgrtText(props[p2], cue.text)) {
+              textSet++; done = true;
             }
           }
         }
@@ -702,7 +745,55 @@ function CP_insertMogrtCaptions(argsJson) {
       inserted: inserted,
       textSet: textSet,
       failed: args.cues.length - inserted,
+      fields: fieldNames ? fieldNames.slice(0, 8) : [],
       sampleErrors: errors.slice(0, 3)
     });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+/*
+ * Enumerate each audio track's first real clip — the per-speaker mics used
+ * for FireCut-style "cut to whoever is talking" multicam.
+ */
+function CP_getAudioTracks() {
+  try {
+    var seq = CP_activeSequence();
+    var out = [];
+    for (var t = 0; t < seq.audioTracks.numTracks; t++) {
+      var track = seq.audioTracks[t];
+      var clip = null;
+      for (var i = 0; i < track.clips.numItems; i++) {
+        if (track.clips[i].projectItem) { clip = track.clips[i]; break; }
+      }
+      if (!clip) continue;
+      var mp = null;
+      try { mp = clip.projectItem.getMediaPath(); } catch (eMp) {}
+      out.push({
+        index: t,
+        name: track.name || ('A' + (t + 1)),
+        mediaPath: mp,
+        seqStart: clip.start.seconds,
+        inPoint: clip.inPoint.seconds,
+        outPoint: clip.outPoint.seconds
+      });
+    }
+    return CP_ok({
+      audioTracks: out,
+      videoTracks: seq.videoTracks.numTracks,
+      end: parseFloat(seq.end) / CP_TICKS_PER_SECOND
+    });
+  } catch (e) { return CP_fail(e.message); }
+}
+
+/* Return sorted sequence-marker times (seconds) — a Smart-Cut-free source
+   of multicam switch points. */
+function CP_getMarkers() {
+  try {
+    var seq = CP_activeSequence();
+    var out = [];
+    var m = seq.markers.getFirstMarker();
+    while (m) { out.push(m.start.seconds); m = seq.markers.getNextMarker(m); }
+    out.sort(function (a, b) { return a - b; });
+    return CP_ok({ times: out, end: parseFloat(seq.end) / CP_TICKS_PER_SECOND });
   } catch (e) { return CP_fail(e.message); }
 }

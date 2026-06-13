@@ -323,6 +323,39 @@ console.log('multicam.js');
   const stats = CPMulticam.planStats(rot, 3);
   assert(stats.switches === 7 && stats.perAngle.reduce((a, b) => a + b) === 8,
          'planStats counts switches and per-angle totals');
+
+  // switch-point sources that don't need Smart Cut
+  const iv = CPMulticam.segmentsByInterval(10, 3);
+  assert(iv.length === 4, 'segmentsByInterval chunks a 10s timeline at 3s into 4');
+  assert(iv[3].end === 10, 'last interval segment is clamped to the duration');
+  assert(CPMulticam.segmentsByInterval(0, 3).length === 0, 'no duration -> no segments');
+
+  const bnd = CPMulticam.segmentsFromBoundaries([4, 7], 10);
+  assert(bnd.length === 3, 'boundaries split into 3 segments');
+  assert(bnd[0].start === 0 && bnd[1].start === 4 && bnd[2].end === 10, 'boundary segments span [0,duration]');
+  const bnd2 = CPMulticam.segmentsFromBoundaries([12, -1, 5], 10);
+  assert(bnd2.length === 2 && bnd2[1].start === 5, 'out-of-range boundaries ignored');
+
+  // FireCut-style director: cut to whoever is talking
+  const regionsAB = [
+    [{ start: 0, end: 4 }],          // speaker 0 talks first 4s
+    [{ start: 4, end: 8 }]           // speaker 1 talks next 4s
+  ];
+  const dp = CPMulticam.directorPlan(regionsAB, 8, { step: 0.1, minSegment: 1 });
+  assert(dp.length === 2, 'director makes two shots for back-to-back speakers');
+  assert(dp[0].angle === 0 && dp[1].angle === 1, 'director cuts to the active speaker');
+  assert(close(dp[0].end, 4, 0.15), 'director switches near the hand-off');
+
+  // overlap -> wide angle
+  const overlap = [[{ start: 0, end: 5 }], [{ start: 2, end: 5 }]];
+  const dpw = CPMulticam.directorPlan(overlap, 5, { step: 0.1, minSegment: 0.5, wideAngle: 2 });
+  assert(dpw.some(function (s) { return s.angle === 2; }), 'director uses the wide angle when both talk');
+
+  // tiny flickers are merged out by minSegment
+  const choppy = [[{ start: 0, end: 5 }], [{ start: 2.0, end: 2.2 }]];
+  const dpm = CPMulticam.directorPlan(choppy, 5, { step: 0.1, minSegment: 1.0 });
+  assert(dpm.every(function (s) { return (s.end - s.start) >= 1.0 - 1e-6 || s === dpm[dpm.length - 1]; }),
+         'director merges shots shorter than minSegment');
 }
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');

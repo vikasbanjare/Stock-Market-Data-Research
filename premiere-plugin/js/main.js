@@ -789,17 +789,11 @@
 
   // ---- advanced: Premiere template / plain track ----
   function wireAltMode() {
-    var modeBtns = document.querySelectorAll('#cap-altmode button');
-    for (var i = 0; i < modeBtns.length; i++) {
-      modeBtns[i].addEventListener('click', function () {
-        document.querySelector('#cap-altmode button.on').classList.remove('on');
-        this.classList.add('on');
-        var m = this.dataset.mode;
-        $('alt-template').classList.toggle('hidden', m !== 'template');
-        $('alt-native').classList.toggle('hidden', m !== 'native');
-        if (m === 'template' && !state.installedMogrts.length) scanInstalledMogrts();
-      });
-    }
+    // scan installed templates the first time the user expands "Other ways"
+    var det = document.querySelector('#view-editor details.advanced');
+    if (det) det.addEventListener('toggle', function () {
+      if (this.open && !state.installedMogrts.length) scanInstalledMogrts();
+    });
     var subs = document.querySelectorAll('#tpl-source button');
     for (var s = 0; s < subs.length; s++) {
       subs[s].addEventListener('click', function () {
@@ -1047,20 +1041,109 @@
       state.mcMode = this.dataset.mode;
     });
   }
+  function syncMcSource() {
+    var src = $('mc-source').value;
+    $('mc-speaker-opts').classList.toggle('hidden', src !== 'speaker');
+    $('mc-interval-wrap').classList.toggle('hidden', src !== 'interval');
+    $('mc-pattern-opts').classList.toggle('hidden', src === 'speaker');
+  }
+  $('mc-source').addEventListener('change', syncMcSource);
+  syncMcSource();
+  $('mc-interval').addEventListener('input', function () { $('mc-interval-val').textContent = this.value; });
+  $('mc-minseg').addEventListener('input', function () { $('mc-minseg-val').textContent = this.value; });
+
+  /* Resolve switch-point segments for the pattern sources (not speaker).
+     Returns a Promise of [{start,end}]. */
+  function mcSegments() {
+    var src = $('mc-source').value;
+    if (src === 'smartcut') {
+      if (!state.keepsSeq.length) {
+        return Promise.reject(new Error('No Smart Cut points yet. Run Smart Cut, or pick another switch mode.'));
+      }
+      return Promise.resolve(state.keepsSeq);
+    }
+    if (src === 'markers') {
+      return CPBridge.callHost('CP_getMarkers').then(function (r) {
+        if (!r.times || r.times.length < 1) throw new Error('No timeline markers found. Add markers, or use "Every few seconds".');
+        return CPMulticam.segmentsFromBoundaries(r.times, r.end || (state.env && state.env.endSeconds) || 0);
+      });
+    }
+    return CPBridge.callHost('CP_getEnv').then(function (env) {
+      state.env = env;
+      var dur = env.endSeconds || 0;
+      if (!(dur > 0)) throw new Error('The sequence looks empty. Add your clips to the timeline first.');
+      return CPMulticam.segmentsByInterval(dur, parseFloat($('mc-interval').value) || 3);
+    });
+  }
+
+  /* Analyze one audio track's speech regions (sequence time). */
+  function analyzeSpeech(track) {
+    var thr = -40;
+    var detect = settings.ffmpegPath
+      ? CPAudio.ffmpegDetect(track.mediaPath, settings.ffmpegPath, thr, 0.3, CPSilence)
+      : CPAudio.webAudioDetect(track.mediaPath, { thresholdDb: thr }, CPSilence);
+    return detect.then(function (det) {
+      var dur = det.duration || track.outPoint;
+      var sil = CPSilence.refineSilences(det.silences, { minSilence: 0.4, padding: 0.05, totalDuration: dur });
+      var clipSil = sil.map(function (s) { return { start: s.start - track.inPoint, end: s.end - track.inPoint }; });
+      var clipDur = track.outPoint - track.inPoint;
+      // speech = the kept (non-silent) regions, mapped back to sequence time
+      return CPSilence.invertToKeep(clipSil, clipDur, 0.15).map(function (k) {
+        return { start: track.seqStart + k.start, end: track.seqStart + k.end };
+      });
+    });
+  }
+
+  /* FireCut-style: cut to whoever is talking. */
+  function mcSpeakerPlan(numAngles) {
+    return CPBridge.callHost('CP_getAudioTracks').then(function (r) {
+      var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; }).slice(0, numAngles);
+      if (tracks.length < 2) {
+        throw new Error('Put each person\'s mic on its own audio track (A1, A2…) — found ' + tracks.length + '. Or use another switch mode.');
+      }
+      state.env = state.env || {};
+      var dur = r.end || state.env.endSeconds || 0;
+      capMcProgress('Listening to ' + tracks.length + ' mics…');
+      return Promise.all(tracks.map(analyzeSpeech)).then(function (regions) {
+        capMcProgress(null);
+        return CPMulticam.directorPlan(regions, dur, {
+          minSegment: parseFloat($('mc-minseg').value) || 1.2,
+          wideAngle: parseInt($('mc-wide').value, 10),
+          wideOnSilence: false
+        });
+      });
+    });
+  }
+
+  function capMcProgress(msg) {
+    var el = $('mc-progress');
+    if (!el) return;
+    if (msg == null) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden'); el.textContent = msg;
+  }
 
   $('btn-mc-plan').addEventListener('click', function () {
-    if (!state.keepsSeq.length) {
-      return toast('Run Smart Cut first — angles switch at those cut points.', true);
-    }
     var numAngles = parseInt($('mc-angles').value, 10);
-    state.plan = CPMulticam.buildAnglePlan(state.keepsSeq, numAngles, {
-      mode: state.mcMode,
-      holdCuts: parseInt($('mc-hold').value, 10),
-      minSegmentForSwitch: parseFloat($('mc-minseg').value),
-      seed: Date.now() & 0xffff
-    });
-    var stats = CPMulticam.planStats(state.plan, numAngles);
+    var planner = ($('mc-source').value === 'speaker')
+      ? mcSpeakerPlan(numAngles)
+      : mcSegments().then(function (segments) {
+          if (!segments.length) throw new Error('Could not work out any switch points.');
+          return CPMulticam.buildAnglePlan(segments, numAngles, {
+            mode: state.mcMode,
+            holdCuts: parseInt($('mc-hold').value, 10),
+            minSegmentForSwitch: parseFloat($('mc-minseg').value),
+            seed: Date.now() & 0xffff
+          });
+        });
+    planner.then(function (plan) {
+      if (!plan || !plan.length) return toast('No camera switches were produced.', true);
+      state.plan = plan;
+      renderMcPlan(numAngles);
+    }).catch(function (e) { capMcProgress(null); toast(e.message, true); });
+  });
 
+  function renderMcPlan(numAngles) {
+    var stats = CPMulticam.planStats(state.plan, numAngles);
     var view = $('mc-plan-view');
     view.innerHTML = '';
     state.plan.forEach(function (p, i) {
@@ -1078,7 +1161,7 @@
     $('mc-plan-card').classList.remove('hidden');
     $('btn-mc-apply').classList.remove('hidden');
     toast(stats.segments + ' segments, ' + stats.switches + ' camera switches planned.');
-  });
+  }
 
   $('btn-mc-apply').addEventListener('click', function () {
     if (!state.plan) return;

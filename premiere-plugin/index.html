@@ -161,18 +161,16 @@
       <button id="btn-magic" class="hero-btn">✨ Add captions</button>
       <div id="cap-progress" class="progress hidden"></div>
 
-    <!-- ADVANCED: Premiere templates + plain track -->
+    <!-- ADVANCED: Premiere templates + plain track (both shown, no nesting) -->
     <details class="advanced">
-      <summary>Use a Premiere template (.mogrt) or a plain track instead</summary>
+      <summary>Other ways to caption</summary>
 
-      <div class="seg-control sub" id="cap-altmode">
-        <button data-mode="template" class="on">Template (.mogrt)</button>
-        <button data-mode="native">Plain track</button>
-      </div>
-
-      <div id="alt-template">
+      <div class="alt-block">
+        <div class="alt-title">🎬 Use a Premiere template (.mogrt)</div>
+        <p class="hint">Use a Motion Graphics Template for the animation — CutPilot
+           adds one per caption line and types in the words.</p>
         <div class="seg-control sub" id="tpl-source">
-          <button data-src="installed" class="on">Installed</button>
+          <button data-src="installed" class="on">Installed in Premiere</button>
           <button data-src="file">From a file</button>
         </div>
         <div id="tpl-installed">
@@ -187,14 +185,15 @@
             <button id="btn-tpl-pick" class="chip-btn">Choose .mogrt file…</button>
             <span id="tpl-file-name" class="dim">none chosen</span>
           </div>
-          <p class="hint">Any Motion Graphics Template with a text field. CutPilot adds
-             one per line and types in the words.</p>
+          <p class="hint">Tip: the template must have an editable text field. CutPilot
+             fills the first text field it finds.</p>
         </div>
         <button id="btn-alt-apply" class="hero-btn small">Add template captions</button>
       </div>
 
-      <div id="alt-native" class="hidden">
-        <p class="hint">Adds a normal, editable caption track. Set the font once in
+      <div class="alt-block">
+        <div class="alt-title">📝 Plain caption track</div>
+        <p class="hint">A normal, editable caption track. Set the font once in
            Essential Graphics and save it as a Track Style.</p>
         <button id="btn-native-apply" class="hero-btn small">Add plain caption track</button>
       </div>
@@ -260,31 +259,61 @@
         <span class="step-num">1</span>
         <span class="step-title">Cameras</span>
       </div>
-      <p class="hint">Stack each camera on its own video track (V1, V2, …).
-         Run Smart Cut first — angles switch at those cut points.</p>
-      <div class="grid2">
-        <label>Camera tracks
-          <input type="number" id="mc-angles" value="2" min="1" max="8">
+      <p class="hint">Stack each camera on its own video track (V1, V2, …). For
+         "Who's talking", put each person's mic on the matching audio track
+         (V1↔A1, V2↔A2, …). Then choose how the angle should switch.</p>
+
+      <label>How to switch angle
+        <select id="mc-source">
+          <option value="speaker">🎙️ Cut to whoever is talking (auto)</option>
+          <option value="interval">Every few seconds</option>
+          <option value="markers">At my timeline markers</option>
+          <option value="smartcut">At my Smart Cut points</option>
+        </select>
+      </label>
+
+      <label>Camera tracks
+        <input type="number" id="mc-angles" value="2" min="1" max="8">
+      </label>
+
+      <!-- speaker (FireCut-style) options -->
+      <div id="mc-speaker-opts">
+        <label>Wide / group shot (when nobody or everybody talks)
+          <select id="mc-wide">
+            <option value="-1">None — hold the last camera</option>
+            <option value="0">V1</option><option value="1">V2</option>
+            <option value="2">V3</option><option value="3">V4</option>
+            <option value="4">V5</option><option value="5">V6</option>
+            <option value="6">V7</option><option value="7">V8</option>
+          </select>
         </label>
+        <label>Min shot length (s) <span class="val" id="mc-minseg-val">1.2</span>
+          <input type="range" id="mc-minseg" min="0.5" max="5" step="0.1" value="1.2">
+        </label>
+      </div>
+
+      <!-- interval option -->
+      <label id="mc-interval-wrap" class="hidden">Seconds per angle <span class="val" id="mc-interval-val">3</span>
+        <input type="range" id="mc-interval" min="1" max="15" step="1" value="3">
+      </label>
+
+      <!-- pattern options (interval/markers/smartcut) -->
+      <div id="mc-pattern-opts" class="hidden">
         <label>Switch every N cuts
           <input type="number" id="mc-hold" value="1" min="1" max="10">
         </label>
+        <label>Switching style</label>
+        <div class="seg-control" id="mc-mode">
+          <button data-mode="rotate" class="on">Rotate</button>
+          <button data-mode="pingpong">Ping-pong</button>
+          <button data-mode="random">Random</button>
+          <button data-mode="weighted">Hero cam</button>
+        </div>
       </div>
-      <div class="seg-control" id="mc-mode">
-        <button data-mode="rotate" class="on">Rotate</button>
-        <button data-mode="pingpong">Ping-pong</button>
-        <button data-mode="random">Random</button>
-        <button data-mode="weighted">Hero cam</button>
-      </div>
-      <details class="advanced">
-        <summary>Advanced</summary>
-        <label>Min segment to switch (s)
-          <input type="number" id="mc-minseg" value="1.0" step="0.25" min="0">
-        </label>
-      </details>
     </div>
 
     <button id="btn-mc-plan" class="hero-btn alt">🎬 Build angle plan</button>
+    <div id="mc-progress" class="progress hidden"></div>
     <div class="card hidden" id="mc-plan-card">
       <div id="mc-plan-view" class="seg-list"></div>
     </div>
@@ -304,7 +333,7 @@
       <label class="check"><input type="checkbox" id="set-dropframe"> Drop-frame timecode (29.97 / 59.94)</label>
       <button id="btn-save-settings" class="hero-btn small">Save settings</button>
     </div>
-    <p class="hint center">CutPilot v0.5 · silence cutting · multicam · caption template studio</p>
+    <p class="hint center">CutPilot v0.6 · smart cut · auto multicam · caption template studio</p>
   </section>
 
   <footer><div id="log" class="log"></div></footer>

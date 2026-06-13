@@ -198,6 +198,32 @@ the Submagic style/animation conventions documented above. UX continues the
 progressive-disclosure approach: one-click apply from the gallery, full
 control in the Editor, advanced MOGRT/native paths collapsed.
 
+## FireCut-style auto multicam (v0.6)
+
+Reworked from a Smart-Cut-only dependency into FireCut/AutoPod's model:
+**cut to whoever is talking.** `CP_getAudioTracks` enumerates each audio
+track's clip (one mic per speaker, V1↔A1…); the panel runs the existing
+speech detector per mic, and `CPMulticam.directorPlan` samples the timeline
+and assigns each moment to the active speaker's camera — falling back to a
+configurable wide/group shot when nobody or everybody talks, with a
+min-shot-length guard against flicker. The result is applied by toggling
+stacked camera tracks (`CP_applyMulticamPlan`), so the cuts stay editable.
+
+Three Smart-Cut-free fallbacks remain: fixed interval
+(`segmentsByInterval`), timeline markers (`CP_getMarkers` +
+`segmentsFromBoundaries`), and the original Smart-Cut points — each fed to
+the rotate/ping-pong/random/hero planner.
+
+MOGRT text-fill was also hardened (v0.6): `CP_insertMogrtCaptions` now
+matches many field names (text/source/caption/title/…), falls back to the
+first string-valued property, handles JSON-wrapped source-text, and reports
+the template's field names when it can't find a text field. The captions
+"other ways" panel was flattened (no nested mode toggles).
+
+References: [FireCut Multi-track](https://firecut.ai/features/multi-track),
+[AutoPod](https://www.autopod.fm/),
+[best multicam plugins 2026](https://cutback.video/blog/best-multi-cam-editing-plugins-for-premiere-pro-users).
+
 ## Sources
 
 - [Adobe Developer Blog — UXP Arrives in Premiere (Dec 2025)](https://blog.developer.adobe.com/en/publish/2025/12/uxp-arrives-in-premiere-a-new-era-for-plugin-development)
