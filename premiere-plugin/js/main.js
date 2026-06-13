@@ -1612,6 +1612,59 @@
     } catch (e) { toast('Select the text and copy manually.', true); }
   });
 
+  /* One button that gathers everything: connection, ffmpeg + a real mic
+     read, a caption-template field list, and transcript status. */
+  $('btn-diag-full').addEventListener('click', function () {
+    var out = $('diag-out');
+    out.className = 'diag-out';
+    var R = ['CutPilot ' + ($('ver') ? $('ver').textContent : '') + ' — full diagnostic', ''];
+    function show() { out.textContent = R.join('\n'); }
+    if (!CPBridge.isCEP()) { out.textContent = 'Not running inside Premiere.'; return; }
+    show();
+
+    var ff = resolveFfmpeg();
+    R.push('1) ffmpeg: ' + (ff || 'NOT FOUND — run  brew install ffmpeg'));
+    show();
+
+    CPBridge.callHost('CP_getEnv').then(function (env) {
+      R.push('2) sequence: "' + env.sequenceName + '" ' + env.width + 'x' + env.height +
+             ', V' + env.videoTracks + '/A' + env.audioTracks + ', ' + Math.round(env.endSeconds) + 's');
+      show();
+      return CPBridge.callHost('CP_getAudioTracks');
+    }).then(function (r) {
+      var tracks = (r.audioTracks || []).filter(function (t) { return t.mediaPath; });
+      R.push('3) mics on audio tracks: ' + tracks.length);
+      tracks.forEach(function (t) { R.push('     ' + t.name + ' → ' + t.mediaPath.split('/').pop()); });
+      show();
+      if (ff && tracks.length) {
+        R.push('   testing ffmpeg on ' + tracks[0].name + '…'); show();
+        return runFfmpeg(ff, ['-hide_banner', '-nostats', '-i', tracks[0].mediaPath,
+          '-af', 'silencedetect=noise=-40dB:d=0.3', '-f', 'null', '-']).then(function (res) {
+          if (res.error) R.push('   ❌ ffmpeg could not run: ' + res.error);
+          else {
+            var sil = (String(res.stderr).match(/silence_start/g) || []).length;
+            R.push('   exit ' + res.code + ', speech gaps: ' + sil + (sil ? '  ✅ multicam audio works' : '  ⚠️ no gaps detected'));
+          }
+          show();
+        });
+      } else if (!ff) { R.push('   (skipped mic test — no ffmpeg)'); show(); }
+    }).then(function () {
+      // inspect a caption template's fields
+      var capTpl = (state.installedMogrts || []).filter(function (m) { return /caption/i.test(m.category) || /caption/i.test(m.name); })[0];
+      if (!capTpl) { R.push('4) MOGRT: no caption template found to inspect'); show(); return null; }
+      R.push('4) inspecting MOGRT "' + capTpl.name + '"…'); show();
+      return CPBridge.callHost('CP_inspectMogrt', { path: capTpl.path }).then(function (ins) {
+        if (!ins.props || !ins.props.length) R.push('   no editable fields found');
+        else ins.props.forEach(function (p) { R.push('   field: "' + p.name + '" [' + p.type + ']' + (p.type === 'string' ? ' = ' + p.sample : '')); });
+        show();
+      }).catch(function (e) { R.push('   inspect failed: ' + e.message); show(); });
+    }).then(function () {
+      R.push('5) transcript: ' + (state.transcript ? ('✅ ' + state.transcript.label) : '⚠️ none loaded — captions need one (Window→Text→Transcribe→export SRT)'));
+      R.push('', 'Done. Tap "Copy results" and send this to support.');
+      show();
+    }).catch(function (e) { R.push('ERROR: ' + e.message); show(); });
+  });
+
   refreshFfmpegStatus();
 
   boot();
