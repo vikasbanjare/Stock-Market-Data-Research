@@ -57,7 +57,7 @@ def weekdays_back(end: dt.date, count: int) -> list[dt.date]:
 
 
 def fetch_bhavcopy(session, day: dt.date, cache_dir: pathlib.Path):
-    """Return {symbol: (close, deliv_pct)} for EQ series, or None if unavailable."""
+    """Return {symbol: (close, deliv_pct, high, low)} for EQ series, or None."""
     cache = cache_dir / f"bhav_{day.isoformat()}.csv"
     if cache.exists():
         text = cache.read_text(encoding="utf-8")
@@ -75,7 +75,8 @@ def fetch_bhavcopy(session, day: dt.date, cache_dir: pathlib.Path):
         if row.get("SERIES") != "EQ":
             continue
         try:
-            out[row["SYMBOL"]] = (float(row["CLOSE_PRICE"]), float(row["DELIV_PER"]))
+            out[row["SYMBOL"]] = (float(row["CLOSE_PRICE"]), float(row["DELIV_PER"]),
+                                  float(row["HIGH_PRICE"]), float(row["LOW_PRICE"]))
         except (KeyError, ValueError):
             continue
     return out
@@ -106,32 +107,47 @@ def parse_date_any(text: str):
     return None
 
 
-def fetch_52wk_lists(session, day: dt.date, week_days: list, members: dict):
-    """Nifty-200 stocks whose 52w high/low DATE falls inside this week,
-    from NSE's daily CM_52_wk_High_low report."""
-    resp = session.get(HIGH52_URL.format(ddmmyyyy=day.strftime("%d%m%Y")),
-                       headers=HEADERS, timeout=30)
-    resp.raise_for_status()
-    lines = resp.text.splitlines()
-    # File begins with a title line; find the header row.
-    start = next(i for i, l in enumerate(lines) if "SYMBOL" in l.upper())
-    reader = csv.DictReader(io.StringIO("\n".join(lines[start:])))
-    week_set = set(week_days)
+def compute_52wk_lists(daily: dict, sessions_sorted: list, week_days: list,
+                       members: dict):
+    """Nifty-200 stocks that made a new 52-week high/low this week, computed
+    from ~250 sessions of bhavcopy highs/lows (no fragile NSE report)."""
+    prior_days = sessions_sorted[5:]
     highs, lows = [], []
-    for row in reader:
-        row = {(k or "").strip().upper(): (v or "").strip() for k, v in row.items()}
-        sym = row.get("SYMBOL")
-        if sym not in members or row.get("SERIES", "EQ") not in ("EQ", ""):
+    for sym, name in members.items():
+        wk_hi = [daily[d][sym][2] for d in week_days if sym in daily[d]]
+        wk_lo = [daily[d][sym][3] for d in week_days if sym in daily[d]]
+        pr_hi = [daily[d][sym][2] for d in prior_days if sym in daily[d]]
+        pr_lo = [daily[d][sym][3] for d in prior_days if sym in daily[d]]
+        if not wk_hi or len(pr_hi) < 100:
             continue
-        hi_dt = parse_date_any(row.get("52_WEEK_HIGH_DATE") or row.get("52_WEEK_HIGH_DT")
-                               or row.get("52_WEEKS_HIGH_DATE") or row.get("NEW_52W_HIGH_DATE"))
-        lo_dt = parse_date_any(row.get("52_WEEK_LOW_DATE") or row.get("52_WEEK_LOW_DT")
-                               or row.get("52_WEEKS_LOW_DATE") or row.get("NEW_52W_LOW_DATE"))
-        if hi_dt in week_set:
-            highs.append(members[sym])
-        if lo_dt in week_set:
-            lows.append(members[sym])
+        if max(wk_hi) >= max(pr_hi):
+            highs.append(name)
+        if min(wk_lo) <= min(pr_lo):
+            lows.append(name)
     return sorted(highs), sorted(lows)
+
+
+def fetch_index_closes(session, day: dt.date, cache_dir: pathlib.Path):
+    """{index name: close} from NSE's daily all-indices file (official)."""
+    cache = cache_dir / f"ind_close_{day.isoformat()}.csv"
+    if cache.exists():
+        text = cache.read_text(encoding="utf-8")
+    else:
+        url = ("https://nsearchives.nseindia.com/content/indices/"
+               f"ind_close_all_{day.strftime('%d%m%Y')}.csv")
+        resp = session.get(url, headers=HEADERS, timeout=30)
+        if resp.status_code != 200 or "Index Name" not in resp.text[:200]:
+            return None
+        text = resp.text
+        cache.write_text(text, encoding="utf-8")
+    out = {}
+    for row in csv.DictReader(io.StringIO(text)):
+        row = {(k or "").strip(): (v or "").strip() for k, v in row.items()}
+        try:
+            out[row["Index Name"]] = float(row["Closing Index Value"])
+        except (KeyError, ValueError):
+            continue
+    return out
 
 
 def fetch_fii_fno_week(session, week_days: list):
@@ -153,11 +169,14 @@ def fetch_fii_fno_week(session, week_days: list):
         for r in range(sheet.nrows):
             label = str(sheet.cell_value(r, 0)).strip().lower()
             if label in segments:
+                # Columns: name, buy contracts, buy ₹cr, sell contracts,
+                # sell ₹cr, OI contracts, OI ₹cr — net = buy_cr - sell_cr.
                 try:
-                    buy, sell = float(sheet.cell_value(r, 1)), float(sheet.cell_value(r, 2))
+                    buy_cr = float(sheet.cell_value(r, 2))
+                    sell_cr = float(sheet.cell_value(r, 4))
                 except (TypeError, ValueError):
                     continue
-                segments[label] += buy - sell
+                segments[label] += buy_cr - sell_cr
         days_used.append(day.isoformat())
         time.sleep(0.3)
     return ({k: round(v, 2) for k, v in segments.items()}, days_used)
@@ -201,7 +220,7 @@ def main() -> int:
               "sections": {}, "errors": []}
 
     # ---- Load ~125 trading days of bhavcopies (week + month + 6 months) ----
-    days = weekdays_back(this_friday, 190)  # extra to absorb holidays
+    days = weekdays_back(this_friday, 380)  # extra to absorb holidays
     daily = {}
     for day in days:
         try:
@@ -211,7 +230,7 @@ def main() -> int:
             data = None
         if data:
             daily[day] = data
-        if len(daily) >= 125:
+        if len(daily) >= 250:
             break
     if len(daily) < 7:
         report["errors"].append(
@@ -282,12 +301,32 @@ def main() -> int:
     except Exception as exc:
         report["errors"].append(f"nifty500 delivery: {type(exc).__name__}: {exc}")
 
+    # ---- Official index closes (Nifty 50 / Bank Nifty; Sensex is BSE) ----
+    try:
+        idx_new = fetch_index_closes(session, last_day, cache_dir)
+        idx_old = fetch_index_closes(session, week_start_prev, cache_dir)
+        if idx_new and idx_old:
+            bench = {}
+            for label in ("Nifty 50", "Nifty Bank"):
+                if label in idx_new and label in idx_old:
+                    bench[label] = {
+                        "close": idx_new[label], "close_date": last_day.isoformat(),
+                        "weekly_pct": round((idx_new[label] / idx_old[label] - 1) * 100, 2),
+                    }
+            report["sections"]["benchmark_indices_official"] = bench
+    except Exception as exc:
+        report["errors"].append(f"index closes: {type(exc).__name__}: {exc}")
+
     # ---- 52-week highs/lows in the past week (Nifty 200) ----
     try:
         n200 = fetch_index_members(session, 200)
-        highs, lows = fetch_52wk_lists(session, last_day, week_days, n200)
+        highs, lows = compute_52wk_lists(daily, sessions_sorted, week_days, n200)
         report["sections"]["week_52w_highs_nifty200"] = highs
         report["sections"]["week_52w_lows_nifty200"] = lows
+        if len(daily) < 240:
+            report["sections"]["week_52w_note"] = (
+                f"window is {len(daily)} sessions (~{len(daily)//21} months), "
+                "not a full 52 weeks — cross-check before publishing")
     except Exception as exc:
         report["errors"].append(f"52wk lists: {type(exc).__name__}: {exc}")
 
