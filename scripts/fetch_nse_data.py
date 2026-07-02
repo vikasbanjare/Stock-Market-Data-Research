@@ -42,6 +42,9 @@ HEADERS = {
 BHAV_URL = "https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_{ddmmyyyy}.csv"
 INDEX_LIST_URL = "https://nsearchives.nseindia.com/content/indices/ind_nifty{n}list.csv"
 FIIDII_API = "https://www.nseindia.com/api/fiidiiTradeReact"
+HIGH52_URL = "https://nsearchives.nseindia.com/content/CM_52_wk_High_low_{ddmmyyyy}.csv"
+FII_STATS_URL = "https://nsearchives.nseindia.com/content/fo/fii_stats_{dmony}.xls"
+EVENT_CAL_API = "https://www.nseindia.com/api/event-calendar?index=equities&from_date={frm}&to_date={to}"
 
 
 def weekdays_back(end: dt.date, count: int) -> list[dt.date]:
@@ -93,6 +96,89 @@ def avg(vals):
     return round(sum(vals) / len(vals), 2) if vals else None
 
 
+def parse_date_any(text: str):
+    text = (text or "").strip()
+    for fmt in ("%d-%b-%Y", "%d-%B-%Y", "%d-%m-%Y", "%Y-%m-%d", "%d/%m/%Y", "%d-%b-%y"):
+        try:
+            return dt.datetime.strptime(text, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def fetch_52wk_lists(session, day: dt.date, week_days: list, members: dict):
+    """Nifty-200 stocks whose 52w high/low DATE falls inside this week,
+    from NSE's daily CM_52_wk_High_low report."""
+    resp = session.get(HIGH52_URL.format(ddmmyyyy=day.strftime("%d%m%Y")),
+                       headers=HEADERS, timeout=30)
+    resp.raise_for_status()
+    lines = resp.text.splitlines()
+    # File begins with a title line; find the header row.
+    start = next(i for i, l in enumerate(lines) if "SYMBOL" in l.upper())
+    reader = csv.DictReader(io.StringIO("\n".join(lines[start:])))
+    week_set = set(week_days)
+    highs, lows = [], []
+    for row in reader:
+        row = {(k or "").strip().upper(): (v or "").strip() for k, v in row.items()}
+        sym = row.get("SYMBOL")
+        if sym not in members or row.get("SERIES", "EQ") not in ("EQ", ""):
+            continue
+        hi_dt = parse_date_any(row.get("52_WEEK_HIGH_DATE") or row.get("52_WEEK_HIGH_DT")
+                               or row.get("52_WEEKS_HIGH_DATE") or row.get("NEW_52W_HIGH_DATE"))
+        lo_dt = parse_date_any(row.get("52_WEEK_LOW_DATE") or row.get("52_WEEK_LOW_DT")
+                               or row.get("52_WEEKS_LOW_DATE") or row.get("NEW_52W_LOW_DATE"))
+        if hi_dt in week_set:
+            highs.append(members[sym])
+        if lo_dt in week_set:
+            lows.append(members[sym])
+    return sorted(highs), sorted(lows)
+
+
+def fetch_fii_fno_week(session, week_days: list):
+    """FII derivatives net buy/sell (₹ cr) summed over the week, per segment,
+    from NSE's daily fii_stats_<dd-Mon-yyyy>.xls."""
+    import xlrd  # noqa: PLC0415 — optional dep, only needed for this section
+    segments = {"index futures": 0.0, "index options": 0.0,
+                "stock futures": 0.0, "stock options": 0.0}
+    days_used = []
+    for day in week_days:
+        url = FII_STATS_URL.format(dmony=day.strftime("%d-%b-%Y"))
+        resp = session.get(url, headers=HEADERS, timeout=30)
+        if resp.status_code != 200:
+            continue
+        try:
+            sheet = xlrd.open_workbook(file_contents=resp.content).sheet_by_index(0)
+        except Exception:
+            continue
+        for r in range(sheet.nrows):
+            label = str(sheet.cell_value(r, 0)).strip().lower()
+            if label in segments:
+                try:
+                    buy, sell = float(sheet.cell_value(r, 1)), float(sheet.cell_value(r, 2))
+                except (TypeError, ValueError):
+                    continue
+                segments[label] += buy - sell
+        days_used.append(day.isoformat())
+        time.sleep(0.3)
+    return ({k: round(v, 2) for k, v in segments.items()}, days_used)
+
+
+def fetch_upcoming_results(session, after: dt.date, members: dict):
+    """Nifty-50 results scheduled in the 9 days after `after`, from NSE's
+    corporate event calendar API."""
+    frm, to = after + dt.timedelta(days=1), after + dt.timedelta(days=9)
+    url = EVENT_CAL_API.format(frm=frm.strftime("%d-%m-%Y"), to=to.strftime("%d-%m-%Y"))
+    resp = session.get(url, headers=HEADERS, timeout=30)
+    resp.raise_for_status()
+    out = []
+    for ev in resp.json():
+        purpose = (ev.get("purpose") or "").lower()
+        if ev.get("symbol") in members and "result" in purpose:
+            out.append({"date": ev.get("date"), "symbol": ev.get("symbol"),
+                        "company": members[ev.get("symbol")], "purpose": ev.get("purpose")})
+    return sorted(out, key=lambda e: e["date"] or "")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--date", default=dt.date.today().isoformat())
@@ -101,7 +187,8 @@ def main() -> int:
     this_friday = run_date - dt.timedelta(days=(run_date.weekday() - 4) % 7)
 
     out_dir = REPO_ROOT / "data" / "raw" / run_date.isoformat()
-    cache_dir = out_dir / "bhavcopies"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    cache_dir = REPO_ROOT / "data" / "cache" / "bhavcopies"
     cache_dir.mkdir(parents=True, exist_ok=True)
     session = requests.Session()
     # Warm up cookies for the nseindia.com API endpoints.
@@ -113,8 +200,8 @@ def main() -> int:
     report = {"run_date": run_date.isoformat(), "week_ending": this_friday.isoformat(),
               "sections": {}, "errors": []}
 
-    # ---- Load ~27 trading days of bhavcopies (5 week + ~22 prior month) ----
-    days = weekdays_back(this_friday, 40)  # extra to absorb holidays
+    # ---- Load ~125 trading days of bhavcopies (week + month + 6 months) ----
+    days = weekdays_back(this_friday, 190)  # extra to absorb holidays
     daily = {}
     for day in days:
         try:
@@ -124,7 +211,7 @@ def main() -> int:
             data = None
         if data:
             daily[day] = data
-        if len(daily) >= 27:
+        if len(daily) >= 125:
             break
     if len(daily) < 7:
         report["errors"].append(
@@ -136,7 +223,9 @@ def main() -> int:
     sessions_sorted = sorted(daily, reverse=True)
     week_days = sessions_sorted[:5]
     month_days = sessions_sorted[5:27]
+    six_month_days = sessions_sorted[:125]
     last_day, week_start_prev = week_days[0], sessions_sorted[5]
+    report["sessions_loaded"] = len(daily)
 
     def weekly_change(sym):
         new = daily[last_day].get(sym)
@@ -179,26 +268,82 @@ def main() -> int:
         deliv = []
         for sym, name in n500.items():
             wk, mo = deliv_avg(sym, week_days), deliv_avg(sym, month_days)
+            six = deliv_avg(sym, six_month_days) if len(daily) >= 100 else None
             if wk and mo and mo > 0:
                 deliv.append({"symbol": sym, "name": name, "week_avg_pct": wk,
-                              "month_avg_pct": mo, "ratio": round(wk / mo, 2)})
+                              "month_avg_pct": mo, "six_month_avg_pct": six,
+                              "ratio": round(wk / mo, 2)})
         deliv.sort(key=lambda m: m["ratio"], reverse=True)
         report["sections"]["delivery_rising"] = deliv[:5]
         report["sections"]["delivery_falling"] = sorted(deliv[-5:], key=lambda m: m["ratio"])
-        report["sections"]["delivery_note"] = (
-            "6-month averages need ~125 bhavcopies; run scripts/fetch_nse_data.py with a "
-            "warmed cache or take the 6M column from Trendlyne/user upload")
+        if len(daily) < 100:
+            report["sections"]["delivery_note"] = (
+                f"six_month_avg omitted: only {len(daily)} sessions loaded")
     except Exception as exc:
         report["errors"].append(f"nifty500 delivery: {type(exc).__name__}: {exc}")
 
-    # ---- FII/DII provisional cash ----
+    # ---- 52-week highs/lows in the past week (Nifty 200) ----
+    try:
+        n200 = fetch_index_members(session, 200)
+        highs, lows = fetch_52wk_lists(session, last_day, week_days, n200)
+        report["sections"]["week_52w_highs_nifty200"] = highs
+        report["sections"]["week_52w_lows_nifty200"] = lows
+    except Exception as exc:
+        report["errors"].append(f"52wk lists: {type(exc).__name__}: {exc}")
+
+    # ---- FII F&O net (₹ cr) summed over the week ----
+    try:
+        fno, fno_days = fetch_fii_fno_week(session, week_days)
+        report["sections"]["fii_fno_week"] = fno
+        report["sections"]["fii_fno_days_covered"] = fno_days
+        report["sections"]["fii_fno_note"] = (
+            "Net buy-sell per segment from NSE daily fii_stats files. DII F&O and "
+            "YTD splits still come from Trendlyne or user upload.")
+    except Exception as exc:
+        report["errors"].append(f"fii_fno: {type(exc).__name__}: {exc}")
+
+    # ---- Upcoming Nifty 50 results (next week) ----
+    try:
+        n50 = fetch_index_members(session, 50)
+        report["sections"]["upcoming_nifty50_results"] = fetch_upcoming_results(
+            session, this_friday, n50)
+    except Exception as exc:
+        report["errors"].append(f"event_calendar: {type(exc).__name__}: {exc}")
+
+    # ---- FII/DII provisional cash (latest day; persisted for weekly sums) ----
     try:
         resp = session.get(FIIDII_API, headers=HEADERS, timeout=30)
         resp.raise_for_status()
-        report["sections"]["fii_dii_daily_raw"] = resp.json()
-        report["sections"]["fii_dii_note"] = (
-            "Daily provisional cash figures (₹ cr); sum the week's days for the table. "
-            "F&O and YTD figures still come from Trendlyne or user upload.")
+        latest = resp.json()
+        report["sections"]["fii_dii_daily_raw"] = latest
+        # Persist each day's figures so scheduled runs accumulate the week.
+        store = REPO_ROOT / "data" / "fii_dii"
+        store.mkdir(parents=True, exist_ok=True)
+        for entry in latest:
+            d = parse_date_any(entry.get("date"))
+            if d:
+                path = store / f"{d.isoformat()}.json"
+                existing = json.loads(path.read_text()) if path.exists() else []
+                existing = [e for e in existing if e.get("category") != entry.get("category")]
+                existing.append(entry)
+                path.write_text(json.dumps(existing, indent=1), encoding="utf-8")
+        # Weekly sums from whatever daily captures exist for this week.
+        week_net = {"FII/FPI": 0.0, "DII": 0.0}
+        covered = []
+        for day in week_days:
+            path = store / f"{day.isoformat()}.json"
+            if not path.exists():
+                continue
+            covered.append(day.isoformat())
+            for e in json.loads(path.read_text()):
+                if e.get("category") in week_net:
+                    week_net[e["category"]] += float(e.get("netValue", 0))
+        report["sections"]["fii_dii_week_cash"] = {
+            "fii_net_cr": round(week_net["FII/FPI"], 2),
+            "dii_net_cr": round(week_net["DII"], 2),
+            "days_covered": covered,
+            "note": "Complete only if all 5 sessions are covered by daily captures",
+        }
     except Exception as exc:
         report["errors"].append(f"fii_dii: {type(exc).__name__}: {exc}")
 
@@ -216,6 +361,18 @@ def main() -> int:
                 pct = m.get("weekly_pct", m.get("ratio"))
                 extra = m.get("deliv_week_vs_month", m.get("week_avg_pct"))
                 print(f"  {m['name']:<40} {pct:>8}  {extra}")
+    for key in ("week_52w_highs_nifty200", "week_52w_lows_nifty200"):
+        if key in report["sections"]:
+            print(f"\n{key}: {', '.join(report['sections'][key]) or '(none)'}")
+    if "fii_fno_week" in report["sections"]:
+        print(f"\nFII F&O net (₹ cr, {len(report['sections']['fii_fno_days_covered'])} days): "
+              f"{report['sections']['fii_fno_week']}")
+    if "upcoming_nifty50_results" in report["sections"]:
+        print("\nUpcoming Nifty 50 results:")
+        for ev in report["sections"]["upcoming_nifty50_results"]:
+            print(f"  {ev['date']}  {ev['company']}")
+    if "fii_dii_week_cash" in report["sections"]:
+        print(f"\nFII/DII week cash: {report['sections']['fii_dii_week_cash']}")
     if report["errors"]:
         print("\nERRORS:")
         for e in report["errors"]:

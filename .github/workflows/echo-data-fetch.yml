@@ -31,7 +31,14 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests xlrd
+
+      - name: Cache NSE bhavcopies (6 months of dailies)
+        uses: actions/cache@v4
+        with:
+          path: data/cache/bhavcopies
+          key: bhavcopies-${{ inputs.date || github.run_id }}
+          restore-keys: bhavcopies-
 
       - name: Fetch market data (Yahoo Finance)
         continue-on-error: true
@@ -49,7 +56,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f data/raw/*/market_data.json data/raw/*/nse_data.json 2>/dev/null || true
+          git add -f data/raw/*/market_data.json data/raw/*/nse_data.json data/fii_dii/*.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No data files produced — check the fetch step logs above."
           else
