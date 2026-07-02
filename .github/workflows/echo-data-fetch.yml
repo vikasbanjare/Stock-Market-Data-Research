@@ -1,0 +1,63 @@
+name: echo-data-fetch
+
+# Fetches all Echo newsletter numeric data (Yahoo Finance + official NSE)
+# on a GitHub runner — which has unrestricted internet — and commits the
+# compact JSON results back to the branch. One-click via the Actions tab
+# ("Run workflow"), or triggered by the agent via the GitHub API.
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Run date YYYY-MM-DD (default today; week ends on the Friday on/before it)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch market data (Yahoo Finance)
+        continue-on-error: true
+        run: |
+          DATE="${{ inputs.date }}"
+          python3 scripts/fetch_market_data.py ${DATE:+--date "$DATE"}
+
+      - name: Fetch NSE data (bhavcopies, breadth, movers, FII/DII)
+        continue-on-error: true
+        run: |
+          DATE="${{ inputs.date }}"
+          python3 scripts/fetch_nse_data.py ${DATE:+--date "$DATE"}
+
+      - name: Commit JSON results back to this branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f data/raw/*/market_data.json data/raw/*/nse_data.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No data files produced — check the fetch step logs above."
+          else
+            git commit -m "Data fetch via Actions: ${{ inputs.date || 'today' }} [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - name: Upload results as artifact (backup)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: echo-data
+          path: data/raw/*/*.json
+          if-no-files-found: warn
