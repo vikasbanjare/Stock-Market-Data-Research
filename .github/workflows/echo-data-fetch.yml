@@ -12,6 +12,10 @@ on:
         description: "Run date YYYY-MM-DD (default today; week ends on the Friday on/before it)"
         required: false
         default: ""
+  schedule:
+    # 12:45 UTC = 18:15 IST, Mon-Fri: captures each day's FII/DII
+    # provisional figures so the Friday run has the full week on hand.
+    - cron: "45 12 * * 1-5"
 
 permissions:
   contents: write

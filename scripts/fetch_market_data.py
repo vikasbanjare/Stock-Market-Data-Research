@@ -49,10 +49,15 @@ SYMBOLS = {
 CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart/{sym}"
 
 
-def fetch_daily_closes(session: requests.Session, symbol: str) -> dict[dt.date, float]:
+def fetch_daily_closes(session: requests.Session, symbol: str,
+                       start: dt.date, end: dt.date) -> dict[dt.date, float]:
     resp = session.get(
         CHART_URL.format(sym=symbol),
-        params={"range": "1mo", "interval": "1d"},
+        params={
+            "period1": int(dt.datetime.combine(start, dt.time()).timestamp()),
+            "period2": int(dt.datetime.combine(end, dt.time()).timestamp()),
+            "interval": "1d",
+        },
         headers=HEADERS,
         timeout=30,
     )
@@ -88,7 +93,11 @@ def main() -> int:
     rows, errors = [], []
     for label, (symbol, kind) in SYMBOLS.items():
         try:
-            closes = fetch_daily_closes(session, symbol)
+            closes = fetch_daily_closes(
+                session, symbol,
+                start=prev_friday - dt.timedelta(days=14),
+                end=this_friday + dt.timedelta(days=4),
+            )
             new_day, new = close_on_or_before(closes, this_friday)
             old_day, old = close_on_or_before(closes, prev_friday)
             if new is None or old is None:
