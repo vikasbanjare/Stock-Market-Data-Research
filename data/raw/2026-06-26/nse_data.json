@@ -215,6 +215,8 @@
    "note": "Complete only if all 5 sessions are covered by daily captures"
   }
  },
- "errors": [],
+ "errors": [
+  "index closes: ind_close_all unavailable for 2026-06-26 or 2026-06-19 (older files may be purged; Yahoo covers this)"
+ ],
  "sessions_loaded": 250
 }
