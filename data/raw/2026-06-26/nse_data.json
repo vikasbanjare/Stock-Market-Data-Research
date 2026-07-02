@@ -155,11 +155,34 @@
     "ratio": 0.61
    }
   ],
+  "week_52w_highs_nifty200": [
+   "Adani Enterprises Ltd.",
+   "Adani Green Energy Ltd.",
+   "Aditya Birla Capital Ltd.",
+   "Apollo Hospitals Enterprise Ltd.",
+   "Aurobindo Pharma Ltd.",
+   "Bharat Forge Ltd.",
+   "FSN E-Commerce Ventures Ltd.",
+   "Federal Bank Ltd.",
+   "GE Vernova T&D India Ltd.",
+   "KEI Industries Ltd.",
+   "Laurus Labs Ltd.",
+   "Oracle Financial Services Software Ltd.",
+   "Polycab India Ltd.",
+   "Radico Khaitan Ltd",
+   "Tata Communications Ltd.",
+   "Zydus Lifesciences Ltd."
+  ],
+  "week_52w_lows_nifty200": [
+   "Infosys Ltd.",
+   "Tata Consultancy Services Ltd.",
+   "Wipro Ltd."
+  ],
   "fii_fno_week": {
-   "index futures": 149974.53,
-   "index options": 33205047.15,
-   "stock futures": 5747997.63,
-   "stock options": 1843471.15
+   "index futures": 426.37,
+   "index options": 5629.53,
+   "stock futures": -1225.53,
+   "stock options": 1698.14
   },
   "fii_fno_days_covered": [
    "2026-06-25",
@@ -192,8 +215,6 @@
    "note": "Complete only if all 5 sessions are covered by daily captures"
   }
  },
- "errors": [
-  "52wk lists: HTTPError: 404 Client Error: Not Found for url: https://nsearchives.nseindia.com/content/CM_52_wk_High_low_26062026.csv"
- ],
- "sessions_loaded": 125
+ "errors": [],
+ "sessions_loaded": 250
 }
