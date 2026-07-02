@@ -117,19 +117,19 @@ def main() -> int:
             report["errors"].append(f"trendlyne {name}: {type(exc).__name__}")
         time.sleep(1)
 
-    # ---- Macro calendar (India events, this + next week) ----
-    try:
-        events = []
-        for url in (FF_CAL_THISWEEK, FF_CAL_NEXTWEEK):
+    # ---- Macro calendar (India events; each feed independent) ----
+    events = []
+    for url in (FF_CAL_THISWEEK, FF_CAL_NEXTWEEK):
+        try:
             resp = session.get(url, headers=HEADERS, timeout=30)
             resp.raise_for_status()
             for ev in resp.json():
                 if ev.get("country") == "INR":
                     events.append({"date": ev.get("date"), "title": ev.get("title"),
                                    "impact": ev.get("impact")})
-        report["macro_calendar"] = sorted(events, key=lambda e: e["date"] or "")
-    except Exception as exc:
-        report["errors"].append(f"macro_calendar: {type(exc).__name__}: {exc}")
+        except Exception as exc:
+            report["errors"].append(f"macro_calendar {url.rsplit('/', 1)[-1]}: {type(exc).__name__}")
+    report["macro_calendar"] = sorted(events, key=lambda e: e["date"] or "") if events else None
 
     (out_dir / "extras.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
 

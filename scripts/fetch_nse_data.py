@@ -314,6 +314,10 @@ def main() -> int:
                         "weekly_pct": round((idx_new[label] / idx_old[label] - 1) * 100, 2),
                     }
             report["sections"]["benchmark_indices_official"] = bench
+        else:
+            report["errors"].append(
+                f"index closes: ind_close_all unavailable for {last_day} or "
+                f"{week_start_prev} (older files may be purged; Yahoo covers this)")
     except Exception as exc:
         report["errors"].append(f"index closes: {type(exc).__name__}: {exc}")
 
