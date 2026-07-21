@@ -37,6 +37,19 @@ If any of these are missing, insert a clearly marked
 
 ## 2. Data fetching (token-frugal order — follow strictly)
 
+Timing context: the market closes 15:30 IST, but NSE publishes delivery
+volumes and FII/DII figures only around 18:30–19:30 IST. Data fetched
+before that silently describes the PREVIOUS session.
+
+**Friday freshness check (mandatory on live runs):** the repo's
+`data/raw/<today>/nse_data.json` must have `latest_session` == today's
+date. If it doesn't (or the folder is missing), trigger the
+`echo-data-fetch.yml` workflow (ref `main`, input date = today) via the
+GitHub tools, wait for its commit, and re-check. If still stale, NSE
+hasn't published yet — wait 15–20 minutes and re-trigger, up to 3
+attempts, before proceeding with a loud warning in the draft and the
+run summary.
+
 Scripts fetch and parse; you read only their compact output. NEVER read
 raw downloaded HTML into the conversation, NEVER launch research
 subagents, and cap web searches at ~10 for the whole run.

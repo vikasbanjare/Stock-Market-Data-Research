@@ -246,6 +246,10 @@ def main() -> int:
     six_month_days = sessions_sorted[:125]
     last_day, week_start_prev = week_days[0], sessions_sorted[5]
     report["sessions_loaded"] = len(daily)
+    # Freshness marker: on a live Friday-evening run this must equal the
+    # run date. If it's the previous session, NSE hasn't published
+    # today's bhavcopy yet — re-run later rather than shipping stale tables.
+    report["latest_session"] = last_day.isoformat()
 
     def weekly_change(sym):
         new = daily[last_day].get(sym)

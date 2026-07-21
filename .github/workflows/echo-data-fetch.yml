@@ -13,9 +13,11 @@ on:
         required: false
         default: ""
   schedule:
-    # 12:45 UTC = 18:15 IST, Mon-Fri: captures each day's FII/DII
-    # provisional figures so the Friday run has the full week on hand.
-    - cron: "45 12 * * 1-5"
+    # 13:15 UTC = 18:45 IST Mon-Fri. Market closes 15:30 IST but NSE
+    # publishes delivery volumes and FII/DII figures ~18:30-19:30 IST;
+    # the Friday draft session re-triggers this workflow if the data
+    # turns out stale (latest_session check).
+    - cron: "15 13 * * 1-5"
 
 permissions:
   contents: write
