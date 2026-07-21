@@ -76,7 +76,8 @@ def fetch_bhavcopy(session, day: dt.date, cache_dir: pathlib.Path):
             continue
         try:
             out[row["SYMBOL"]] = (float(row["CLOSE_PRICE"]), float(row["DELIV_PER"]),
-                                  float(row["HIGH_PRICE"]), float(row["LOW_PRICE"]))
+                                  float(row["HIGH_PRICE"]), float(row["LOW_PRICE"]),
+                                  float(row["DELIV_QTY"]))
         except (KeyError, ValueError):
             continue
     return out
@@ -256,6 +257,9 @@ def main() -> int:
     def deliv_avg(sym, day_list):
         return avg([daily[d][sym][1] for d in day_list if sym in daily[d]])
 
+    def deliv_qty_avg(sym, day_list):
+        return avg([daily[d][sym][4] for d in day_list if sym in daily[d]])
+
     # ---- Market breadth (all EQ) ----
     common = set(daily[last_day]) & set(daily[week_start_prev])
     gainers = sum(1 for s in common if daily[last_day][s][0] > daily[week_start_prev][s][0])
@@ -271,7 +275,9 @@ def main() -> int:
             chg = weekly_change(sym)
             if chg is None:
                 continue
-            wk, mo = deliv_avg(sym, week_days), deliv_avg(sym, month_days)
+            # Newsletter column is delivered QUANTITY week-avg vs month-avg
+            # (matches Trendlyne), not delivery-percentage ratio.
+            wk, mo = deliv_qty_avg(sym, week_days), deliv_qty_avg(sym, month_days)
             ratio = round(wk / mo, 1) if wk and mo else None
             moves.append({"symbol": sym, "name": name, "weekly_pct": chg,
                           "deliv_week_vs_month": ratio})
