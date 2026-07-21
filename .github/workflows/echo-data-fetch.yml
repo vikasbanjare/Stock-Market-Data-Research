@@ -12,6 +12,10 @@ on:
         description: "Run date YYYY-MM-DD (default today; week ends on the Friday on/before it)"
         required: false
         default: ""
+  schedule:
+    # 12:45 UTC = 18:15 IST, Mon-Fri: captures each day's FII/DII
+    # provisional figures so the Friday run has the full week on hand.
+    - cron: "45 12 * * 1-5"
 
 permissions:
   contents: write
@@ -27,7 +31,14 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests xlrd
+
+      - name: Cache NSE bhavcopies (6 months of dailies)
+        uses: actions/cache@v4
+        with:
+          path: data/cache/bhavcopies
+          key: bhavcopies-${{ inputs.date || github.run_id }}
+          restore-keys: bhavcopies-
 
       - name: Fetch market data (Yahoo Finance)
         continue-on-error: true
@@ -41,11 +52,17 @@ jobs:
           DATE="${{ inputs.date }}"
           python3 scripts/fetch_nse_data.py ${DATE:+--date "$DATE"}
 
+      - name: Fetch extras (Trendlyne FII/DII pages, macro calendar)
+        continue-on-error: true
+        run: |
+          DATE="${{ inputs.date }}"
+          python3 scripts/fetch_extras.py ${DATE:+--date "$DATE"}
+
       - name: Commit JSON results back to this branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f data/raw/*/market_data.json data/raw/*/nse_data.json 2>/dev/null || true
+          git add -f data/raw/*/market_data.json data/raw/*/nse_data.json data/raw/*/extras.json data/fii_dii/*.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No data files produced — check the fetch step logs above."
           else

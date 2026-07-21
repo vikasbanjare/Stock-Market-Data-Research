@@ -1,0 +1,222 @@
+{
+ "run_date": "2026-06-26",
+ "week_ending": "2026-06-26",
+ "sections": {
+  "market_breadth": {
+   "total_gainers": 916,
+   "total_losers": 1470,
+   "universe": "all NSE EQ-series stocks, weekly close vs close"
+  },
+  "nifty100_top_gainers": [
+   {
+    "symbol": "INDIGO",
+    "name": "InterGlobe Aviation Ltd.",
+    "weekly_pct": 8.53,
+    "deliv_week_vs_month": 1.2
+   },
+   {
+    "symbol": "TMCV",
+    "name": "Tata Motors Ltd.",
+    "weekly_pct": 7.41,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "CIPLA",
+    "name": "Cipla Ltd.",
+    "weekly_pct": 6.53,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "CHOLAFIN",
+    "name": "Cholamandalam Investment and Finance Company Ltd.",
+    "weekly_pct": 6.25,
+    "deliv_week_vs_month": 1.3
+   },
+   {
+    "symbol": "DRREDDY",
+    "name": "Dr. Reddy's Laboratories Ltd.",
+    "weekly_pct": 6.16,
+    "deliv_week_vs_month": 0.8
+   }
+  ],
+  "nifty100_top_losers": [
+   {
+    "symbol": "VEDL",
+    "name": "Vedanta Ltd.",
+    "weekly_pct": -9.09,
+    "deliv_week_vs_month": 1.3
+   },
+   {
+    "symbol": "HINDZINC",
+    "name": "Hindustan Zinc Ltd.",
+    "weekly_pct": -8.07,
+    "deliv_week_vs_month": 1.2
+   },
+   {
+    "symbol": "IRFC",
+    "name": "Indian Railway Finance Corporation Ltd.",
+    "weekly_pct": -7.78,
+    "deliv_week_vs_month": 1.2
+   },
+   {
+    "symbol": "JINDALSTEL",
+    "name": "Jindal Steel Ltd.",
+    "weekly_pct": -6.87,
+    "deliv_week_vs_month": 1.4
+   },
+   {
+    "symbol": "HINDALCO",
+    "name": "Hindalco Industries Ltd.",
+    "weekly_pct": -5.62,
+    "deliv_week_vs_month": 1.2
+   }
+  ],
+  "delivery_rising": [
+   {
+    "symbol": "INDIACEM",
+    "name": "India Cements Ltd.",
+    "week_avg_pct": 59.87,
+    "month_avg_pct": 41.8,
+    "six_month_avg_pct": 38.24,
+    "ratio": 1.43
+   },
+   {
+    "symbol": "JINDALSTEL",
+    "name": "Jindal Steel Ltd.",
+    "week_avg_pct": 58.75,
+    "month_avg_pct": 41.72,
+    "six_month_avg_pct": 42.86,
+    "ratio": 1.41
+   },
+   {
+    "symbol": "CEMPRO",
+    "name": "Cemindia Projects Ltd.",
+    "week_avg_pct": 53.38,
+    "month_avg_pct": 38.18,
+    "six_month_avg_pct": 44.56,
+    "ratio": 1.4
+   },
+   {
+    "symbol": "DOMS",
+    "name": "DOMS Industries Ltd.",
+    "week_avg_pct": 58.36,
+    "month_avg_pct": 41.69,
+    "six_month_avg_pct": 41.37,
+    "ratio": 1.4
+   },
+   {
+    "symbol": "GRAPHITE",
+    "name": "Graphite India Ltd.",
+    "week_avg_pct": 46.44,
+    "month_avg_pct": 33.08,
+    "six_month_avg_pct": 29.97,
+    "ratio": 1.4
+   }
+  ],
+  "delivery_falling": [
+   {
+    "symbol": "NIACL",
+    "name": "The New India Assurance Company Ltd.",
+    "week_avg_pct": 12.3,
+    "month_avg_pct": 29.91,
+    "six_month_avg_pct": 33.91,
+    "ratio": 0.41
+   },
+   {
+    "symbol": "IDBI",
+    "name": "IDBI Bank Ltd.",
+    "week_avg_pct": 16.89,
+    "month_avg_pct": 36.93,
+    "six_month_avg_pct": 33.72,
+    "ratio": 0.46
+   },
+   {
+    "symbol": "KIRLOSENG",
+    "name": "Kirloskar Oil Eng Ltd.",
+    "week_avg_pct": 23.7,
+    "month_avg_pct": 50.8,
+    "six_month_avg_pct": 44.07,
+    "ratio": 0.47
+   },
+   {
+    "symbol": "COHANCE",
+    "name": "Cohance Lifesciences Ltd.",
+    "week_avg_pct": 25.94,
+    "month_avg_pct": 45.95,
+    "six_month_avg_pct": 39.48,
+    "ratio": 0.56
+   },
+   {
+    "symbol": "KPRMILL",
+    "name": "K.P.R. Mill Ltd.",
+    "week_avg_pct": 27.77,
+    "month_avg_pct": 45.64,
+    "six_month_avg_pct": 42.91,
+    "ratio": 0.61
+   }
+  ],
+  "week_52w_highs_nifty200": [
+   "Adani Enterprises Ltd.",
+   "Adani Green Energy Ltd.",
+   "Aditya Birla Capital Ltd.",
+   "Apollo Hospitals Enterprise Ltd.",
+   "Aurobindo Pharma Ltd.",
+   "Bharat Forge Ltd.",
+   "FSN E-Commerce Ventures Ltd.",
+   "Federal Bank Ltd.",
+   "GE Vernova T&D India Ltd.",
+   "KEI Industries Ltd.",
+   "Laurus Labs Ltd.",
+   "Oracle Financial Services Software Ltd.",
+   "Polycab India Ltd.",
+   "Radico Khaitan Ltd",
+   "Tata Communications Ltd.",
+   "Zydus Lifesciences Ltd."
+  ],
+  "week_52w_lows_nifty200": [
+   "Infosys Ltd.",
+   "Tata Consultancy Services Ltd.",
+   "Wipro Ltd."
+  ],
+  "fii_fno_week": {
+   "index futures": 426.37,
+   "index options": 5629.53,
+   "stock futures": -1225.53,
+   "stock options": 1698.14
+  },
+  "fii_fno_days_covered": [
+   "2026-06-25",
+   "2026-06-24",
+   "2026-06-23",
+   "2026-06-22"
+  ],
+  "fii_fno_note": "Net buy-sell per segment from NSE daily fii_stats files. DII F&O and YTD splits still come from Trendlyne or user upload.",
+  "upcoming_nifty50_results": [],
+  "fii_dii_daily_raw": [
+   {
+    "buyValue": "17391.61",
+    "category": "DII",
+    "date": "02-Jul-2026",
+    "netValue": "1784.4",
+    "sellValue": "15607.21"
+   },
+   {
+    "buyValue": "14018.4",
+    "category": "FII/FPI",
+    "date": "02-Jul-2026",
+    "netValue": "-311.82",
+    "sellValue": "14330.22"
+   }
+  ],
+  "fii_dii_week_cash": {
+   "fii_net_cr": 0.0,
+   "dii_net_cr": 0.0,
+   "days_covered": [],
+   "note": "Complete only if all 5 sessions are covered by daily captures"
+  }
+ },
+ "errors": [
+  "index closes: ind_close_all unavailable for 2026-06-26 or 2026-06-19 (older files may be purged; Yahoo covers this)"
+ ],
+ "sessions_loaded": 250
+}

@@ -1,0 +1,64 @@
+{
+ "run_date": "2026-06-05",
+ "week_ending": "2026-06-05",
+ "prev_week_ending": "2026-05-29",
+ "note_forex": "weekly_pct_display is rupee-perspective (positive = rupee strengthened)",
+ "rows": [],
+ "errors": [
+  {
+   "name": "Nifty 50",
+   "symbol": "^NSEI",
+   "error": "ValueError: missing closes (new=2026-06-05, old=None)"
+  },
+  {
+   "name": "Sensex",
+   "symbol": "^BSESN",
+   "error": "ValueError: missing closes (new=2026-06-05, old=None)"
+  },
+  {
+   "name": "Bank Nifty",
+   "symbol": "^NSEBANK",
+   "error": "ValueError: missing closes (new=2026-06-05, old=None)"
+  },
+  {
+   "name": "Brent Crude",
+   "symbol": "BZ=F",
+   "error": "ValueError: missing closes (new=2026-06-05, old=None)"
+  },
+  {
+   "name": "Gold Futures",
+   "symbol": "GC=F",
+   "error": "ValueError: missing closes (new=2026-06-05, old=None)"
+  },
+  {
+   "name": "Silver Futures",
+   "symbol": "SI=F",
+   "error": "ValueError: missing closes (new=2026-06-05, old=None)"
+  },
+  {
+   "name": "Natural Gas Futures (NYMEX)",
+   "symbol": "NG=F",
+   "error": "ValueError: missing closes (new=2026-06-05, old=None)"
+  },
+  {
+   "name": "Copper Futures",
+   "symbol": "HG=F",
+   "error": "ValueError: missing closes (new=2026-06-05, old=None)"
+  },
+  {
+   "name": "USD/INR",
+   "symbol": "USDINR=X",
+   "error": "ValueError: missing closes (new=2026-06-04, old=None)"
+  },
+  {
+   "name": "EUR/INR",
+   "symbol": "EURINR=X",
+   "error": "ValueError: missing closes (new=2026-06-04, old=None)"
+  },
+  {
+   "name": "GBP/INR",
+   "symbol": "GBPINR=X",
+   "error": "ValueError: missing closes (new=2026-06-04, old=None)"
+  }
+ ]
+}
