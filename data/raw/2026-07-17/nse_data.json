@@ -12,31 +12,31 @@
     "symbol": "ABB",
     "name": "ABB India Ltd.",
     "weekly_pct": 9.8,
-    "deliv_week_vs_month": 0.9
+    "deliv_week_vs_month": 2.3
    },
    {
     "symbol": "TCS",
     "name": "Tata Consultancy Services Ltd.",
     "weekly_pct": 9.67,
-    "deliv_week_vs_month": 0.9
+    "deliv_week_vs_month": 1.5
    },
    {
     "symbol": "TECHM",
     "name": "Tech Mahindra Ltd.",
     "weekly_pct": 8.12,
-    "deliv_week_vs_month": 0.8
+    "deliv_week_vs_month": 1.2
    },
    {
     "symbol": "DIVISLAB",
     "name": "Divi's Laboratories Ltd.",
     "weekly_pct": 6.02,
-    "deliv_week_vs_month": 0.9
+    "deliv_week_vs_month": 1.7
    },
    {
     "symbol": "SIEMENS",
     "name": "Siemens Ltd.",
     "weekly_pct": 4.64,
-    "deliv_week_vs_month": 0.9
+    "deliv_week_vs_month": 1.1
    }
   ],
   "nifty100_top_losers": [
@@ -44,31 +44,31 @@
     "symbol": "VEDL",
     "name": "Vedanta Ltd.",
     "weekly_pct": -7.15,
-    "deliv_week_vs_month": 1.3
+    "deliv_week_vs_month": 0.7
    },
    {
     "symbol": "MUTHOOTFIN",
     "name": "Muthoot Finance Ltd.",
     "weekly_pct": -4.47,
-    "deliv_week_vs_month": 1.0
+    "deliv_week_vs_month": 0.6
    },
    {
     "symbol": "ENRIN",
     "name": "Siemens Energy India Ltd.",
     "weekly_pct": -4.01,
-    "deliv_week_vs_month": 1.0
+    "deliv_week_vs_month": 0.8
    },
    {
     "symbol": "HDFCAMC",
     "name": "HDFC Asset Management Company Ltd.",
     "weekly_pct": -3.98,
-    "deliv_week_vs_month": 0.9
+    "deliv_week_vs_month": 1.6
    },
    {
     "symbol": "HINDZINC",
     "name": "Hindustan Zinc Ltd.",
     "weekly_pct": -3.46,
-    "deliv_week_vs_month": 1.1
+    "deliv_week_vs_month": 0.6
    }
   ],
   "delivery_rising": [
