@@ -1,0 +1,335 @@
+{
+ "run_date": "2026-07-22",
+ "week_ending": "2026-07-17",
+ "sections": {
+  "market_breadth": {
+   "total_gainers": 805,
+   "total_losers": 1540,
+   "universe": "all NSE EQ-series stocks, weekly close vs close"
+  },
+  "nifty100_top_gainers": [
+   {
+    "symbol": "ABB",
+    "name": "ABB India Ltd.",
+    "weekly_pct": 9.8,
+    "deliv_week_vs_month": 2.3
+   },
+   {
+    "symbol": "TCS",
+    "name": "Tata Consultancy Services Ltd.",
+    "weekly_pct": 9.67,
+    "deliv_week_vs_month": 1.5
+   },
+   {
+    "symbol": "TECHM",
+    "name": "Tech Mahindra Ltd.",
+    "weekly_pct": 8.12,
+    "deliv_week_vs_month": 1.2
+   },
+   {
+    "symbol": "DIVISLAB",
+    "name": "Divi's Laboratories Ltd.",
+    "weekly_pct": 6.02,
+    "deliv_week_vs_month": 1.7
+   },
+   {
+    "symbol": "SIEMENS",
+    "name": "Siemens Ltd.",
+    "weekly_pct": 4.64,
+    "deliv_week_vs_month": 1.1
+   }
+  ],
+  "nifty100_top_losers": [
+   {
+    "symbol": "VEDL",
+    "name": "Vedanta Ltd.",
+    "weekly_pct": -7.15,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "MUTHOOTFIN",
+    "name": "Muthoot Finance Ltd.",
+    "weekly_pct": -4.47,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "ENRIN",
+    "name": "Siemens Energy India Ltd.",
+    "weekly_pct": -4.01,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "HDFCAMC",
+    "name": "HDFC Asset Management Company Ltd.",
+    "weekly_pct": -3.98,
+    "deliv_week_vs_month": 1.6
+   },
+   {
+    "symbol": "HINDZINC",
+    "name": "Hindustan Zinc Ltd.",
+    "weekly_pct": -3.46,
+    "deliv_week_vs_month": 0.6
+   }
+  ],
+  "delivery_rising": [
+   {
+    "symbol": "SIGNATURE",
+    "name": "Signatureglobal (India) Ltd.",
+    "week_avg_pct": 23.54,
+    "month_avg_pct": 15.09,
+    "six_month_avg_pct": 17.37,
+    "ratio": 1.56
+   },
+   {
+    "symbol": "NIACL",
+    "name": "The New India Assurance Company Ltd.",
+    "week_avg_pct": 33.24,
+    "month_avg_pct": 21.43,
+    "six_month_avg_pct": 32.67,
+    "ratio": 1.55
+   },
+   {
+    "symbol": "HSCL",
+    "name": "Himadri Speciality Chemical Ltd.",
+    "week_avg_pct": 30.12,
+    "month_avg_pct": 20.5,
+    "six_month_avg_pct": 22.15,
+    "ratio": 1.47
+   },
+   {
+    "symbol": "IFCI",
+    "name": "IFCI Ltd.",
+    "week_avg_pct": 27.92,
+    "month_avg_pct": 19.17,
+    "six_month_avg_pct": 24.88,
+    "ratio": 1.46
+   },
+   {
+    "symbol": "ANURAS",
+    "name": "Anupam Rasayan India Ltd.",
+    "week_avg_pct": 48.26,
+    "month_avg_pct": 35.0,
+    "six_month_avg_pct": 49.0,
+    "ratio": 1.38
+   }
+  ],
+  "delivery_falling": [
+   {
+    "symbol": "NEWGEN",
+    "name": "Newgen Software Technologies Ltd.",
+    "week_avg_pct": 10.59,
+    "month_avg_pct": 29.79,
+    "six_month_avg_pct": 27.44,
+    "ratio": 0.36
+   },
+   {
+    "symbol": "NUVOCO",
+    "name": "Nuvoco Vistas Corporation Ltd.",
+    "week_avg_pct": 20.66,
+    "month_avg_pct": 51.57,
+    "six_month_avg_pct": 48.01,
+    "ratio": 0.4
+   },
+   {
+    "symbol": "ZENSARTECH",
+    "name": "Zensar Technolgies Ltd.",
+    "week_avg_pct": 16.16,
+    "month_avg_pct": 38.62,
+    "six_month_avg_pct": 42.33,
+    "ratio": 0.42
+   },
+   {
+    "symbol": "KALYANKJIL",
+    "name": "Kalyan Jewellers India Ltd.",
+    "week_avg_pct": 12.7,
+    "month_avg_pct": 28.6,
+    "six_month_avg_pct": 30.59,
+    "ratio": 0.44
+   },
+   {
+    "symbol": "MRPL",
+    "name": "Mangalore Refinery & Petrochemicals Ltd.",
+    "week_avg_pct": 22.28,
+    "month_avg_pct": 33.03,
+    "six_month_avg_pct": 25.06,
+    "ratio": 0.67
+   }
+  ],
+  "benchmark_indices_official": {
+   "Nifty 50": {
+    "close": 24334.3,
+    "close_date": "2026-07-17",
+    "weekly_pct": 0.53
+   },
+   "Nifty Bank": {
+    "close": 58521.4,
+    "close_date": "2026-07-17",
+    "weekly_pct": 0.82
+   }
+  },
+  "week_52w_highs_nifty200": [
+   "ABB India Ltd.",
+   "Adani Energy Solutions Ltd.",
+   "Adani Green Energy Ltd.",
+   "Apollo Hospitals Enterprise Ltd.",
+   "Bharat Heavy Electricals Ltd.",
+   "Biocon Ltd.",
+   "Divi's Laboratories Ltd.",
+   "Exide Industries Ltd.",
+   "FSN E-Commerce Ventures Ltd.",
+   "Federal Bank Ltd.",
+   "Laurus Labs Ltd.",
+   "Lupin Ltd.",
+   "One 97 Communications Ltd.",
+   "Oracle Financial Services Software Ltd.",
+   "Phoenix Mills Ltd.",
+   "Sun Pharmaceutical Industries Ltd.",
+   "Torrent Pharmaceuticals Ltd."
+  ],
+  "week_52w_lows_nifty200": [
+   "ICICI Lombard General Insurance Company Ltd.",
+   "ITC Ltd.",
+   "KPIT Technologies Ltd.",
+   "PI Industries Ltd.",
+   "Patanjali Foods Ltd.",
+   "Tata Elxsi Ltd.",
+   "Vedanta Ltd."
+  ],
+  "fii_fno_week": {
+   "index futures": 6015.33,
+   "index options": -44835.08,
+   "stock futures": -5850.22,
+   "stock options": -1028.93
+  },
+  "fii_fno_days_covered": [
+   "2026-07-17",
+   "2026-07-16",
+   "2026-07-15",
+   "2026-07-14",
+   "2026-07-13"
+  ],
+  "fii_fno_note": "Net buy-sell per segment from NSE daily fii_stats files. DII F&O and YTD splits still come from Trendlyne or user upload.",
+  "upcoming_nifty50_results": [
+   {
+    "date": "18-Jul-2026",
+    "symbol": "AXISBANK",
+    "company": "Axis Bank Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "18-Jul-2026",
+    "symbol": "HDFCBANK",
+    "company": "HDFC Bank Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "18-Jul-2026",
+    "symbol": "ICICIBANK",
+    "company": "ICICI Bank Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "18-Jul-2026",
+    "symbol": "KOTAKBANK",
+    "company": "Kotak Mahindra Bank Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "20-Jul-2026",
+    "symbol": "ULTRACEMCO",
+    "company": "UltraTech Cement Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "21-Jul-2026",
+    "symbol": "BAJAJ-AUTO",
+    "company": "Bajaj Auto Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "22-Jul-2026",
+    "symbol": "DRREDDY",
+    "company": "Dr. Reddy's Laboratories Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "22-Jul-2026",
+    "symbol": "ETERNAL",
+    "company": "Eternal Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "22-Jul-2026",
+    "symbol": "NESTLEIND",
+    "company": "Nestle India Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "23-Jul-2026",
+    "symbol": "CIPLA",
+    "company": "Cipla Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "23-Jul-2026",
+    "symbol": "INDIGO",
+    "company": "InterGlobe Aviation Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "23-Jul-2026",
+    "symbol": "INFY",
+    "company": "Infosys Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "24-Jul-2026",
+    "symbol": "NTPC",
+    "company": "NTPC Ltd.",
+    "purpose": "Financial Results/Fund Raising"
+   },
+   {
+    "date": "24-Jul-2026",
+    "symbol": "SBILIFE",
+    "company": "SBI Life Insurance Company Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "24-Jul-2026",
+    "symbol": "SHRIRAMFIN",
+    "company": "Shriram Finance Ltd.",
+    "purpose": "Financial Results/Fund Raising/Other business matters"
+   },
+   {
+    "date": "24-Jul-2026",
+    "symbol": "TATACONSUM",
+    "company": "Tata Consumer Products Ltd.",
+    "purpose": "Financial Results/Other business matters"
+   }
+  ],
+  "fii_dii_daily_raw": [
+   {
+    "buyValue": "13665.69",
+    "category": "DII",
+    "date": "22-Jul-2026",
+    "netValue": "-418.26",
+    "sellValue": "14083.95"
+   },
+   {
+    "buyValue": "12889.82",
+    "category": "FII/FPI",
+    "date": "22-Jul-2026",
+    "netValue": "-819.2",
+    "sellValue": "13709.02"
+   }
+  ],
+  "fii_dii_week_cash": {
+   "fii_net_cr": 0.0,
+   "dii_net_cr": 0.0,
+   "days_covered": [],
+   "note": "Complete only if all 5 sessions are covered by daily captures"
+  }
+ },
+ "errors": [],
+ "sessions_loaded": 250
+}
