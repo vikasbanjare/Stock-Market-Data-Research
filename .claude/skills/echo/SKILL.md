@@ -130,17 +130,46 @@ and computation rules are in `reference/data_sources.md`.
     FX reserves, RBI, etc.) + major Nifty 50 earnings from the Trendlyne
     calendar / m.Stock events page. End with: *"You can explore our Events
     calendar feature on the home page & set alerts on your calendar!"*
-14. **Intro narrative** (top of issue) — 2–4 short paragraphs on the
-    week's dominant theme, written last. Conversational, slightly wry,
+14. **Intro narrative** (top of issue) — written last, with a strong
+    story hook, as if telling someone the story of this week's market.
+    Interesting and attractive first, details after. Be aware the
+    market closed at 3:30pm on the issue's Friday. Conversational,
     numbers-anchored (see sample issue for voice).
-15. **Closing narrative** — 2–3 paragraphs: what this week sets up for
-    next week. Then *"Moving on to some insightful conversations"* + the
-    video URL(s) and blurb(s).
+15. **Closing narrative** — story format: how the current trends stand
+    and what can impact the market next week based on them. Then
+    *"Moving on to some insightful conversations"* + video URL(s) and
+    blurb(s).
+16. **Email header & sub-header suggestions** — 5 + 5 per §4a0,
+    delivered in the run summary alongside the draft.
+
+Also on request (separate from the Friday issue): mLearn fundamental
+video transcripts — adapt YouTube transcripts to crisp British English
+(minimal em dashes, "Chapter 3: How Candlesticks Are Formed" as the
+format standard) plus social copy (Twitter/Instagram/LinkedIn captions,
+video title, thumbnail title, YouTube description), each description
+opening in the style: "In Chapter N of the mLearn Edge Fundamental
+Explainers series, <presenter> breaks down <topic>." with a short
+overview of the sector at the start.
 
 ## 4. Rewrite commands (verbatim style prompts)
 
 These are the standing editorial commands. Substitute the research-window
 dates; remember the output must NOT mention the dates.
+
+### 4a0. Email header & sub-header (deliver WITH the draft, not inside it)
+> You are a content writer at m.Stock writing the weekly newsletter.
+> Suggest crisp, clickbait-worthy email headers for this issue — snappy,
+> something that makes the reader open it. Give 5 headers, then 5
+> sub-headers, grounded in the week's actual story. Grammar-check the
+> issue and flag any sentence fragments.
+
+### 4a1. IPO review (one paragraph, placed after the gainers/losers section)
+> Give a quick review of IPO activity in the Indian market for the week
+> (mainboard only — exclude SME IPOs; do not mention the dates). First
+> the IPOs that opened for subscription this week and their response —
+> overall subscription and the split by category (RII, NII, QIB) — then
+> the IPOs that listed this week and how the listing went (gains or
+> discount vs issue price). All in one paragraph.
 
 ### 4a. Stocks & Sectors in the News
 > You are a content writer writing a newsletter for Mirae Asset m.Stock
@@ -157,6 +186,15 @@ dates; remember the output must NOT mention the dates.
 
 Pick the 6 most newsworthy sectors of the week (e.g. banks, IT, autos,
 FMCG, realty, metals, pharma, energy — whichever actually moved).
+When covering Automotive, also include auto-components, commercial
+vehicle and two-wheeler companies, not just passenger-vehicle makers.
+
+### 4a2. FIIs & DIIs narrative (two paragraphs)
+> You are the newsletter writer at m.Stock giving the weekly overview of
+> FIIs and DIIs in the Indian stock market. Explain the week's trends in
+> 2 separate paragraphs — one for FIIs, one for DIIs — in simple
+> language, written in a story format, telling this week's story in an
+> interesting way for common investors.
 
 ### 4b. Commodity Moves
 > You are a content writer for Mirae Asset m.Stock subscribers. Using the
