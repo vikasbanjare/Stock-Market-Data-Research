@@ -89,6 +89,18 @@ def main() -> int:
     this_friday = run_date - dt.timedelta(days=(run_date.weekday() - 4) % 7)
     prev_friday = this_friday - dt.timedelta(days=7)
 
+    # Chain-base: prefer our own stored close for the previous Friday —
+    # immune to Yahoo's lagged INR bars.
+    stored_prev = {}
+    prev_file = REPO_ROOT / "data" / "raw" / prev_friday.isoformat() / "market_data.json"
+    if prev_file.exists():
+        try:
+            for r in json.loads(prev_file.read_text())["rows"]:
+                if r.get("close_date") == prev_friday.isoformat():
+                    stored_prev[r["symbol"]] = r["close"]
+        except Exception:
+            pass
+
     session = requests.Session()
     rows, errors = [], []
     for label, (symbol, kind) in SYMBOLS.items():
@@ -100,16 +112,28 @@ def main() -> int:
             )
             new_day, new = close_on_or_before(closes, this_friday)
             old_day, old = close_on_or_before(closes, prev_friday)
+            if symbol in stored_prev:
+                old, old_day = stored_prev[symbol], prev_friday
             if new is None or old is None:
                 raise ValueError(f"missing closes (new={new_day}, old={old_day})")
+            # First close INSIDE the issue window (usually Monday) — the
+            # published weekly-% convention for the index table.
+            win_day = min((d for d in closes if d > prev_friday), default=None)
+            win_base = closes.get(win_day)
             raw_pct = new / old - 1
             display_pct = (old / new - 1) if kind == "forex" else raw_pct
+            win_pct = None
+            if win_base and win_day != new_day:
+                wp = new / win_base - 1
+                win_pct = round(((win_base / new - 1) if kind == "forex" else wp) * 100, 2)
             rows.append({
                 "name": label, "symbol": symbol, "kind": kind,
                 "close": round(new, 4), "close_date": new_day.isoformat(),
                 "prev_close": round(old, 4), "prev_close_date": old_day.isoformat(),
                 "weekly_pct_display": round(display_pct * 100, 2),
                 "weekly_pct_raw": round(raw_pct * 100, 2),
+                "weekly_pct_window": win_pct,
+                "window_base_date": win_day.isoformat() if win_day else None,
             })
         except Exception as exc:
             errors.append({"name": label, "symbol": symbol, "error": f"{type(exc).__name__}: {exc}"})
