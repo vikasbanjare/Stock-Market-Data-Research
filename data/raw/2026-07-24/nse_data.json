@@ -343,7 +343,11 @@
    "note": "Complete only if all 5 sessions are covered by daily captures"
   }
  },
- "errors": [],
+ "errors": [
+  "bhavcopy 2025-10-02: ReadTimeout: HTTPSConnectionPool(host='nsearchives.nseindia.com', port=443): Read timed out. (read timeout=30)",
+  "bhavcopy 2025-08-27: ReadTimeout: HTTPSConnectionPool(host='nsearchives.nseindia.com', port=443): Read timed out. (read timeout=30)",
+  "bhavcopy 2025-08-15: ReadTimeout: HTTPSConnectionPool(host='nsearchives.nseindia.com', port=443): Read timed out. (read timeout=30)"
+ ],
  "sessions_loaded": 250,
  "latest_session": "2026-07-24",
  "window_base_day": "2026-07-20"
