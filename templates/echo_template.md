@@ -50,6 +50,10 @@ with verified reasons. Include notable IPO listings of the week if any.>
 <1–2 paragraphs on the most notable loser(s), stock names in **bold**,
 with verified reasons.>
 
+<IPO paragraph (mainboard only, no SMEs, no dates): IPOs opened this
+week with subscription response by category (RII/NII/QIB), then IPOs
+listed this week with listing gains/discount — one paragraph.>
+
 ## Year high and year low in the past week (Nifty 200)
 
 **Stocks that hit their 52-week high:** <full comma-separated list>.
@@ -122,7 +126,8 @@ purposes and are not recommendations.*
 
 ## FIIs vs DIIs
 
-<1–2 sentences on the week's FII/DII pattern.>
+<Two story-style paragraphs: one telling the week's FII story, one the
+DII story — simple language for common investors.>
 
 **Last week**
 
