@@ -1,0 +1,130 @@
+{
+ "run_date": "2026-07-24",
+ "week_ending": "2026-07-24",
+ "prev_week_ending": "2026-07-17",
+ "note_forex": "weekly_pct_display is rupee-perspective (positive = rupee strengthened)",
+ "rows": [
+  {
+   "name": "Nifty 50",
+   "symbol": "^NSEI",
+   "kind": "index",
+   "close": 23767.4492,
+   "close_date": "2026-07-24",
+   "prev_close": 24334.3008,
+   "prev_close_date": "2026-07-17",
+   "weekly_pct_display": -2.33,
+   "weekly_pct_raw": -2.33
+  },
+  {
+   "name": "Sensex",
+   "symbol": "^BSESN",
+   "kind": "index",
+   "close": 76045.2188,
+   "close_date": "2026-07-24",
+   "prev_close": 78151.4531,
+   "prev_close_date": "2026-07-17",
+   "weekly_pct_display": -2.7,
+   "weekly_pct_raw": -2.7
+  },
+  {
+   "name": "Bank Nifty",
+   "symbol": "^NSEBANK",
+   "kind": "index",
+   "close": 56693.5,
+   "close_date": "2026-07-24",
+   "prev_close": 58521.3984,
+   "prev_close_date": "2026-07-17",
+   "weekly_pct_display": -3.12,
+   "weekly_pct_raw": -3.12
+  },
+  {
+   "name": "Brent Crude",
+   "symbol": "BZ=F",
+   "kind": "commodity",
+   "close": 91.38,
+   "close_date": "2026-07-24",
+   "prev_close": 88.1,
+   "prev_close_date": "2026-07-17",
+   "weekly_pct_display": 3.72,
+   "weekly_pct_raw": 3.72
+  },
+  {
+   "name": "Gold Futures",
+   "symbol": "GC=F",
+   "kind": "commodity",
+   "close": 4057.8,
+   "close_date": "2026-07-24",
+   "prev_close": 4012.7,
+   "prev_close_date": "2026-07-17",
+   "weekly_pct_display": 1.12,
+   "weekly_pct_raw": 1.12
+  },
+  {
+   "name": "Silver Futures",
+   "symbol": "SI=F",
+   "kind": "commodity",
+   "close": 58.6,
+   "close_date": "2026-07-24",
+   "prev_close": 56.038,
+   "prev_close_date": "2026-07-17",
+   "weekly_pct_display": 4.57,
+   "weekly_pct_raw": 4.57
+  },
+  {
+   "name": "Natural Gas Futures (NYMEX)",
+   "symbol": "NG=F",
+   "kind": "commodity",
+   "close": 2.902,
+   "close_date": "2026-07-24",
+   "prev_close": 2.911,
+   "prev_close_date": "2026-07-17",
+   "weekly_pct_display": -0.31,
+   "weekly_pct_raw": -0.31
+  },
+  {
+   "name": "Copper Futures",
+   "symbol": "HG=F",
+   "kind": "commodity",
+   "close": 6.3525,
+   "close_date": "2026-07-24",
+   "prev_close": 6.22,
+   "prev_close_date": "2026-07-17",
+   "weekly_pct_display": 2.13,
+   "weekly_pct_raw": 2.13
+  },
+  {
+   "name": "USD/INR",
+   "symbol": "USDINR=X",
+   "kind": "forex",
+   "close": 96.552,
+   "close_date": "2026-07-24",
+   "prev_close": 96.6522,
+   "prev_close_date": "2026-07-16",
+   "weekly_pct_display": 0.1,
+   "weekly_pct_raw": -0.1
+  },
+  {
+   "name": "EUR/INR",
+   "symbol": "EURINR=X",
+   "kind": "forex",
+   "close": 109.9625,
+   "close_date": "2026-07-24",
+   "prev_close": 110.187,
+   "prev_close_date": "2026-07-16",
+   "weekly_pct_display": 0.2,
+   "weekly_pct_raw": -0.2
+  },
+  {
+   "name": "GBP/INR",
+   "symbol": "GBPINR=X",
+   "kind": "forex",
+   "close": 128.5797,
+   "close_date": "2026-07-24",
+   "prev_close": 130.2317,
+   "prev_close_date": "2026-07-16",
+   "weekly_pct_display": 1.28,
+   "weekly_pct_raw": -1.27
+  }
+ ],
+ "errors": []
+}

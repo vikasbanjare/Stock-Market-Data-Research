@@ -1,0 +1,108 @@
+{
+ "run_date": "2026-07-24",
+ "mode": "flash-15:35-IST",
+ "sections": {
+  "breadth_n500_weekly": {
+   "gainers": 141,
+   "losers": 359,
+   "note": "Nifty 500 universe at 15:35 IST; the evening run computes all-NSE breadth"
+  },
+  "nifty100_top_gainers": [
+   {
+    "symbol": "TVSMOTOR",
+    "name": "TVS Motor Company Ltd.",
+    "weekly_pct": 6.96,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "UNITDSPR",
+    "name": "United Spirits Ltd.",
+    "weekly_pct": 6.64,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "BAJAJ-AUTO",
+    "name": "Bajaj Auto Ltd.",
+    "weekly_pct": 6.58,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "HCLTECH",
+    "name": "HCL Technologies Ltd.",
+    "weekly_pct": 5.57,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "VEDL",
+    "name": "Vedanta Ltd.",
+    "weekly_pct": 4.58,
+    "deliv_week_vs_month": "evening run"
+   }
+  ],
+  "nifty100_top_losers": [
+   {
+    "symbol": "HDFCBANK",
+    "name": "HDFC Bank Ltd.",
+    "weekly_pct": -9.37,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "ADANIGREEN",
+    "name": "Adani Green Energy Ltd.",
+    "weekly_pct": -7.85,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "AXISBANK",
+    "name": "Axis Bank Ltd.",
+    "weekly_pct": -7.62,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "HDFCAMC",
+    "name": "HDFC Asset Management Company Ltd.",
+    "weekly_pct": -5.49,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "INFY",
+    "name": "Infosys Ltd.",
+    "weekly_pct": -5.07,
+    "deliv_week_vs_month": "evening run"
+   }
+  ],
+  "week_52w_highs_nifty200": [
+   "Adani Energy Solutions Ltd.",
+   "Aditya Birla Capital Ltd.",
+   "Bajaj Auto Ltd.",
+   "Bosch Ltd.",
+   "Divi's Laboratories Ltd.",
+   "Exide Industries Ltd.",
+   "FSN E-Commerce Ventures Ltd.",
+   "Federal Bank Ltd.",
+   "ICICI Bank Ltd.",
+   "IndusInd Bank Ltd.",
+   "Laurus Labs Ltd.",
+   "Lenskart Solutions Ltd.",
+   "Oracle Financial Services Software Ltd.",
+   "Radico Khaitan Ltd",
+   "Solar Industries India Ltd.",
+   "Sun Pharmaceutical Industries Ltd.",
+   "TVS Motor Company Ltd.",
+   "Titan Company Ltd."
+  ],
+  "week_52w_lows_nifty200": [
+   "Dr. Reddy's Laboratories Ltd.",
+   "Indian Railway Catering And Tourism Corporation Ltd.",
+   "Indian Railway Finance Corporation Ltd.",
+   "Jubilant Foodworks Ltd.",
+   "Rail Vikas Nigam Ltd.",
+   "Reliance Industries Ltd.",
+   "Tata Elxsi Ltd."
+  ]
+ },
+ "errors": [],
+ "base_day": "2026-07-17",
+ "sessions_loaded": 250,
+ "live_quotes": 500
+}
