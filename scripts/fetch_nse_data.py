@@ -251,7 +251,21 @@ def main() -> int:
     # today's bhavcopy yet — re-run later rather than shipping stale tables.
     report["latest_session"] = last_day.isoformat()
 
+    prev_friday = this_friday - dt.timedelta(days=7)
+    window_days = [d for d in sessions_sorted if d > prev_friday]
+    window_base_day = min(window_days) if window_days else None
+    report["window_base_day"] = window_base_day.isoformat() if window_base_day else None
+
     def weekly_change(sym):
+        """Published convention: change within the issue window
+        (last close vs the week's first close, usually Monday)."""
+        new = daily[last_day].get(sym)
+        old = daily.get(window_base_day, {}).get(sym)
+        if new and old and old[0]:
+            return round((new[0] / old[0] - 1) * 100, 2)
+        return None
+
+    def weekly_change_fri(sym):
         new = daily[last_day].get(sym)
         old = daily[week_start_prev].get(sym)
         if new and old and old[0]:
@@ -284,6 +298,7 @@ def main() -> int:
             wk, mo = deliv_qty_avg(sym, week_days), deliv_qty_avg(sym, month_days)
             ratio = round(wk / mo, 1) if wk and mo else None
             moves.append({"symbol": sym, "name": name, "weekly_pct": chg,
+                          "weekly_pct_fri_to_fri": weekly_change_fri(sym),
                           "deliv_week_vs_month": ratio})
         moves.sort(key=lambda m: m["weekly_pct"], reverse=True)
         report["sections"]["nifty100_top_gainers"] = moves[:5]
@@ -296,6 +311,11 @@ def main() -> int:
         n500 = fetch_index_members(session, 500)
         deliv = []
         for sym, name in n500.items():
+            # Exclude short-history names (recent listings) whose averages
+            # are unstable and which the published screener filters out.
+            history = sum(1 for d in six_month_days if sym in daily[d])
+            if history < 100:
+                continue
             wk, mo = deliv_avg(sym, week_days), deliv_avg(sym, month_days)
             six = deliv_avg(sym, six_month_days) if len(daily) >= 100 else None
             if wk and mo and mo > 0:
@@ -332,9 +352,12 @@ def main() -> int:
         report["errors"].append(f"index closes: {type(exc).__name__}: {exc}")
 
     # ---- 52-week highs/lows in the past week (Nifty 200) ----
+    # Published convention: "past week" spans 7 calendar days INCLUDING
+    # the previous Friday's session.
     try:
         n200 = fetch_index_members(session, 200)
-        highs, lows = compute_52wk_lists(daily, sessions_sorted, week_days, n200)
+        week52_days = [d for d in sessions_sorted if d >= prev_friday]
+        highs, lows = compute_52wk_lists(daily, sessions_sorted, week52_days, n200)
         report["sections"]["week_52w_highs_nifty200"] = highs
         report["sections"]["week_52w_lows_nifty200"] = lows
         if len(daily) < 240:
