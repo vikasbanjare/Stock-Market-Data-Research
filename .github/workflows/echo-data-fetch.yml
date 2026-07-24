@@ -12,6 +12,10 @@ on:
         description: "Run date YYYY-MM-DD (default today; week ends on the Friday on/before it)"
         required: false
         default: ""
+      mode:
+        description: "auto (clock decides), full (force NSE fetch), or flash"
+        required: false
+        default: "auto"
   schedule:
     # 10:05 UTC = 15:35 IST Friday: FLASH run minutes after market close.
     # Only Yahoo-based data exists at this hour (index closes are final;
@@ -55,8 +59,10 @@ jobs:
       - name: Flash data (live quotes + cached history, market-close runs)
         continue-on-error: true
         run: |
-          if [ "$(date -u +%H)" -ge 12 ]; then
-            echo "Full run: skipping flash script."
+          MODE="${{ inputs.mode || 'auto' }}"
+          if [ "$MODE" = "auto" ] && [ "$(date -u +%H)" -lt 12 ]; then MODE=flash; fi
+          if [ "$MODE" != "flash" ]; then
+            echo "Mode $MODE: skipping flash script."
             exit 0
           fi
           DATE="${{ inputs.date }}"
@@ -65,9 +71,10 @@ jobs:
       - name: Fetch NSE data (bhavcopies, breadth, movers, FII/DII)
         continue-on-error: true
         run: |
-          # Flash runs (before 12:00 UTC) skip NSE: delivery/FII data is
-          # not published until ~18:30-19:30 IST.
-          if [ "$(date -u +%H)" -lt 12 ]; then
+          # Flash runs skip NSE: delivery/FII data publishes ~18:30-19:30 IST.
+          MODE="${{ inputs.mode || 'auto' }}"
+          if [ "$MODE" = "auto" ] && [ "$(date -u +%H)" -lt 12 ]; then MODE=flash; fi
+          if [ "$MODE" = "flash" ]; then
             echo "Flash run: NSE data not yet published - skipping."
             exit 0
           fi
@@ -77,7 +84,9 @@ jobs:
       - name: Fetch extras (Trendlyne FII/DII pages, macro calendar)
         continue-on-error: true
         run: |
-          if [ "$(date -u +%H)" -lt 12 ]; then
+          MODE="${{ inputs.mode || 'auto' }}"
+          if [ "$MODE" = "auto" ] && [ "$(date -u +%H)" -lt 12 ]; then MODE=flash; fi
+          if [ "$MODE" = "flash" ]; then
             echo "Flash run: skipping extras."
             exit 0
           fi
