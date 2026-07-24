@@ -19,7 +19,7 @@
    "name": "Sensex",
    "symbol": "^BSESN",
    "kind": "index",
-   "close": 76053.5,
+   "close": 76059.7734,
    "close_date": "2026-07-24",
    "prev_close": 78151.4531,
    "prev_close_date": "2026-07-17",
@@ -41,56 +41,56 @@
    "name": "Brent Crude",
    "symbol": "BZ=F",
    "kind": "commodity",
-   "close": 91.41,
+   "close": 92.03,
    "close_date": "2026-07-24",
    "prev_close": 88.1,
    "prev_close_date": "2026-07-17",
-   "weekly_pct_display": 3.76,
-   "weekly_pct_raw": 3.76
+   "weekly_pct_display": 4.46,
+   "weekly_pct_raw": 4.46
   },
   {
    "name": "Gold Futures",
    "symbol": "GC=F",
    "kind": "commodity",
-   "close": 4062.3,
+   "close": 4062.1001,
    "close_date": "2026-07-24",
    "prev_close": 4012.7,
    "prev_close_date": "2026-07-17",
-   "weekly_pct_display": 1.24,
-   "weekly_pct_raw": 1.24
+   "weekly_pct_display": 1.23,
+   "weekly_pct_raw": 1.23
   },
   {
    "name": "Silver Futures",
    "symbol": "SI=F",
    "kind": "commodity",
-   "close": 58.675,
+   "close": 58.74,
    "close_date": "2026-07-24",
    "prev_close": 56.038,
    "prev_close_date": "2026-07-17",
-   "weekly_pct_display": 4.71,
-   "weekly_pct_raw": 4.71
+   "weekly_pct_display": 4.82,
+   "weekly_pct_raw": 4.82
   },
   {
    "name": "Natural Gas Futures (NYMEX)",
    "symbol": "NG=F",
    "kind": "commodity",
-   "close": 2.9,
+   "close": 2.908,
    "close_date": "2026-07-24",
    "prev_close": 2.911,
    "prev_close_date": "2026-07-17",
-   "weekly_pct_display": -0.38,
-   "weekly_pct_raw": -0.38
+   "weekly_pct_display": -0.1,
+   "weekly_pct_raw": -0.1
   },
   {
    "name": "Copper Futures",
    "symbol": "HG=F",
    "kind": "commodity",
-   "close": 6.3625,
+   "close": 6.3605,
    "close_date": "2026-07-24",
    "prev_close": 6.22,
    "prev_close_date": "2026-07-17",
-   "weekly_pct_display": 2.29,
-   "weekly_pct_raw": 2.29
+   "weekly_pct_display": 2.26,
+   "weekly_pct_raw": 2.26
   },
   {
    "name": "USD/INR",
@@ -107,23 +107,23 @@
    "name": "EUR/INR",
    "symbol": "EURINR=X",
    "kind": "forex",
-   "close": 109.976,
+   "close": 110.0121,
    "close_date": "2026-07-24",
    "prev_close": 110.187,
    "prev_close_date": "2026-07-16",
-   "weekly_pct_display": 0.19,
-   "weekly_pct_raw": -0.19
+   "weekly_pct_display": 0.16,
+   "weekly_pct_raw": -0.16
   },
   {
    "name": "GBP/INR",
    "symbol": "GBPINR=X",
    "kind": "forex",
-   "close": 128.5691,
+   "close": 128.6569,
    "close_date": "2026-07-24",
    "prev_close": 130.2317,
    "prev_close_date": "2026-07-16",
-   "weekly_pct_display": 1.29,
-   "weekly_pct_raw": -1.28
+   "weekly_pct_display": 1.22,
+   "weekly_pct_raw": -1.21
   }
  ],
  "errors": []
