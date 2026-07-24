@@ -13,10 +13,14 @@ on:
         required: false
         default: ""
   schedule:
-    # 13:15 UTC = 18:45 IST Mon-Fri. Market closes 15:30 IST but NSE
-    # publishes delivery volumes and FII/DII figures ~18:30-19:30 IST;
-    # the Friday draft session re-triggers this workflow if the data
-    # turns out stale (latest_session check).
+    # 10:05 UTC = 15:35 IST Friday: FLASH run minutes after market close.
+    # Only Yahoo-based data exists at this hour (index closes are final;
+    # commodities/forex are live snapshots). NSE steps self-skip.
+    - cron: "5 10 * * 5"
+    # 13:15 UTC = 18:45 IST Mon-Fri: FULL run. Market closes 15:30 IST
+    # but NSE publishes delivery volumes and FII/DII figures
+    # ~18:30-19:30 IST; the Friday draft session re-triggers this
+    # workflow if the data turns out stale (latest_session check).
     - cron: "15 13 * * 1-5"
 
 permissions:
@@ -51,12 +55,22 @@ jobs:
       - name: Fetch NSE data (bhavcopies, breadth, movers, FII/DII)
         continue-on-error: true
         run: |
+          # Flash runs (before 12:00 UTC) skip NSE: delivery/FII data is
+          # not published until ~18:30-19:30 IST.
+          if [ "$(date -u +%H)" -lt 12 ]; then
+            echo "Flash run: NSE data not yet published - skipping."
+            exit 0
+          fi
           DATE="${{ inputs.date }}"
           python3 scripts/fetch_nse_data.py ${DATE:+--date "$DATE"}
 
       - name: Fetch extras (Trendlyne FII/DII pages, macro calendar)
         continue-on-error: true
         run: |
+          if [ "$(date -u +%H)" -lt 12 ]; then
+            echo "Flash run: skipping extras."
+            exit 0
+          fi
           DATE="${{ inputs.date }}"
           python3 scripts/fetch_extras.py ${DATE:+--date "$DATE"}
 
