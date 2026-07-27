@@ -63,7 +63,7 @@ def main() -> int:
                 page.goto(url, timeout=45000, wait_until="domcontentloaded")
                 page.wait_for_timeout(4000)  # let tables render / JS settle
                 title = page.title()
-                if re.search(r"just a moment|attention required|access denied",
+                if re.search(r"just a moment|attention required|access denied|human verification",
                              title, re.I):
                     report["errors"].append(f"{name}: bot challenge ({title})")
                     continue
