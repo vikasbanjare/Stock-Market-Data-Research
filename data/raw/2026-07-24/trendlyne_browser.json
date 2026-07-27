@@ -1,0 +1,47 @@
+{
+ "run_date": "2026-07-24",
+ "method": "playwright-chromium",
+ "pages": {
+  "cash_week": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  },
+  "fii_fno_index_week": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  },
+  "fii_fno_stock_week": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  },
+  "dii_fno_index_week": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  },
+  "dii_fno_stock_week": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  },
+  "cash_ytd": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  },
+  "fii_fno_index_ytd": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  },
+  "fii_fno_stock_ytd": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  },
+  "dii_fno_index_ytd": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  },
+  "dii_fno_stock_ytd": {
+   "title": "Human Verification",
+   "tables": "no tables found"
+  }
+ },
+ "errors": []
+}
