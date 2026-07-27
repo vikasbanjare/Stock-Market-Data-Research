@@ -311,20 +311,22 @@ def main() -> int:
         n500 = fetch_index_members(session, 500)
         deliv = []
         for sym, name in n500.items():
-            # Exclude short-history names (recent listings) whose averages
-            # are unstable and which the published screener filters out.
             history = sum(1 for d in six_month_days if sym in daily[d])
-            if history < 100:
-                continue
             wk, mo = deliv_avg(sym, week_days), deliv_avg(sym, month_days)
             six = deliv_avg(sym, six_month_days) if len(daily) >= 100 else None
             if wk and mo and mo > 0:
                 deliv.append({"symbol": sym, "name": name, "week_avg_pct": wk,
                               "month_avg_pct": mo, "six_month_avg_pct": six,
-                              "ratio": round(wk / mo, 2)})
+                              "ratio": round(wk / mo, 2),
+                              "recent_listing": history < 120})
         deliv.sort(key=lambda m: m["ratio"], reverse=True)
+        # The published table is an editorial pick from the screener, not a
+        # strict top-5 — emit a candidate pool for the editor to choose from.
         report["sections"]["delivery_rising"] = deliv[:5]
         report["sections"]["delivery_falling"] = sorted(deliv[-5:], key=lambda m: m["ratio"])
+        report["sections"]["delivery_rising_candidates"] = deliv[:15]
+        report["sections"]["delivery_falling_candidates"] = sorted(
+            deliv[-15:], key=lambda m: m["ratio"])
         if len(daily) < 100:
             report["sections"]["delivery_note"] = (
                 f"six_month_avg omitted: only {len(daily)} sessions loaded")

@@ -139,6 +139,27 @@ def main() -> int:
             errors.append({"name": label, "symbol": symbol, "error": f"{type(exc).__name__}: {exc}"})
         time.sleep(0.5)
 
+    # Sanity check: Brent trading below WTI (or an extreme spread) means a
+    # stale/rolled contract on one feed — flag loudly, never publish silently.
+    by_sym = {r["symbol"]: r for r in rows}
+    if "BZ=F" in by_sym:
+        try:
+            wti_closes = fetch_daily_closes(session, "CL=F",
+                                            start=prev_friday - dt.timedelta(days=14),
+                                            end=this_friday + dt.timedelta(days=4))
+            _, wti = close_on_or_before(wti_closes, this_friday)
+            if wti:
+                spread = by_sym["BZ=F"]["close"] - wti
+                by_sym["BZ=F"]["wti_close"] = round(wti, 2)
+                by_sym["BZ=F"]["brent_wti_spread"] = round(spread, 2)
+                if spread < -1 or spread > 15:
+                    errors.append({"name": "Brent Crude", "symbol": "BZ=F",
+                                   "error": f"suspicious Brent-WTI spread {spread:+.2f} — "
+                                            "possible stale/rolled contract, verify close"})
+        except Exception as exc:
+            errors.append({"name": "Brent sanity check", "symbol": "CL=F",
+                           "error": f"{type(exc).__name__}: {exc}"})
+
     out_dir = REPO_ROOT / "data" / "raw" / run_date.isoformat()
     out_dir.mkdir(parents=True, exist_ok=True)
     payload = {
