@@ -88,7 +88,8 @@
     "week_avg_pct": 52.95,
     "month_avg_pct": 31.94,
     "six_month_avg_pct": 41.68,
-    "ratio": 1.66
+    "ratio": 1.66,
+    "recent_listing": false
    },
    {
     "symbol": "ANURAS",
@@ -96,7 +97,8 @@
     "week_avg_pct": 62.19,
     "month_avg_pct": 39.38,
     "six_month_avg_pct": 49.2,
-    "ratio": 1.58
+    "ratio": 1.58,
+    "recent_listing": false
    },
    {
     "symbol": "NIACL",
@@ -104,7 +106,8 @@
     "week_avg_pct": 29.64,
     "month_avg_pct": 21.42,
     "six_month_avg_pct": 32.3,
-    "ratio": 1.38
+    "ratio": 1.38,
+    "recent_listing": false
    },
    {
     "symbol": "IDBI",
@@ -112,7 +115,8 @@
     "week_avg_pct": 36.02,
     "month_avg_pct": 26.61,
     "six_month_avg_pct": 33.33,
-    "ratio": 1.35
+    "ratio": 1.35,
+    "recent_listing": false
    },
    {
     "symbol": "SONATSOFTW",
@@ -120,7 +124,8 @@
     "week_avg_pct": 34.24,
     "month_avg_pct": 25.79,
     "six_month_avg_pct": 34.26,
-    "ratio": 1.33
+    "ratio": 1.33,
+    "recent_listing": false
    }
   ],
   "delivery_falling": [
@@ -130,7 +135,8 @@
     "week_avg_pct": 27.78,
     "month_avg_pct": 56.89,
     "six_month_avg_pct": 51.26,
-    "ratio": 0.49
+    "ratio": 0.49,
+    "recent_listing": false
    },
    {
     "symbol": "INDIACEM",
@@ -138,7 +144,8 @@
     "week_avg_pct": 25.51,
     "month_avg_pct": 49.55,
     "six_month_avg_pct": 39.98,
-    "ratio": 0.51
+    "ratio": 0.51,
+    "recent_listing": false
    },
    {
     "symbol": "OBEROIRLTY",
@@ -146,7 +153,8 @@
     "week_avg_pct": 24.85,
     "month_avg_pct": 47.04,
     "six_month_avg_pct": 45.13,
-    "ratio": 0.53
+    "ratio": 0.53,
+    "recent_listing": false
    },
    {
     "symbol": "TTML",
@@ -154,7 +162,8 @@
     "week_avg_pct": 22.7,
     "month_avg_pct": 42.65,
     "six_month_avg_pct": 35.85,
-    "ratio": 0.53
+    "ratio": 0.53,
+    "recent_listing": false
    },
    {
     "symbol": "KARURVYSYA",
@@ -162,7 +171,282 @@
     "week_avg_pct": 32.66,
     "month_avg_pct": 55.08,
     "six_month_avg_pct": 50.45,
-    "ratio": 0.59
+    "ratio": 0.59,
+    "recent_listing": false
+   }
+  ],
+  "delivery_rising_candidates": [
+   {
+    "symbol": "KPRMILL",
+    "name": "K.P.R. Mill Ltd.",
+    "week_avg_pct": 52.95,
+    "month_avg_pct": 31.94,
+    "six_month_avg_pct": 41.68,
+    "ratio": 1.66,
+    "recent_listing": false
+   },
+   {
+    "symbol": "ANURAS",
+    "name": "Anupam Rasayan India Ltd.",
+    "week_avg_pct": 62.19,
+    "month_avg_pct": 39.38,
+    "six_month_avg_pct": 49.2,
+    "ratio": 1.58,
+    "recent_listing": false
+   },
+   {
+    "symbol": "NIACL",
+    "name": "The New India Assurance Company Ltd.",
+    "week_avg_pct": 29.64,
+    "month_avg_pct": 21.42,
+    "six_month_avg_pct": 32.3,
+    "ratio": 1.38,
+    "recent_listing": false
+   },
+   {
+    "symbol": "IDBI",
+    "name": "IDBI Bank Ltd.",
+    "week_avg_pct": 36.02,
+    "month_avg_pct": 26.61,
+    "six_month_avg_pct": 33.33,
+    "ratio": 1.35,
+    "recent_listing": false
+   },
+   {
+    "symbol": "SONATSOFTW",
+    "name": "Sonata Software Ltd.",
+    "week_avg_pct": 34.24,
+    "month_avg_pct": 25.79,
+    "six_month_avg_pct": 34.26,
+    "ratio": 1.33,
+    "recent_listing": false
+   },
+   {
+    "symbol": "IFCI",
+    "name": "IFCI Ltd.",
+    "week_avg_pct": 28.39,
+    "month_avg_pct": 21.99,
+    "six_month_avg_pct": 24.95,
+    "ratio": 1.29,
+    "recent_listing": false
+   },
+   {
+    "symbol": "COHANCE",
+    "name": "Cohance Lifesciences Ltd.",
+    "week_avg_pct": 49.87,
+    "month_avg_pct": 39.21,
+    "six_month_avg_pct": 37.51,
+    "ratio": 1.27,
+    "recent_listing": false
+   },
+   {
+    "symbol": "RITES",
+    "name": "RITES Ltd.",
+    "week_avg_pct": 35.94,
+    "month_avg_pct": 28.3,
+    "six_month_avg_pct": 37.9,
+    "ratio": 1.27,
+    "recent_listing": false
+   },
+   {
+    "symbol": "LODHA",
+    "name": "Lodha Developers Ltd.",
+    "week_avg_pct": 51.75,
+    "month_avg_pct": 41.06,
+    "six_month_avg_pct": 45.87,
+    "ratio": 1.26,
+    "recent_listing": false
+   },
+   {
+    "symbol": "TORNTPOWER",
+    "name": "Torrent Power Ltd.",
+    "week_avg_pct": 71.52,
+    "month_avg_pct": 56.76,
+    "six_month_avg_pct": 50.63,
+    "ratio": 1.26,
+    "recent_listing": false
+   },
+   {
+    "symbol": "DOMS",
+    "name": "DOMS Industries Ltd.",
+    "week_avg_pct": 61.88,
+    "month_avg_pct": 49.54,
+    "six_month_avg_pct": 42.71,
+    "ratio": 1.25,
+    "recent_listing": false
+   },
+   {
+    "symbol": "ATHERENERG",
+    "name": "Ather Energy Ltd.",
+    "week_avg_pct": 35.52,
+    "month_avg_pct": 28.89,
+    "six_month_avg_pct": 30.03,
+    "ratio": 1.23,
+    "recent_listing": false
+   },
+   {
+    "symbol": "BLUEJET",
+    "name": "Blue Jet Healthcare Ltd.",
+    "week_avg_pct": 48.92,
+    "month_avg_pct": 39.85,
+    "six_month_avg_pct": 42.36,
+    "ratio": 1.23,
+    "recent_listing": false
+   },
+   {
+    "symbol": "LINDEINDIA",
+    "name": "Linde India Ltd.",
+    "week_avg_pct": 58.53,
+    "month_avg_pct": 47.61,
+    "six_month_avg_pct": 46.13,
+    "ratio": 1.23,
+    "recent_listing": false
+   },
+   {
+    "symbol": "RHIM",
+    "name": "RHI MAGNESITA INDIA LTD.",
+    "week_avg_pct": 47.42,
+    "month_avg_pct": 38.41,
+    "six_month_avg_pct": 42.93,
+    "ratio": 1.23,
+    "recent_listing": false
+   }
+  ],
+  "delivery_falling_candidates": [
+   {
+    "symbol": "CANHLIFE",
+    "name": "Canara HSBC Life Insurance Company Ltd.",
+    "week_avg_pct": 27.78,
+    "month_avg_pct": 56.89,
+    "six_month_avg_pct": 51.26,
+    "ratio": 0.49,
+    "recent_listing": false
+   },
+   {
+    "symbol": "INDIACEM",
+    "name": "India Cements Ltd.",
+    "week_avg_pct": 25.51,
+    "month_avg_pct": 49.55,
+    "six_month_avg_pct": 39.98,
+    "ratio": 0.51,
+    "recent_listing": false
+   },
+   {
+    "symbol": "OBEROIRLTY",
+    "name": "Oberoi Realty Ltd.",
+    "week_avg_pct": 24.85,
+    "month_avg_pct": 47.04,
+    "six_month_avg_pct": 45.13,
+    "ratio": 0.53,
+    "recent_listing": false
+   },
+   {
+    "symbol": "TTML",
+    "name": "Tata Teleservices (Maharashtra) Ltd.",
+    "week_avg_pct": 22.7,
+    "month_avg_pct": 42.65,
+    "six_month_avg_pct": 35.85,
+    "ratio": 0.53,
+    "recent_listing": false
+   },
+   {
+    "symbol": "KARURVYSYA",
+    "name": "Karur Vysya Bank Ltd.",
+    "week_avg_pct": 32.66,
+    "month_avg_pct": 55.08,
+    "six_month_avg_pct": 50.45,
+    "ratio": 0.59,
+    "recent_listing": false
+   },
+   {
+    "symbol": "GABRIEL",
+    "name": "Gabriel India Ltd.",
+    "week_avg_pct": 25.13,
+    "month_avg_pct": 41.43,
+    "six_month_avg_pct": 41.77,
+    "ratio": 0.61,
+    "recent_listing": false
+   },
+   {
+    "symbol": "MRPL",
+    "name": "Mangalore Refinery & Petrochemicals Ltd.",
+    "week_avg_pct": 18.9,
+    "month_avg_pct": 30.82,
+    "six_month_avg_pct": 24.95,
+    "ratio": 0.61,
+    "recent_listing": false
+   },
+   {
+    "symbol": "M&MFIN",
+    "name": "Mahindra & Mahindra Financial Services Ltd.",
+    "week_avg_pct": 33.83,
+    "month_avg_pct": 52.33,
+    "six_month_avg_pct": 48.58,
+    "ratio": 0.65,
+    "recent_listing": false
+   },
+   {
+    "symbol": "NUVOCO",
+    "name": "Nuvoco Vistas Corporation Ltd.",
+    "week_avg_pct": 29.27,
+    "month_avg_pct": 44.45,
+    "six_month_avg_pct": 46.78,
+    "ratio": 0.66,
+    "recent_listing": false
+   },
+   {
+    "symbol": "AIIL",
+    "name": "Authum Investment & Infrastructure Ltd.",
+    "week_avg_pct": 27.64,
+    "month_avg_pct": 41.35,
+    "six_month_avg_pct": 39.53,
+    "ratio": 0.67,
+    "recent_listing": false
+   },
+   {
+    "symbol": "SPLPETRO",
+    "name": "Supreme Petrochem Ltd.",
+    "week_avg_pct": 34.23,
+    "month_avg_pct": 50.8,
+    "six_month_avg_pct": 46.51,
+    "ratio": 0.67,
+    "recent_listing": false
+   },
+   {
+    "symbol": "ECLERX",
+    "name": "eClerx Services Ltd.",
+    "week_avg_pct": 29.93,
+    "month_avg_pct": 44.38,
+    "six_month_avg_pct": 43.21,
+    "ratio": 0.67,
+    "recent_listing": false
+   },
+   {
+    "symbol": "KALYANKJIL",
+    "name": "Kalyan Jewellers India Ltd.",
+    "week_avg_pct": 16.88,
+    "month_avg_pct": 24.96,
+    "six_month_avg_pct": 30.04,
+    "ratio": 0.68,
+    "recent_listing": false
+   },
+   {
+    "symbol": "SIGNATURE",
+    "name": "Signatureglobal (India) Ltd.",
+    "week_avg_pct": 11.9,
+    "month_avg_pct": 17.53,
+    "six_month_avg_pct": 17.53,
+    "ratio": 0.68,
+    "recent_listing": false
+   },
+   {
+    "symbol": "NTPCGREEN",
+    "name": "NTPC Green Energy Ltd.",
+    "week_avg_pct": 36.8,
+    "month_avg_pct": 53.2,
+    "six_month_avg_pct": 42.42,
+    "ratio": 0.69,
+    "recent_listing": false
    }
   ],
   "benchmark_indices_official": {
@@ -343,11 +627,7 @@
    "note": "Complete only if all 5 sessions are covered by daily captures"
   }
  },
- "errors": [
-  "bhavcopy 2025-10-02: ReadTimeout: HTTPSConnectionPool(host='nsearchives.nseindia.com', port=443): Read timed out. (read timeout=30)",
-  "bhavcopy 2025-08-27: ReadTimeout: HTTPSConnectionPool(host='nsearchives.nseindia.com', port=443): Read timed out. (read timeout=30)",
-  "bhavcopy 2025-08-15: ReadTimeout: HTTPSConnectionPool(host='nsearchives.nseindia.com', port=443): Read timed out. (read timeout=30)"
- ],
+ "errors": [],
  "sessions_loaded": 250,
  "latest_session": "2026-07-24",
  "window_base_day": "2026-07-20"
