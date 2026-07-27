@@ -63,7 +63,9 @@ jobs:
         continue-on-error: true
         run: |
           MODE="${{ inputs.mode || 'auto' }}"
-          if [ "$MODE" = "auto" ] && [ "$(date -u +%H)" -lt 12 ]; then MODE=flash; fi
+          # Auto-flash only on trading-day mornings (UTC), never Saturday's
+          # settle run.
+          if [ "$MODE" = "auto" ] && [ "$(date -u +%H)" -lt 12 ] && [ "$(date -u +%u)" -le 5 ]; then MODE=flash; fi
           if [ "$MODE" != "flash" ]; then
             echo "Mode $MODE: skipping flash script."
             exit 0
