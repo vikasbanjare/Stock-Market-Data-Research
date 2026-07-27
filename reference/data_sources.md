@@ -1,5 +1,14 @@
 # Echo — Data Source Map
 
+**Ground truth (confirmed by the team's process doc):** the published
+tables are TRANSCRIBED from Trendlyne's screener columns (the eight
+screener IDs below + ten FII/DII macro pages) and Investing.com's
+"8th/7th row" old-value method — not computed. Exact cell-for-cell
+reproduction therefore requires reading Trendlyne itself (official
+Trendlyne MCP once subscribed, or the weekly screenshot). The official
+NSE/Yahoo pipeline in this repo produces near-identical auditable
+values and serves as the automated fill + verification layer.
+
 Every table in the newsletter, where its numbers come from, and how to
 extract them. URLs here are the canonical sources from the editorial
 command document.
