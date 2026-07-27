@@ -98,11 +98,27 @@ jobs:
           DATE="${{ inputs.date }}"
           python3 scripts/fetch_extras.py ${DATE:+--date "$DATE"}
 
+      - name: Fetch Trendlyne via real browser (full runs only)
+        continue-on-error: true
+        env:
+          TRENDLYNE_COOKIES: ${{ secrets.TRENDLYNE_COOKIES }}
+        run: |
+          MODE="${{ inputs.mode || 'auto' }}"
+          if [ "$MODE" = "auto" ] && [ "$(date -u +%H)" -lt 12 ] && [ "$(date -u +%u)" -le 5 ]; then MODE=flash; fi
+          if [ "$MODE" = "flash" ]; then
+            echo "Flash run: skipping browser fetch."
+            exit 0
+          fi
+          pip install playwright
+          python3 -m playwright install --with-deps chromium
+          DATE="${{ inputs.date }}"
+          python3 scripts/fetch_trendlyne_browser.py ${DATE:+--date "$DATE"}
+
       - name: Commit JSON results back to this branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f data/raw/*/market_data.json data/raw/*/nse_data.json data/raw/*/extras.json data/raw/*/flash_data.json data/fii_dii/*.json 2>/dev/null || true
+          git add -f data/raw/*/market_data.json data/raw/*/nse_data.json data/raw/*/extras.json data/raw/*/flash_data.json data/raw/*/trendlyne_browser.json data/fii_dii/*.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No data files produced — check the fetch step logs above."
           else
