@@ -44,11 +44,11 @@ indication of how sticky the price moves could be in the future.
 
 | Stock Name | % weekly change | Delivery volumes in past week vs prev month |
 |---|---|---|
-| Bajaj Finance | 12.68% | *(evening)* |
-| Hyundai Motor India | 11.68% | *(evening)* |
-| TVS Motor Company | 11.44% | 1.6X |
-| Divi's Laboratories | 11.14% | *(evening)* |
-| Jio Financial Services | 9.27% | *(evening)* |
+| Bajaj Finance | 12.68% | 1.1X |
+| Hyundai Motor India | 11.68% | 0.9X |
+| TVS Motor Company | 11.44% | 1.8X |
+| Divi's Laboratories | 11.14% | 1.3X |
+| Jio Financial Services | 9.27% | 1.0X |
 
 **Bajaj Finance** owned the week, surging over 12% after its Q1 FY27
 results — the stock powered Friday's rally almost single-handedly and
@@ -64,10 +64,10 @@ earnings.
 | Stock Name | % weekly change | Rise in delivery volumes in past week vs previous month |
 |---|---|---|
 | Bharat Electronics | -4.23% | 1.9X |
-| Adani Ports & SEZ | -4.06% | 1.8X |
-| Adani Energy Solutions | -3.34% | *(evening)* |
-| Varun Beverages | -3.26% | *(evening)* |
-| Coal India | -3.10% | *(evening)* |
+| Adani Ports & SEZ | -4.06% | 1.6X |
+| Adani Energy Solutions | -3.34% | 1.1X |
+| Varun Beverages | -3.26% | 1.6X |
+| Coal India | -3.10% | 1.9X |
 
 The losers' list reads like a results-day casualty report: **Bharat
 Electronics** and **Coal India** both slipped after opening the week's
@@ -228,9 +228,8 @@ euphoric in the rally nor shaken in the dips.
 | FIIs | [FILL IN: Trendlyne screenshot] | | | | |
 | DIIs | [FILL IN] | | | | |
 
-*\*Cash figures cover Monday–Thursday; Friday's provisional print is
-added in the evening refresh. FII F&O figures are from NSE's official
-daily files covering five sessions to 30th July.*
+*\*Note: FII/DII cash and F&O data as of 30th July; delivery volumes as
+of 30th July.*
 
 **Wondering why FIIs and DIIs generally move in opposite directions?**
 
