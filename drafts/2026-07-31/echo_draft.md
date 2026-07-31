@@ -8,31 +8,31 @@ from **Bajaj Finance** was all it took to change the conversation.
 
 That is the story of a week in which everything that hurt investors a
 week ago went into reverse. Crude oil, whose surge toward $100 had
-rattled every calculation, retreated nearly 8%. The rupee, freshly
-bruised, clawed back more than 1.5% against the dollar. And foreign
+rattled every calculation, retreated over 6%. The rupee, freshly
+bruised, clawed back more than 1% against the dollar. And foreign
 investors, sellers for most of the month, returned as buyers as the
 week closed.
 
 Between those bookends sat the heaviest earnings week of the quarter —
 over a hundred companies a day at its peak — and the market rewarded
 the winners generously while punishing the misses without mercy. The
-Nifty 50 finished 2.59% higher, unwinding almost all of the previous
+Nifty 50 finished about 2% higher, unwinding much of the previous
 week's damage.
 
 ## Benchmark Index Moves
 
 | Index | Closing Level | % Weekly Change |
 |---|---|---|
-| Nifty 50 | 24,383.60 | +2.59% |
-| Sensex | 78,107.33 | +2.69% |
-| Bank Nifty | 57,264.85 | +1.01% |
+| Nifty 50 | 24,383.60 | 1.85% |
+| Sensex | 78,094.64 | 1.88% |
+| Bank Nifty | 57,264.85 | 0.02% |
 
 The rebound was broad but selective: the headline indices recovered
 sharply while the Bank Nifty, still nursing the previous week's
 results-driven wounds, participated only modestly.
 
 **Market Breadth:** The momentum in the markets was positive last week
-with total gainers at 340 and total losers at 160 (Nifty 500 universe).
+with total gainers at 2,885 and total losers at 2,549.
 
 ## Top Weekly Gainers & Losers (Nifty 100)
 
@@ -44,37 +44,37 @@ indication of how sticky the price moves could be in the future.
 
 | Stock Name | % weekly change | Delivery volumes in past week vs prev month |
 |---|---|---|
-| Bajaj Finance | 12.68% | 1.1X |
-| Hyundai Motor India | 11.68% | 0.9X |
-| TVS Motor Company | 11.44% | 1.8X |
-| Divi's Laboratories | 11.14% | 1.3X |
-| Jio Financial Services | 9.27% | 1.0X |
+| Hyundai Motor | 11.58% | 0.9X |
+| Divi's Laboratories | 10.28% | 1.3X |
+| TVS Motor Company | 10.03% | 1.8X |
+| LTM | 10.01% | 1.2X |
+| Jio Financial | 9.99% | 1.0X |
 
-**Bajaj Finance** owned the week, surging over 12% after its Q1 FY27
-results — the stock powered Friday's rally almost single-handedly and
-marked a fresh 52-week high along the way. **TVS Motor Company**
-extended its post-results run into a second double-digit week, while
-**Hyundai Motor India** rode the auto pack's strong earnings.
-**Divi's Laboratories** led a pharma surge to its own 52-week high, and
-**Jio Financial Services** gained as investors positioned around its
-earnings.
+**Hyundai Motor India** led the pack on the auto sector's strong
+earnings, with **TVS Motor Company** compounding its post-results run
+into a second straight double-digit week. **Divi's Laboratories**
+spearheaded a pharma surge to a fresh 52-week high, **LTM** rode the IT
+recovery, and **Jio Financial** gained as investors cheered its
+earnings. Special mention to **Bajaj Finance**, whose blowout Q1 powered
+Friday's rally and a fresh 52-week high.
 
 ### Losers
 
 | Stock Name | % weekly change | Rise in delivery volumes in past week vs previous month |
 |---|---|---|
-| Bharat Electronics | -4.23% | 1.9X |
-| Adani Ports & SEZ | -4.06% | 1.6X |
+| Bharat Electronics | -5.77% | 1.9X |
+| Adani Ports | -4.48% | 1.6X |
 | Adani Energy Solutions | -3.34% | 1.1X |
-| Varun Beverages | -3.26% | 1.6X |
+| Varun Beverages | -3.26% | 1.7X |
 | Coal India | -3.10% | 1.9X |
 
 The losers' list reads like a results-day casualty report: **Bharat
 Electronics** and **Coal India** both slipped after opening the week's
 earnings calendar on Monday, and the **Adani** twins — Ports and Energy
 Solutions — drifted lower through their group's mid-week results.
-**Varun Beverages** stayed under the same consumption cloud that has
-dogged beverage and FMCG names all month.
+**Varun Beverages** slid after its June-quarter results disappointed on
+margins — the stock plunged 8% on results day before clawing part of it
+back — as the Twizza consolidation compressed EBITDA margins.
 
 **Manipal Health Enterprises**' ₹9,275-crore IPO — among the year's
 largest healthcare offerings — closed with an overall subscription of
@@ -83,15 +83,16 @@ listings this week from the Trendlyne/exchange data before publishing.]
 
 ## Year high and year low in the past week (Nifty 200)
 
-**Stocks that hit their 52-week high:** Aditya Birla Capital, Apollo
-Hospitals, Bajaj Auto, Bajaj Finance, Divi's Laboratories, Exide
-Industries, FSN E-Commerce (Nykaa), Federal Bank, IDFC First Bank,
-Kalyan Jewellers, Laurus Labs, Lenskart Solutions, Lodha Developers,
-Marico, Nestle India, Radico Khaitan, Sun Pharmaceutical, TVS Motor,
-Titan Company, Torrent Pharmaceuticals, and United Spirits.
+**Stocks that hit their 52-week high:** Bajaj Auto, Apollo Hospitals,
+Divi's Laboratories, Torrent Pharma, Titan Company, Radico Khaitan, TVS
+Motor Company, Sun Pharmaceutical, Laurus Labs, Pidilite Industries,
+United Spirits, Nestle, Lodha Developers, Bajaj Finance, Marico, Kalyan
+Jewellers, Lenskart Solutions, Exide Industries, Aditya Birla Capital,
+Federal Bank, FSN E-Commerce (Nykaa), and IDFC First Bank.
 
-**Stocks that hit their 52-week low:** Hindustan Unilever, IRCTC, and
-Rail Vikas Nigam.
+**Stocks that hit their 52-week low:** Tata Elxsi, Hindustan Unilever,
+Reliance Industries, IRCTC, Jubilant Foodworks, Rail Vikas Nigam, and
+IRFC.
 
 Note: It is not often that the market's most famous consumer staple
 appears on this list. **Hindustan Unilever** slid to a 52-week low in
@@ -161,11 +162,11 @@ durable.
 
 | Stock Name | Avg. delivery volume % | Avg. month delivery volume % | Avg. 6-month delivery volume % |
 |---|---|---|---|
-| Aegis Logistics | 37.76% | 22.33% | 37.50% |
-| MMTC | 49.80% | 32.09% | 29.40% |
-| RITES | 39.70% | 26.84% | 38.04% |
-| Exide Industries | 50.27% | 35.93% | 39.15% |
-| K.P.R. Mill | 48.45% | 35.08% | 41.90% |
+| Supreme Petrochem | 32.39% | 31.61% | 33.77% |
+| Exide Industries | 44.89% | 37.73% | 37.38% |
+| Five-Star Business Finance | 52.15% | 46.31% | 43.11% |
+| The Ramco Cements | 89.81% | 75.14% | 61.25% |
+| Sun TV Network | 61.52% | 57.60% | 45.86% |
 
 **Exide Industries**' delivery build-up alongside its 52-week high is
 the durable kind of accumulation — investors taking the stock home as
@@ -175,15 +176,14 @@ the auto-components story strengthens.
 
 | Stock Name | Avg. delivery volume % | Avg. month delivery volume % | Avg. 6-month delivery volume % |
 |---|---|---|---|
-| Sapphire Foods India | 31.44% | 54.12% | 47.13% |
-| Hexaware Technologies | 29.51% | 49.21% | 48.80% |
-| Paradeep Phosphates | 24.63% | 41.25% | 38.17% |
-| Supreme Industries | 30.87% | 48.46% | 48.93% |
-| Oracle Financial Services | 25.40% | 38.99% | 34.68% |
+| PB Fintech | 54.60% | 62.72% | 59.07% |
+| Vijaya Diagnostic Centre | 50.10% | 54.01% | 50.61% |
+| Timken | 47.52% | 75.46% | 63.88% |
+| JSW Dulux | 48.97% | 56.52% | 61.83% |
+| JK Cement | 50.84% | 70.44% | 62.27% |
 
-**Oracle Financial Services**' fading delivery share after its recent
-52-week high suggests the price strength is now being traded rather
-than accumulated.
+**PB Fintech** and **JK Cement**'s fading delivery share suggests their
+recent price action is being traded rather than accumulated.
 
 ## Most traded on m.Stock yesterday
 
@@ -218,18 +218,18 @@ euphoric in the rally nor shaken in the dips.
 
 | (In ₹ crore) | Cash (provisional) | Index Futures | Stock Futures | Index Options | Stock Options |
 |---|---|---|---|---|---|
-| FIIs | +5,672.48* | -166.41 | +13,232.51 | -28,940.74 | -2,515.30 |
-| DIIs | +3,127.29* | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
+| FIIs | 1,779.70 | -166.40 | 13,232.50 | -28,940.70 | -2,515.20 |
+| DIIs | 8,580.90 | -328.70 | -5,302.20 | 911.00 | -4.20 |
 
 **Year-to-date**
 
 | (In ₹ crore) | Cash | Index Futures | Stock Futures | Index Options | Stock Options |
 |---|---|---|---|---|---|
-| FIIs | -3,51,800.29 | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
-| DIIs | +5,02,976.04 | [FILL IN] | [FILL IN] | [FILL IN] | [FILL IN] |
+| FIIs | -3,51,800.30 | -70,544.00 | -20,356.60 | -6,07,363.80 | -33,074.70 |
+| DIIs | 5,02,976.00 | 7,253.40 | 25,231.70 | 8,121.20 | -1,46,207.50 |
 
-*Year-to-date cash: previous issue's base carried forward with NSE's
-official daily flows; as of 30th July. F&O year-to-date from Trendlyne.*
+*Note: FII data is as of 30th July 2026 and DII F&O data up to 24th
+July 2026 only.*
 
 *\*Note: FII/DII cash and F&O data as of 30th July; delivery volumes as
 of 30th July.*
@@ -249,13 +249,14 @@ because sellers will find buyers in the market.*
 
 | Research Partner | Date of call | Stock | View | Entry Price (₹) |
 |---|---|---|---|---|
-| [FILL IN: partner research calls — upload to complete] | | | | |
+| Markets Mojo | 27th July | Shriram Finance | BUY | 1,044.60 |
+| William O'Neil India | 28th July | TVS Motor | BUY | 3,980.00 |
 
 **Here is how some of the expert research calls are performing**
 
 | Research Partner | Date of call | Stock/Scrip | Entry Price (₹) | Price movement since call (%) |
 |---|---|---|---|---|
-| [FILL IN] | | | | |
+| Markets Mojo | 27th July | Laurus Labs | — | 3.00% |
 
 Disclaimer
 
@@ -263,41 +264,42 @@ Disclaimer
 
 | Commodity | Closing value (US$) | Weekly change (%) |
 |---|---|---|
-| Brent Crude | 89.45 | -7.57% |
-| Gold Futures | 4,111.40 | +1.08% |
-| Silver Futures | 58.21 | -0.77% |
-| Natural Gas Futures (NYMEX) | 2.779 | -3.20% |
-| Copper Futures | 6.4915 | +2.71% |
+| Brent Crude | 85.92 | -6.28% |
+| Gold Futures | 4,054.60 | -0.40% |
+| Silver Futures | 58.32 | -0.99% |
+| Natural Gas Futures (NYMEX) | 2.762 | -4.36% |
+| Copper Futures | 6.5138 | 2.46% |
 
-The energy story finally exhaled. Brent crude fell nearly 8% to around
-$89 a barrel as West Asia tensions cooled from a boil to a simmer,
-draining the war premium that had driven prices toward $100 — welcome
-relief for an oil importer that had spent two weeks watching its import
-bill balloon. Natural gas slipped over 3% as comfortable supply kept
+The energy story finally exhaled. Brent crude fell over 6% to under $86
+a barrel as West Asia tensions cooled from a boil to a simmer, draining
+the war premium that had driven prices toward $100 — welcome relief for
+an oil importer that had spent two weeks watching its import bill
+balloon. Natural gas slipped more than 4% as comfortable supply kept
 buyers unhurried.
 
-Gold ground about 1% higher even as the panic faded — with the US
-Federal Reserve holding rates but markets now pricing rate *hikes*
-later this year, investors kept some insurance on.
+Gold eased marginally as the panic faded and safe-haven insurance was
+quietly unwound — with the US Federal Reserve holding rates but markets
+now pricing rate *hikes* later this year, the metal found no fresh
+buyers. Silver slipped about 1% alongside it.
 
-Copper rose nearly 3%, supported by tight supply and steady demand from
-power grids and electric-vehicle production, shrugging off the caution
-that pinned other risk assets.
+Copper rose about 2.5%, supported by tight supply and steady demand
+from power grids and electric-vehicle production, shrugging off the
+caution that pinned other risk assets.
 
 ## Forex Moves
 
 | Currency pair | Closing value | Weekly change (%) |
 |---|---|---|
-| USD/INR | 95.380 | +1.57% |
-| EUR/INR | 109.757 | +0.03% |
-| GBP/INR | 128.237 | +0.60% |
+| USD/INR | 95.380 | 1.18% |
+| EUR/INR | 109.780 | 0.48% |
+| GBP/INR | 128.660 | -0.12% |
 
 The rupee had its best week in months against the dollar, strengthening
-over 1.5% to reclaim the 95.4 level, powered by crude oil's retreat —
-which directly lightens India's import bill — and by foreign investors
-returning to Indian equities. The move against the euro was flat, and
-the rupee added about half a percent against the pound, making this a
-rare week of across-the-board stability for the currency.
+more than 1% to reclaim the 95.4 level — a fresh two-week high — powered
+by crude oil's retreat, which directly lightens India's import bill, and
+by foreign investors returning to Indian equities. It added about half a
+percent against the euro as well, slipping only marginally against the
+pound — a rare week of across-the-board strength for the currency.
 
 ## Global Signals
 
@@ -328,6 +330,7 @@ tailwind for the region's importers — against the global rates chill.
 | 05-Aug | Power Grid Q1 FY27 results |
 | 06-Aug | Trent Q1 FY27 results |
 | 07-Aug | State Bank of India, Titan, Hindalco Q1 FY27 results |
+| [FILL IN] | RBI MPC policy decision — confirm dates |
 | [FILL IN] | RBI MPC policy decision — confirm dates from the RBI calendar |
 
 *You can explore our Events calendar feature on the home page & set
