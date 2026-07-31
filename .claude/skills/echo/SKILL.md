@@ -50,6 +50,22 @@ hasn't published yet — wait 15–20 minutes and re-trigger, up to 3
 attempts, before proceeding with a loud warning in the draft and the
 run summary.
 
+**Trendlyne MCP (when the `trendlyne` connector is present — check with
+ToolSearch):** use it as the PRIMARY source for the Trendlyne-verbatim
+tables, since it serves the same values the published screeners show:
+- `get_parameter_values_multi_stock` with explicit stock lists (batch
+  ~10–20 symbols per call) for: `Week Chg %` (gainers/losers tables),
+  `Delivery% Vol. Avg Week/Month/6M` (delivery movers), and
+  `Delivery Vol. Avg Week` ÷ `Delivery Vol. Avg Month` (the "X" ratio
+  column). Sort locally, take top 5.
+- `get_overview_news_corp_events` (news/events) and
+  `get_ownership_deals_insider_sast` (`bulblockdeal`) to fact-check WHY
+  movers moved — block deals explain delivery spikes.
+- NOT in the MCP tier: FII/DII macro tables (weekly/YTD cash & F&O) and
+  all-exchange breadth — those stay NSE-official + Trendlyne screenshot.
+Keep the NSE pipeline running as the independent verification layer and
+flag any material disagreement between the two in verification.md.
+
 Scripts fetch and parse; you read only their compact output. NEVER read
 raw downloaded HTML into the conversation, NEVER launch research
 subagents, and cap web searches at ~10 for the whole run.
