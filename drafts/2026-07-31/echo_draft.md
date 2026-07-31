@@ -44,11 +44,11 @@ indication of how sticky the price moves could be in the future.
 
 | Stock Name | % weekly change | Delivery volumes in past week vs prev month |
 |---|---|---|
-| Bajaj Finance | 12.68% | [PENDING-FULL] |
-| Hyundai Motor India | 11.68% | [PENDING-FULL] |
-| TVS Motor Company | 11.44% | [PENDING-FULL] |
-| Divi's Laboratories | 11.14% | [PENDING-FULL] |
-| Jio Financial Services | 9.27% | [PENDING-FULL] |
+| Bajaj Finance | 12.68% | *(evening)* |
+| Hyundai Motor India | 11.68% | *(evening)* |
+| TVS Motor Company | 11.44% | 1.6X |
+| Divi's Laboratories | 11.14% | *(evening)* |
+| Jio Financial Services | 9.27% | *(evening)* |
 
 **Bajaj Finance** owned the week, surging over 12% after its Q1 FY27
 results — the stock powered Friday's rally almost single-handedly and
@@ -63,11 +63,11 @@ earnings.
 
 | Stock Name | % weekly change | Rise in delivery volumes in past week vs previous month |
 |---|---|---|
-| Bharat Electronics | -4.23% | [PENDING-FULL] |
-| Adani Ports & SEZ | -4.06% | [PENDING-FULL] |
-| Adani Energy Solutions | -3.34% | [PENDING-FULL] |
-| Varun Beverages | -3.26% | [PENDING-FULL] |
-| Coal India | -3.10% | [PENDING-FULL] |
+| Bharat Electronics | -4.23% | 1.9X |
+| Adani Ports & SEZ | -4.06% | 1.8X |
+| Adani Energy Solutions | -3.34% | *(evening)* |
+| Varun Beverages | -3.26% | *(evening)* |
+| Coal India | -3.10% | *(evening)* |
 
 The losers' list reads like a results-day casualty report: **Bharat
 Electronics** and **Coal India** both slipped after opening the week's
@@ -159,11 +159,31 @@ durable.
 
 ### Rising Delivery Volume (Last week vs Prev month)
 
-[PENDING-FULL: top-5 editorial picks from the candidate pool]
+| Stock Name | Avg. delivery volume % | Avg. month delivery volume % | Avg. 6-month delivery volume % |
+|---|---|---|---|
+| Aegis Logistics | 37.76% | 22.33% | 37.50% |
+| MMTC | 49.80% | 32.09% | 29.40% |
+| RITES | 39.70% | 26.84% | 38.04% |
+| Exide Industries | 50.27% | 35.93% | 39.15% |
+| K.P.R. Mill | 48.45% | 35.08% | 41.90% |
+
+**Exide Industries**' delivery build-up alongside its 52-week high is
+the durable kind of accumulation — investors taking the stock home as
+the auto-components story strengthens.
 
 ### Falling delivery volume (Last week vs Prev month)
 
-[PENDING-FULL]
+| Stock Name | Avg. delivery volume % | Avg. month delivery volume % | Avg. 6-month delivery volume % |
+|---|---|---|---|
+| Sapphire Foods India | 31.44% | 54.12% | 47.13% |
+| Hexaware Technologies | 29.51% | 49.21% | 48.80% |
+| Paradeep Phosphates | 24.63% | 41.25% | 38.17% |
+| Supreme Industries | 30.87% | 48.46% | 48.93% |
+| Oracle Financial Services | 25.40% | 38.99% | 34.68% |
+
+**Oracle Financial Services**' fading delivery share after its recent
+52-week high suggests the price strength is now being traded rather
+than accumulated.
 
 ## Most traded on m.Stock yesterday
 
@@ -182,9 +202,11 @@ purposes and are not recommendations.*
 
 For most of the month, the foreign-investor story in India has been one
 of quiet withdrawal — selling into strength, wary of crude and of a
-weakening rupee. This week that story turned: as oil retreated and the
-rupee found its feet, FIIs stepped back onto the buy side, picking up
-over ₹3,600 crore of equities on Thursday alone as the earnings season
+weakening rupee. This week that story turned decisively: after selling
+on Monday, FIIs bought Indian equities on every remaining session, in
+growing size each day — over ₹3,600 crore on Thursday alone — ending
+the four sessions to Thursday roughly ₹5,700 crore net positive as
+cooling oil, a recovering rupee and an earnings season full of winners
 gave them names worth paying for.
 
 Domestic institutions played their familiar role of the steady hand —
@@ -196,8 +218,8 @@ euphoric in the rally nor shaken in the dips.
 
 | (In ₹ crore) | Cash (provisional) | Index Futures | Stock Futures | Index Options | Stock Options |
 |---|---|---|---|---|---|
-| FIIs | [PENDING-FULL] | [PENDING-FULL] | [PENDING-FULL] | [PENDING-FULL] | [PENDING-FULL] |
-| DIIs | [PENDING-FULL] | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
+| FIIs | +5,672.48* | -166.41 | +13,232.51 | -28,940.74 | -2,515.30 |
+| DIIs | +3,127.29* | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
 
 **Year-to-date**
 
@@ -205,6 +227,10 @@ euphoric in the rally nor shaken in the dips.
 |---|---|---|---|---|---|
 | FIIs | [FILL IN: Trendlyne screenshot] | | | | |
 | DIIs | [FILL IN] | | | | |
+
+*\*Cash figures cover Monday–Thursday; Friday's provisional print is
+added in the evening refresh. FII F&O figures are from NSE's official
+daily files covering five sessions to 30th July.*
 
 **Wondering why FIIs and DIIs generally move in opposite directions?**
 
@@ -294,11 +320,13 @@ tailwind for the region's importers — against the global rates chill.
 
 **Macroeconomic events & Earnings**
 
-[PENDING-FULL: Nifty 50 results calendar from the NSE feed]
-
 | Date | Event |
 |---|---|
-| [FILL IN: confirm RBI MPC meeting dates (early August) from the RBI calendar] | |
+| 04-Aug | Bharti Airtel, ONGC Q1 FY27 results |
+| 05-Aug | Power Grid Q1 FY27 results |
+| 06-Aug | Trent Q1 FY27 results |
+| 07-Aug | State Bank of India, Titan, Hindalco Q1 FY27 results |
+| [FILL IN] | RBI MPC policy decision — confirm dates from the RBI calendar |
 
 *You can explore our Events calendar feature on the home page & set
 alerts on your calendar!*
