@@ -225,8 +225,11 @@ euphoric in the rally nor shaken in the dips.
 
 | (In ₹ crore) | Cash | Index Futures | Stock Futures | Index Options | Stock Options |
 |---|---|---|---|---|---|
-| FIIs | [FILL IN: Trendlyne screenshot] | | | | |
-| DIIs | [FILL IN] | | | | |
+| FIIs | -3,51,800.29 | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
+| DIIs | +5,02,976.04 | [FILL IN] | [FILL IN] | [FILL IN] | [FILL IN] |
+
+*Year-to-date cash: previous issue's base carried forward with NSE's
+official daily flows; as of 30th July. F&O year-to-date from Trendlyne.*
 
 *\*Note: FII/DII cash and F&O data as of 30th July; delivery volumes as
 of 30th July.*
