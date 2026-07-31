@@ -117,8 +117,13 @@ and computation rules are in `reference/data_sources.md`.
    movers (bold the stock names), researched and fact-checked via web
    search. Mention notable IPO listings of the week here if any.
 4. **Year high / year low (Nifty 200)** — list all 52-week-high stocks
-   and all 52-week-low stocks from the screeners. Call out lifetime highs
-   and add a short note on the most interesting name(s).
+   and all 52-week-low stocks from the screeners. **Use the full-run
+   nse_data.json lists (7-day window including the previous Friday) —
+   NEVER the flash lists, whose Mon–Fri window under-counts.** Call out
+   lifetime highs and add a short note on the most interesting name(s).
+   (Known source gap: Yahoo's Sensex close can differ ~10-15 pts from
+   the official BSE close — cross-check the Sensex cell against a
+   news-reported official close before publishing.)
 5. **Stocks & Sectors in the News** — run the sector rewrite command
    (below, §4a).
 6. **Top Delivery-volume Movers (Nifty 500)** — 5 rising and 5 falling
