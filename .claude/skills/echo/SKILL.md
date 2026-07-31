@@ -131,7 +131,11 @@ and computation rules are in `reference/data_sources.md`.
    (provisional) + index futures + stock futures + index options + stock
    options, for FIIs and DIIs, in ₹ crore. Add the data-cutoff note
    (e.g. "FII F&O data is up to <date> and DII F&O data till <date>
-   only."). Add 1–2 sentences on the week's pattern.
+   only."). Add 1–2 sentences on the week's pattern (story format per
+   §4a2). **YTD cash cells: chain the previous issue's YTD base forward
+   with the official daily flows in data/fii_dii/ (base + all captured
+   sessions since the previous issue's cutoff), and say "as of <date>".
+   F&O YTD cells: Trendlyne screenshot only — never chain or estimate.**
 9. **Research Calls** — format user-uploaded data into the two tables.
    Keep the `Disclaimer` line.
 10. **Commodity Moves** — Brent Crude, Gold, Silver, Natural Gas (NYMEX),
