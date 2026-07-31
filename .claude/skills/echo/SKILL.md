@@ -37,9 +37,13 @@ If any of these are missing, insert a clearly marked
 
 ## 2. Data fetching (token-frugal order — follow strictly)
 
-Timing context: the market closes 15:30 IST, but NSE publishes delivery
-volumes and FII/DII figures only around 18:30–19:30 IST. Data fetched
-before that silently describes the PREVIOUS session.
+**HARD DEADLINE: the complete issue ships by 16:30 IST on Friday.**
+Market closes 15:30; the flash data lands ~15:40; Trendlyne's engine and
+NSE's published files carry data through THURSDAY at this hour — that is
+the product's standard vintage. Publish Friday-live prices with
+Thursday-vintage delivery/FII data and the standard cutoff note ("data
+as of <Thursday's date>"). Never hold the issue for evening data: the
+18:45 IST and Saturday runs are silent verification passes only.
 
 **Friday freshness check (mandatory on live runs):** the repo's
 `data/raw/<today>/nse_data.json` must have `latest_session` == today's
