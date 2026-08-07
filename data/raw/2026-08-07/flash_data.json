@@ -1,0 +1,111 @@
+{
+ "run_date": "2026-08-07",
+ "mode": "flash-15:35-IST",
+ "sections": {
+  "breadth_n500_weekly": {
+   "gainers": 316,
+   "losers": 184,
+   "note": "Nifty 500 universe at 15:35 IST; the evening run computes all-NSE breadth"
+  },
+  "nifty100_top_gainers": [
+   {
+    "symbol": "ENRIN",
+    "name": "Siemens Energy India Ltd.",
+    "weekly_pct": 12.94,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "HINDZINC",
+    "name": "Hindustan Zinc Ltd.",
+    "weekly_pct": 11.83,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "MOTHERSON",
+    "name": "Samvardhana Motherson International Ltd.",
+    "weekly_pct": 11.77,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "HINDALCO",
+    "name": "Hindalco Industries Ltd.",
+    "weekly_pct": 8.74,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "UNIONBANK",
+    "name": "Union Bank of India",
+    "weekly_pct": 7.22,
+    "deliv_week_vs_month": "evening run"
+   }
+  ],
+  "nifty100_top_losers": [
+   {
+    "symbol": "MUTHOOTFIN",
+    "name": "Muthoot Finance Ltd.",
+    "weekly_pct": -7.36,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "BAJFINANCE",
+    "name": "Bajaj Finance Ltd.",
+    "weekly_pct": -5.54,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "POWERGRID",
+    "name": "Power Grid Corporation of India Ltd.",
+    "weekly_pct": -4.45,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "GAIL",
+    "name": "GAIL (India) Ltd.",
+    "weekly_pct": -4.3,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "TORNTPHARM",
+    "name": "Torrent Pharmaceuticals Ltd.",
+    "weekly_pct": -3.88,
+    "deliv_week_vs_month": "evening run"
+   }
+  ],
+  "week_52w_highs_nifty200": [
+   "AU Small Finance Bank Ltd.",
+   "Aditya Birla Capital Ltd.",
+   "Apollo Hospitals Enterprise Ltd.",
+   "Aurobindo Pharma Ltd.",
+   "Bajaj Auto Ltd.",
+   "Bajaj Finance Ltd.",
+   "Bharat Forge Ltd.",
+   "Bosch Ltd.",
+   "Cholamandalam Investment and Finance Company Ltd.",
+   "Divi's Laboratories Ltd.",
+   "Exide Industries Ltd.",
+   "FSN E-Commerce Ventures Ltd.",
+   "Federal Bank Ltd.",
+   "Grasim Industries Ltd.",
+   "JSW Steel Ltd.",
+   "Laurus Labs Ltd.",
+   "Nestle India Ltd.",
+   "One 97 Communications Ltd.",
+   "Radico Khaitan Ltd",
+   "Samvardhana Motherson International Ltd.",
+   "Shriram Finance Ltd.",
+   "Siemens Ltd.",
+   "TVS Motor Company Ltd.",
+   "Tata Capital Ltd.",
+   "Titan Company Ltd.",
+   "Torrent Pharmaceuticals Ltd.",
+   "United Spirits Ltd."
+  ],
+  "week_52w_lows_nifty200": [
+   "HDFC Life Insurance Company Ltd."
+  ]
+ },
+ "errors": [],
+ "base_day": "2026-07-31",
+ "sessions_loaded": 250,
+ "live_quotes": 500
+}

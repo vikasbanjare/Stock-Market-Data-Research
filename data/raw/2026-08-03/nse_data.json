@@ -1,5 +1,5 @@
 {
- "run_date": "2026-07-31",
+ "run_date": "2026-08-03",
  "week_ending": "2026-07-31",
  "sections": {
   "market_breadth": {
@@ -553,18 +553,18 @@
   ],
   "fii_dii_daily_raw": [
    {
-    "buyValue": "19885.8",
+    "buyValue": "18325.97",
     "category": "DII",
-    "date": "31-Jul-2026",
-    "netValue": "2260.37",
-    "sellValue": "17625.43"
+    "date": "03-Aug-2026",
+    "netValue": "1571.18",
+    "sellValue": "16754.79"
    },
    {
-    "buyValue": "19045.51",
+    "buyValue": "12621.89",
     "category": "FII/FPI",
-    "date": "31-Jul-2026",
-    "netValue": "277.48",
-    "sellValue": "18768.03"
+    "date": "03-Aug-2026",
+    "netValue": "922.26",
+    "sellValue": "11699.63"
    }
   ],
   "fii_dii_week_cash": {
