@@ -45,11 +45,11 @@ indication of how sticky the price moves could be in the future.
 
 | Stock Name | % weekly change | Delivery volumes in past week vs prev month |
 |---|---|---|
-| Siemens Energy India | 12.94% | *(evening)* |
+| Siemens Energy India | 12.94% | 1.7X |
 | Hindustan Zinc | 11.83% | 2.1X |
-| Samvardhana Motherson | 11.77% | *(evening)* |
-| Hindalco | 8.74% | *(evening)* |
-| Union Bank of India | 7.22% | *(evening)* |
+| Samvardhana Motherson | 11.77% | 2.1X |
+| Hindalco | 8.74% | 1.3X |
+| Union Bank of India | 7.22% | — |
 
 The gainers' board tells the metals story in one glance: **Hindustan
 Zinc** rode silver's explosive week — the metal jumped roughly 11–12% —
@@ -63,11 +63,11 @@ after the RBI's growth-friendly hold.
 
 | Stock Name | % weekly change | Rise in delivery volumes in past week vs previous month |
 |---|---|---|
-| Muthoot Finance | -7.36% | *(evening)* |
-| Bajaj Finance | -5.54% | *(evening)* |
+| Muthoot Finance | -7.36% | — |
+| Bajaj Finance | -5.54% | 1.0X |
 | Power Grid | -4.45% | 1.1X |
-| GAIL (India) | -4.30% | *(evening)* |
-| Torrent Pharma | -3.88% | *(evening)* |
+| GAIL (India) | -4.30% | — |
+| Torrent Pharma | -3.88% | — |
 
 Friday's RBI draft lending norms did the damage here: **Muthoot
 Finance** — most exposed to the gold-loan rulebook — fell hardest, and
