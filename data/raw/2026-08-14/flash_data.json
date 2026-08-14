@@ -1,0 +1,109 @@
+{
+ "run_date": "2026-08-14",
+ "mode": "flash-15:35-IST",
+ "sections": {
+  "breadth_n500_weekly": {
+   "gainers": 189,
+   "losers": 311,
+   "note": "Nifty 500 universe at 15:35 IST; the evening run computes all-NSE breadth"
+  },
+  "nifty100_top_gainers": [
+   {
+    "symbol": "BOSCHLTD",
+    "name": "Bosch Ltd.",
+    "weekly_pct": 9.66,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "SOLARINDS",
+    "name": "Solar Industries India Ltd.",
+    "weekly_pct": 7.07,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "TMCV",
+    "name": "Tata Motors Ltd.",
+    "weekly_pct": 4.68,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "DMART",
+    "name": "Avenue Supermarts Ltd.",
+    "weekly_pct": 4.1,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "DLF",
+    "name": "DLF Ltd.",
+    "weekly_pct": 3.58,
+    "deliv_week_vs_month": "evening run"
+   }
+  ],
+  "nifty100_top_losers": [
+   {
+    "symbol": "GODREJCP",
+    "name": "Godrej Consumer Products Ltd.",
+    "weekly_pct": -11.02,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "PFC",
+    "name": "Power Finance Corporation Ltd.",
+    "weekly_pct": -10.48,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "RECLTD",
+    "name": "REC Ltd.",
+    "weekly_pct": -8.72,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "HINDZINC",
+    "name": "Hindustan Zinc Ltd.",
+    "weekly_pct": -6.82,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "MAXHEALTH",
+    "name": "Max Healthcare Institute Ltd.",
+    "weekly_pct": -5.74,
+    "deliv_week_vs_month": "evening run"
+   }
+  ],
+  "week_52w_highs_nifty200": [
+   "Aurobindo Pharma Ltd.",
+   "Bajaj Auto Ltd.",
+   "Bharat Forge Ltd.",
+   "Bosch Ltd.",
+   "Divi's Laboratories Ltd.",
+   "Exide Industries Ltd.",
+   "Grasim Industries Ltd.",
+   "Hindustan Aeronautics Ltd.",
+   "KEI Industries Ltd.",
+   "LTM Ltd.",
+   "Laurus Labs Ltd.",
+   "Lenskart Solutions Ltd.",
+   "Mahindra & Mahindra Financial Services Ltd.",
+   "One 97 Communications Ltd.",
+   "Radico Khaitan Ltd",
+   "Samvardhana Motherson International Ltd.",
+   "Siemens Ltd.",
+   "Solar Industries India Ltd.",
+   "TVS Motor Company Ltd.",
+   "Titan Company Ltd.",
+   "United Spirits Ltd.",
+   "Zydus Lifesciences Ltd."
+  ],
+  "week_52w_lows_nifty200": [
+   "Godrej Consumer Products Ltd.",
+   "HDFC Bank Ltd.",
+   "PI Industries Ltd.",
+   "UPL Ltd."
+  ]
+ },
+ "errors": [],
+ "base_day": "2026-08-07",
+ "sessions_loaded": 250,
+ "live_quotes": 500
+}

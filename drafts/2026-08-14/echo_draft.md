@@ -24,15 +24,16 @@ their heaviest lifting coming precisely on the inflation-shock days.
 
 | Index | Closing Level | % Weekly Change |
 |---|---|---|
-| Nifty 50 | [FLASH] | [FLASH] |
-| Sensex | [FLASH] | [FLASH] |
-| Bank Nifty | [FLASH] | [FLASH] |
+| Nifty 50 | 24,366.00 | -0.83% |
+| Sensex | 78,009.25 | -0.62% |
+| Bank Nifty | 57,491.10 | -0.44% |
 
 A soft, watchful week: the indices gave back part of the post-RBI
 advance as the CPI surprise and crude's rebound trimmed risk appetite
 into the long Independence Day weekend.
 
-**Market Breadth:** [FLASH]
+**Market Breadth:** The momentum in the markets was negative last week
+with total gainers at 189 and total losers at 311 (Nifty 500 universe).
 
 ## Top Weekly Gainers & Losers (Nifty 100)
 
@@ -42,19 +43,45 @@ indication of how sticky the price moves could be in the future.
 
 ### Gainers
 
-[FLASH-TABLE-GAINERS]
+| Stock Name | % weekly change | Delivery volumes in past week vs prev month |
+|---|---|---|
+| Bosch | 9.66% | *(evening)* |
+| Solar Industries | 7.07% | *(evening)* |
+| Tata Motors | 4.68% | *(evening)* |
+| Avenue Supermarts (DMart) | 4.10% | *(evening)* |
+| DLF | 3.58% | *(evening)* |
+
+**Bosch** extended its post-results momentum to the top of the board,
+**Solar Industries** rode the defence-order cycle to fresh highs, and —
+in the week's neatest irony — **Tata Motors**, the commercial-vehicle
+parent, gained nearly 5% even as its passenger-vehicle sibling slid on
+results. **Avenue Supermarts** found buyers as investors reached for
+defensive retail, and **DLF** led realty's quiet week of
+accumulation.
 
 ### Losers
 
-[FLASH-TABLE-LOSERS]
+| Stock Name | % weekly change | Rise in delivery volumes in past week vs previous month |
+|---|---|---|
+| Godrej Consumer Products | -11.02% | *(evening)* |
+| Power Finance Corporation | -10.48% | *(evening)* |
+| REC | -8.72% | *(evening)* |
+| Hindustan Zinc | -6.82% | *(evening)* |
+| Max Healthcare | -5.74% | *(evening)* |
 
-**Tata Motors Passenger Vehicles** was Friday's standout casualty,
-sliding around 6% after its first-quarter results — consolidated
-revenue of ₹95,799 crore but profit of just ₹900 crore, with raw
-material costs and Jaguar Land Rover's margin pressure doing the
-damage. Thursday's session had its bright spots in **InterGlobe
-Aviation**, **NTPC**, **BEL** and **L&T**, while **ICICI Bank** spent
-the back half of the week as the banks' heaviest drag.
+**Godrej Consumer Products** suffered the week's steepest fall after
+MD & CEO Sudhir Sitapati's surprise resignation — leadership uncertainty
+in a stock the street had backed for its turnaround story. The power
+financiers **PFC** and **REC** sold off hard after their results met a
+market newly nervous about the rate cycle, **Hindustan Zinc** gave back
+a chunk of its metals-week surge, and **Max Healthcare** slid through
+its results window.
+
+Just outside the table, **Tata Motors Passenger Vehicles** was Friday's
+standout casualty, sliding around 6% after its first-quarter results —
+consolidated revenue of ₹95,799 crore but profit of just ₹900 crore,
+with raw material costs and Jaguar Land Rover's margin pressure doing
+the damage.
 
 [FILL IN: IPO paragraph — Ardee Industries listing (expected 12th Aug),
 Technocraft Ventures subscription close, category splits from exchange
@@ -192,7 +219,13 @@ Disclaimer
 
 ## Commodity Moves
 
-[FLASH-COMMODITIES]
+| Commodity | Closing value (US$) | Weekly change (%) |
+|---|---|---|
+| Brent Crude | 87.19 | 5.11% |
+| Gold Futures | 4,410.00 | 0.33% |
+| Silver Futures | 64.92 | 1.76% |
+| Natural Gas Futures (NYMEX) | 2.760 | 2.83% |
+| Copper Futures | 6.594 | -0.18% |
 
 Crude reversed course. Brent climbed back toward the high-$80s after
 deadly attacks on commercial vessels in the Red Sea and Gulf of Oman
@@ -209,7 +242,11 @@ supply — even as the fast money rotated elsewhere.
 
 ## Forex Moves
 
-[FLASH-FOREX]
+| Currency pair | Closing value | Weekly change (%) |
+|---|---|---|
+| USD/INR | 95.415 | -0.23% |
+| EUR/INR | 110.279 | -0.05% |
+| GBP/INR | 129.054 | -0.40% |
 
 The rupee spent the week under mild, steady pressure: crude's rebound
 reopened the import-bill worry just as the CPI print complicated the
