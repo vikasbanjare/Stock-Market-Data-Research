@@ -81,6 +81,708 @@
     "deliv_week_vs_month": 1.3
    }
   ],
+  "nifty100_all_moves": [
+   {
+    "symbol": "BOSCHLTD",
+    "name": "Bosch Ltd.",
+    "weekly_pct": 8.26,
+    "weekly_pct_fri_to_fri": 9.66,
+    "deliv_week_vs_month": 2.0
+   },
+   {
+    "symbol": "SOLARINDS",
+    "name": "Solar Industries India Ltd.",
+    "weekly_pct": 6.11,
+    "weekly_pct_fri_to_fri": 7.07,
+    "deliv_week_vs_month": 1.7
+   },
+   {
+    "symbol": "TMCV",
+    "name": "Tata Motors Ltd.",
+    "weekly_pct": 5.35,
+    "weekly_pct_fri_to_fri": 4.68,
+    "deliv_week_vs_month": 1.2
+   },
+   {
+    "symbol": "PNB",
+    "name": "Punjab National Bank",
+    "weekly_pct": 3.96,
+    "weekly_pct_fri_to_fri": 2.78,
+    "deliv_week_vs_month": 1.1
+   },
+   {
+    "symbol": "DRREDDY",
+    "name": "Dr. Reddy's Laboratories Ltd.",
+    "weekly_pct": 3.56,
+    "weekly_pct_fri_to_fri": 2.39,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "UNIONBANK",
+    "name": "Union Bank of India",
+    "weekly_pct": 3.44,
+    "weekly_pct_fri_to_fri": 2.06,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "ETERNAL",
+    "name": "Eternal Ltd.",
+    "weekly_pct": 2.66,
+    "weekly_pct_fri_to_fri": 1.11,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "LODHA",
+    "name": "Lodha Developers Ltd.",
+    "weekly_pct": 2.55,
+    "weekly_pct_fri_to_fri": 2.07,
+    "deliv_week_vs_month": 0.3
+   },
+   {
+    "symbol": "BHARTIARTL",
+    "name": "Bharti Airtel Ltd.",
+    "weekly_pct": 2.53,
+    "weekly_pct_fri_to_fri": 1.64,
+    "deliv_week_vs_month": 1.5
+   },
+   {
+    "symbol": "DIVISLAB",
+    "name": "Divi's Laboratories Ltd.",
+    "weekly_pct": 2.13,
+    "weekly_pct_fri_to_fri": 2.44,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "HAL",
+    "name": "Hindustan Aeronautics Ltd.",
+    "weekly_pct": 2.07,
+    "weekly_pct_fri_to_fri": 2.44,
+    "deliv_week_vs_month": 1.5
+   },
+   {
+    "symbol": "CANBK",
+    "name": "Canara Bank",
+    "weekly_pct": 1.74,
+    "weekly_pct_fri_to_fri": -0.53,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "BEL",
+    "name": "Bharat Electronics Ltd.",
+    "weekly_pct": 1.6,
+    "weekly_pct_fri_to_fri": 2.44,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "ZYDUSLIFE",
+    "name": "Zydus Lifesciences Ltd.",
+    "weekly_pct": 1.45,
+    "weekly_pct_fri_to_fri": 1.88,
+    "deliv_week_vs_month": 2.3
+   },
+   {
+    "symbol": "GAIL",
+    "name": "GAIL (India) Ltd.",
+    "weekly_pct": 1.39,
+    "weekly_pct_fri_to_fri": 0.73,
+    "deliv_week_vs_month": 1.1
+   },
+   {
+    "symbol": "CGPOWER",
+    "name": "CG Power and Industrial Solutions Ltd.",
+    "weekly_pct": 1.27,
+    "weekly_pct_fri_to_fri": 1.27,
+    "deliv_week_vs_month": 0.4
+   },
+   {
+    "symbol": "EICHERMOT",
+    "name": "Eicher Motors Ltd.",
+    "weekly_pct": 1.15,
+    "weekly_pct_fri_to_fri": 0.58,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "ADANIPORTS",
+    "name": "Adani Ports and Special Economic Zone Ltd.",
+    "weekly_pct": 1.13,
+    "weekly_pct_fri_to_fri": 0.38,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "UNITDSPR",
+    "name": "United Spirits Ltd.",
+    "weekly_pct": 0.92,
+    "weekly_pct_fri_to_fri": 1.56,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "ADANIENT",
+    "name": "Adani Enterprises Ltd.",
+    "weekly_pct": 0.83,
+    "weekly_pct_fri_to_fri": 0.5,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "DLF",
+    "name": "DLF Ltd.",
+    "weekly_pct": 0.76,
+    "weekly_pct_fri_to_fri": 3.58,
+    "deliv_week_vs_month": 0.5
+   },
+   {
+    "symbol": "SIEMENS",
+    "name": "Siemens Ltd.",
+    "weekly_pct": 0.66,
+    "weekly_pct_fri_to_fri": -0.0,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "PIDILITIND",
+    "name": "Pidilite Industries Ltd.",
+    "weekly_pct": 0.47,
+    "weekly_pct_fri_to_fri": 1.99,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "BPCL",
+    "name": "Bharat Petroleum Corporation Ltd.",
+    "weekly_pct": 0.3,
+    "weekly_pct_fri_to_fri": -0.48,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "HCLTECH",
+    "name": "HCL Technologies Ltd.",
+    "weekly_pct": 0.21,
+    "weekly_pct_fri_to_fri": 0.25,
+    "deliv_week_vs_month": 0.4
+   },
+   {
+    "symbol": "BAJAJ-AUTO",
+    "name": "Bajaj Auto Ltd.",
+    "weekly_pct": 0.2,
+    "weekly_pct_fri_to_fri": 0.33,
+    "deliv_week_vs_month": 0.5
+   },
+   {
+    "symbol": "MAZDOCK",
+    "name": "Mazagoan Dock Shipbuilders Ltd.",
+    "weekly_pct": 0.19,
+    "weekly_pct_fri_to_fri": 2.59,
+    "deliv_week_vs_month": 1.4
+   },
+   {
+    "symbol": "MOTHERSON",
+    "name": "Samvardhana Motherson International Ltd.",
+    "weekly_pct": 0.18,
+    "weekly_pct_fri_to_fri": -0.12,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "BANKBARODA",
+    "name": "Bank of Baroda",
+    "weekly_pct": 0.17,
+    "weekly_pct_fri_to_fri": -0.99,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "DMART",
+    "name": "Avenue Supermarts Ltd.",
+    "weekly_pct": 0.15,
+    "weekly_pct_fri_to_fri": 4.1,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "APOLLOHOSP",
+    "name": "Apollo Hospitals Enterprise Ltd.",
+    "weekly_pct": 0.1,
+    "weekly_pct_fri_to_fri": -0.27,
+    "deliv_week_vs_month": 2.4
+   },
+   {
+    "symbol": "BAJAJHLDNG",
+    "name": "Bajaj Holdings & Investment Ltd.",
+    "weekly_pct": 0.03,
+    "weekly_pct_fri_to_fri": 1.88,
+    "deliv_week_vs_month": 0.5
+   },
+   {
+    "symbol": "TATAPOWER",
+    "name": "Tata Power Co. Ltd.",
+    "weekly_pct": 0.01,
+    "weekly_pct_fri_to_fri": 0.39,
+    "deliv_week_vs_month": 1.6
+   },
+   {
+    "symbol": "ABB",
+    "name": "ABB India Ltd.",
+    "weekly_pct": -0.01,
+    "weekly_pct_fri_to_fri": 0.64,
+    "deliv_week_vs_month": 0.4
+   },
+   {
+    "symbol": "NTPC",
+    "name": "NTPC Ltd.",
+    "weekly_pct": -0.13,
+    "weekly_pct_fri_to_fri": -0.73,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "SBIN",
+    "name": "State Bank of India",
+    "weekly_pct": -0.31,
+    "weekly_pct_fri_to_fri": -2.69,
+    "deliv_week_vs_month": 1.1
+   },
+   {
+    "symbol": "INDIGO",
+    "name": "InterGlobe Aviation Ltd.",
+    "weekly_pct": -0.44,
+    "weekly_pct_fri_to_fri": -0.43,
+    "deliv_week_vs_month": 0.3
+   },
+   {
+    "symbol": "TECHM",
+    "name": "Tech Mahindra Ltd.",
+    "weekly_pct": -0.44,
+    "weekly_pct_fri_to_fri": -0.13,
+    "deliv_week_vs_month": 1.3
+   },
+   {
+    "symbol": "HINDUNILVR",
+    "name": "Hindustan Unilever Ltd.",
+    "weekly_pct": -0.49,
+    "weekly_pct_fri_to_fri": -0.91,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "HDFCBANK",
+    "name": "HDFC Bank Ltd.",
+    "weekly_pct": -0.55,
+    "weekly_pct_fri_to_fri": -0.55,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "LT",
+    "name": "Larsen & Toubro Ltd.",
+    "weekly_pct": -0.56,
+    "weekly_pct_fri_to_fri": 0.02,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "KOTAKBANK",
+    "name": "Kotak Mahindra Bank Ltd.",
+    "weekly_pct": -0.6,
+    "weekly_pct_fri_to_fri": 0.1,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "BAJAJFINSV",
+    "name": "Bajaj Finserv Ltd.",
+    "weekly_pct": -0.64,
+    "weekly_pct_fri_to_fri": -0.03,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "TITAN",
+    "name": "Titan Company Ltd.",
+    "weekly_pct": -0.66,
+    "weekly_pct_fri_to_fri": 2.33,
+    "deliv_week_vs_month": 1.3
+   },
+   {
+    "symbol": "SUNPHARMA",
+    "name": "Sun Pharmaceutical Industries Ltd.",
+    "weekly_pct": -0.74,
+    "weekly_pct_fri_to_fri": -0.77,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "HDFCLIFE",
+    "name": "HDFC Life Insurance Company Ltd.",
+    "weekly_pct": -0.77,
+    "weekly_pct_fri_to_fri": -0.77,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "WIPRO",
+    "name": "Wipro Ltd.",
+    "weekly_pct": -0.81,
+    "weekly_pct_fri_to_fri": -1.88,
+    "deliv_week_vs_month": 0.5
+   },
+   {
+    "symbol": "ENRIN",
+    "name": "Siemens Energy India Ltd.",
+    "weekly_pct": -0.87,
+    "weekly_pct_fri_to_fri": -3.08,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "CUMMINSIND",
+    "name": "Cummins India Ltd.",
+    "weekly_pct": -0.88,
+    "weekly_pct_fri_to_fri": -0.48,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "COALINDIA",
+    "name": "Coal India Ltd.",
+    "weekly_pct": -0.95,
+    "weekly_pct_fri_to_fri": -1.96,
+    "deliv_week_vs_month": 1.1
+   },
+   {
+    "symbol": "ADANIENSOL",
+    "name": "Adani Energy Solutions Ltd.",
+    "weekly_pct": -0.98,
+    "weekly_pct_fri_to_fri": -0.86,
+    "deliv_week_vs_month": 2.2
+   },
+   {
+    "symbol": "TATACAP",
+    "name": "Tata Capital Ltd.",
+    "weekly_pct": -0.99,
+    "weekly_pct_fri_to_fri": -1.65,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "ICICIBANK",
+    "name": "ICICI Bank Ltd.",
+    "weekly_pct": -1.03,
+    "weekly_pct_fri_to_fri": -0.28,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "IRFC",
+    "name": "Indian Railway Finance Corporation Ltd.",
+    "weekly_pct": -1.05,
+    "weekly_pct_fri_to_fri": -1.33,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "HYUNDAI",
+    "name": "Hyundai Motor India Ltd.",
+    "weekly_pct": -1.08,
+    "weekly_pct_fri_to_fri": -0.07,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "BRITANNIA",
+    "name": "Britannia Industries Ltd.",
+    "weekly_pct": -1.16,
+    "weekly_pct_fri_to_fri": 0.87,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "INFY",
+    "name": "Infosys Ltd.",
+    "weekly_pct": -1.17,
+    "weekly_pct_fri_to_fri": -0.5,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "INDHOTEL",
+    "name": "Indian Hotels Co. Ltd.",
+    "weekly_pct": -1.19,
+    "weekly_pct_fri_to_fri": -1.5,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "CIPLA",
+    "name": "Cipla Ltd.",
+    "weekly_pct": -1.21,
+    "weekly_pct_fri_to_fri": -0.94,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "RELIANCE",
+    "name": "Reliance Industries Ltd.",
+    "weekly_pct": -1.3,
+    "weekly_pct_fri_to_fri": -1.86,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "CHOLAFIN",
+    "name": "Cholamandalam Investment and Finance Company Ltd.",
+    "weekly_pct": -1.33,
+    "weekly_pct_fri_to_fri": 1.51,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "BAJFINANCE",
+    "name": "Bajaj Finance Ltd.",
+    "weekly_pct": -1.38,
+    "weekly_pct_fri_to_fri": 0.83,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "SHRIRAMFIN",
+    "name": "Shriram Finance Ltd.",
+    "weekly_pct": -1.39,
+    "weekly_pct_fri_to_fri": 0.63,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "ONGC",
+    "name": "Oil & Natural Gas Corporation Ltd.",
+    "weekly_pct": -1.43,
+    "weekly_pct_fri_to_fri": -1.03,
+    "deliv_week_vs_month": 1.1
+   },
+   {
+    "symbol": "POWERGRID",
+    "name": "Power Grid Corporation of India Ltd.",
+    "weekly_pct": -1.5,
+    "weekly_pct_fri_to_fri": -2.04,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "ADANIGREEN",
+    "name": "Adani Green Energy Ltd.",
+    "weekly_pct": -1.53,
+    "weekly_pct_fri_to_fri": -1.78,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "TRENT",
+    "name": "Trent Ltd.",
+    "weekly_pct": -1.55,
+    "weekly_pct_fri_to_fri": -0.63,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "ITC",
+    "name": "ITC Ltd.",
+    "weekly_pct": -1.57,
+    "weekly_pct_fri_to_fri": -2.76,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "LTM",
+    "name": "LTM Ltd.",
+    "weekly_pct": -1.67,
+    "weekly_pct_fri_to_fri": 1.22,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "IOC",
+    "name": "Indian Oil Corporation Ltd.",
+    "weekly_pct": -1.83,
+    "weekly_pct_fri_to_fri": -2.78,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "TORNTPHARM",
+    "name": "Torrent Pharmaceuticals Ltd.",
+    "weekly_pct": -1.85,
+    "weekly_pct_fri_to_fri": -1.85,
+    "deliv_week_vs_month": 0.4
+   },
+   {
+    "symbol": "MARUTI",
+    "name": "Maruti Suzuki India Ltd.",
+    "weekly_pct": -1.87,
+    "weekly_pct_fri_to_fri": -1.45,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "NESTLEIND",
+    "name": "Nestle India Ltd.",
+    "weekly_pct": -1.93,
+    "weekly_pct_fri_to_fri": -2.66,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "ASIANPAINT",
+    "name": "Asian Paints Ltd.",
+    "weekly_pct": -1.95,
+    "weekly_pct_fri_to_fri": -1.41,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "JIOFIN",
+    "name": "Jio Financial Services Ltd.",
+    "weekly_pct": -1.95,
+    "weekly_pct_fri_to_fri": -3.02,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "MUTHOOTFIN",
+    "name": "Muthoot Finance Ltd.",
+    "weekly_pct": -2.2,
+    "weekly_pct_fri_to_fri": -1.66,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "HINDALCO",
+    "name": "Hindalco Industries Ltd.",
+    "weekly_pct": -2.33,
+    "weekly_pct_fri_to_fri": -2.84,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "VBL",
+    "name": "Varun Beverages Ltd.",
+    "weekly_pct": -2.36,
+    "weekly_pct_fri_to_fri": -1.58,
+    "deliv_week_vs_month": 0.4
+   },
+   {
+    "symbol": "PFC",
+    "name": "Power Finance Corporation Ltd.",
+    "weekly_pct": -2.38,
+    "weekly_pct_fri_to_fri": -10.48,
+    "deliv_week_vs_month": 2.3
+   },
+   {
+    "symbol": "AXISBANK",
+    "name": "Axis Bank Ltd.",
+    "weekly_pct": -2.4,
+    "weekly_pct_fri_to_fri": -1.66,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "JSWSTEEL",
+    "name": "JSW Steel Ltd.",
+    "weekly_pct": -2.46,
+    "weekly_pct_fri_to_fri": -2.27,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "M&M",
+    "name": "Mahindra & Mahindra Ltd.",
+    "weekly_pct": -2.52,
+    "weekly_pct_fri_to_fri": -2.1,
+    "deliv_week_vs_month": 0.9
+   },
+   {
+    "symbol": "RECLTD",
+    "name": "REC Ltd.",
+    "weekly_pct": -2.55,
+    "weekly_pct_fri_to_fri": -8.72,
+    "deliv_week_vs_month": 2.4
+   },
+   {
+    "symbol": "ADANIPOWER",
+    "name": "Adani Power Ltd.",
+    "weekly_pct": -2.56,
+    "weekly_pct_fri_to_fri": -1.79,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "TATACONSUM",
+    "name": "Tata Consumer Products Ltd.",
+    "weekly_pct": -2.63,
+    "weekly_pct_fri_to_fri": -0.26,
+    "deliv_week_vs_month": 1.1
+   },
+   {
+    "symbol": "TCS",
+    "name": "Tata Consultancy Services Ltd.",
+    "weekly_pct": -2.67,
+    "weekly_pct_fri_to_fri": -3.74,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "HDFCAMC",
+    "name": "HDFC Asset Management Company Ltd.",
+    "weekly_pct": -2.93,
+    "weekly_pct_fri_to_fri": -2.36,
+    "deliv_week_vs_month": 1.2
+   },
+   {
+    "symbol": "JINDALSTEL",
+    "name": "Jindal Steel Ltd.",
+    "weekly_pct": -2.98,
+    "weekly_pct_fri_to_fri": -1.04,
+    "deliv_week_vs_month": 0.5
+   },
+   {
+    "symbol": "AMBUJACEM",
+    "name": "Ambuja Cements Ltd.",
+    "weekly_pct": -3.1,
+    "weekly_pct_fri_to_fri": -3.8,
+    "deliv_week_vs_month": 1.3
+   },
+   {
+    "symbol": "SBILIFE",
+    "name": "SBI Life Insurance Company Ltd.",
+    "weekly_pct": -3.23,
+    "weekly_pct_fri_to_fri": -3.26,
+    "deliv_week_vs_month": 1.2
+   },
+   {
+    "symbol": "ULTRACEMCO",
+    "name": "UltraTech Cement Ltd.",
+    "weekly_pct": -3.48,
+    "weekly_pct_fri_to_fri": -4.01,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "TATASTEEL",
+    "name": "Tata Steel Ltd.",
+    "weekly_pct": -3.54,
+    "weekly_pct_fri_to_fri": -2.16,
+    "deliv_week_vs_month": 1.3
+   },
+   {
+    "symbol": "TVSMOTOR",
+    "name": "TVS Motor Company Ltd.",
+    "weekly_pct": -3.56,
+    "weekly_pct_fri_to_fri": -3.02,
+    "deliv_week_vs_month": 0.6
+   },
+   {
+    "symbol": "TMPV",
+    "name": "Tata Motors Passenger Vehicles Ltd.",
+    "weekly_pct": -3.63,
+    "weekly_pct_fri_to_fri": -3.6,
+    "deliv_week_vs_month": 1.6
+   },
+   {
+    "symbol": "GRASIM",
+    "name": "Grasim Industries Ltd.",
+    "weekly_pct": -3.9,
+    "weekly_pct_fri_to_fri": -2.24,
+    "deliv_week_vs_month": 2.3
+   },
+   {
+    "symbol": "SHREECEM",
+    "name": "Shree Cement Ltd.",
+    "weekly_pct": -5.0,
+    "weekly_pct_fri_to_fri": -4.67,
+    "deliv_week_vs_month": 1.3
+   },
+   {
+    "symbol": "HINDZINC",
+    "name": "Hindustan Zinc Ltd.",
+    "weekly_pct": -5.59,
+    "weekly_pct_fri_to_fri": -6.82,
+    "deliv_week_vs_month": 1.3
+   },
+   {
+    "symbol": "MAXHEALTH",
+    "name": "Max Healthcare Institute Ltd.",
+    "weekly_pct": -5.65,
+    "weekly_pct_fri_to_fri": -5.74,
+    "deliv_week_vs_month": 1.7
+   },
+   {
+    "symbol": "VEDL",
+    "name": "Vedanta Ltd.",
+    "weekly_pct": -5.69,
+    "weekly_pct_fri_to_fri": -4.07,
+    "deliv_week_vs_month": 1.0
+   },
+   {
+    "symbol": "GODREJCP",
+    "name": "Godrej Consumer Products Ltd.",
+    "weekly_pct": -9.55,
+    "weekly_pct_fri_to_fri": -11.02,
+    "deliv_week_vs_month": 12.3
+   }
+  ],
   "delivery_rising": [
    {
     "symbol": "NEWGEN",
