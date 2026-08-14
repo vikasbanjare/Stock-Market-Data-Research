@@ -45,9 +45,9 @@ indication of how sticky the price moves could be in the future.
 
 | Stock Name | % weekly change | Delivery volumes in past week vs prev month |
 |---|---|---|
-| Bosch | 9.66% | *(evening)* |
-| Solar Industries | 7.07% | *(evening)* |
-| Tata Motors | 4.68% | *(evening)* |
+| Bosch | 9.66% | 1.8X |
+| Solar Industries | 7.07% | 1.3X |
+| Tata Motors | 4.68% | 1.2X |
 | Avenue Supermarts (DMart) | 4.10% | 0.9X |
 | DLF | 3.58% | *(evening)* |
 
@@ -63,11 +63,11 @@ accumulation.
 
 | Stock Name | % weekly change | Rise in delivery volumes in past week vs previous month |
 |---|---|---|
-| Godrej Consumer Products | -11.02% | *(evening)* |
+| Godrej Consumer Products | -11.02% | 12.6X |
 | Power Finance Corporation | -10.48% | *(evening)* |
 | REC | -8.72% | *(evening)* |
 | Hindustan Zinc | -6.82% | *(evening)* |
-| Max Healthcare | -5.74% | *(evening)* |
+| Max Healthcare | -5.74% | 1.4X |
 
 **Godrej Consumer Products** suffered the week's steepest fall after
 MD & CEO Sudhir Sitapati's surprise resignation — leadership uncertainty
@@ -76,6 +76,11 @@ financiers **PFC** and **REC** sold off hard after their results met a
 market newly nervous about the rate cycle, **Hindustan Zinc** gave back
 a chunk of its metals-week surge, and **Max Healthcare** slid through
 its results window.
+
+The delivery data puts a sharp edge on the Godrej story: delivered
+volumes ran at 12.6 times the monthly average while the stock fell 11%
+— that is not traders churning a headline, that is holders walking out
+the door.
 
 Just outside the table, **Tata Motors Passenger Vehicles** was Friday's
 standout casualty, sliding around 6% after its first-quarter results —
@@ -89,7 +94,22 @@ data.]
 
 ## Year high and year low in the past week (Nifty 200)
 
-[FULL-52W]
+**Stocks that hit their 52-week high:** Aurobindo Pharma, Bajaj Auto,
+Bharat Forge, Bosch, Divi's Laboratories, Exide Industries, Grasim
+Industries, Hindustan Aeronautics, KEI Industries, LTM, Laurus Labs,
+Lenskart Solutions, Mahindra & Mahindra Financial Services, Nestle
+India, One 97 Communications (Paytm), Radico Khaitan, Samvardhana
+Motherson, Siemens, Solar Industries, TVS Motor Company, Titan
+Company, United Spirits, and Zydus Lifesciences.
+
+**Stocks that hit their 52-week low:** Godrej Consumer Products, HDFC
+Bank, and PI Industries.
+
+Note: twenty-three highs against three lows — breadth at the top end
+stayed remarkably healthy for a down week. And the lows list reads
+like the week's news in miniature: Godrej Consumer after the CEO
+exit, HDFC Bank capping the banks' CPI-shock week, and PI Industries
+extending agrochem's long slump.
 
 ## Stocks & Sectors in the News
 
@@ -141,11 +161,28 @@ durable.
 
 ### Rising Delivery Volume (Last week vs Prev month)
 
-[FULL-DELIV-RISING]
+| Stock Name | Avg. delivery volume % | Avg. month delivery volume % | Avg. 6-month delivery volume % |
+|---|---|---|---|
+| Newgen Software Technologies | 34.85% | 21.41% | 26.26% |
+| Fertilisers and Chemicals Travancore (FACT) | 47.65% | 32.49% | 26.65% |
+| Nuvoco Vistas Corporation | 51.80% | 35.16% | 45.78% |
+| SBI Cards and Payment Services | 62.30% | 42.41% | 43.75% |
+| Aegis Logistics | 41.00% | 28.95% | 36.30% |
+
+**SBI Cards** stands out: nearly two-thirds of its traded volume went
+to delivery last week, well above both its monthly and six-month
+habits — quiet, deliberate accumulation in a week when credit
+appetite was being repriced.
 
 ### Falling delivery volume (Last week vs Prev month)
 
-[FULL-DELIV-FALLING]
+| Stock Name | Avg. delivery volume % | Avg. month delivery volume % | Avg. 6-month delivery volume % |
+|---|---|---|---|
+| Signatureglobal (India) | 7.24% | 15.95% | 16.38% |
+| Sapphire Foods India | 24.02% | 50.30% | 47.16% |
+| BEML | 26.02% | 47.27% | 37.42% |
+| Finolex Cables | 27.40% | 48.11% | 42.69% |
+| Devyani International | 28.38% | 44.72% | 43.52% |
 
 ## Most traded on m.Stock yesterday
 
@@ -179,7 +216,7 @@ pressure.
 
 | (In ₹ crore) | Cash (provisional) | Index Futures | Stock Futures | Index Options | Stock Options |
 |---|---|---|---|---|---|
-| FIIs | 720.12 | [FULL-FNO] | [FULL-FNO] | [FULL-FNO] | [FULL-FNO] |
+| FIIs | 720.12 | -3,771.57 | -249.39 | -40,378.32 | -2,956.38 |
 | DIIs | 8,929.23 | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
 
 **Year-to-date**
@@ -278,7 +315,6 @@ climb toward $89 the visible symptom.
 | Date | Event |
 |---|---|
 | 15-Aug | Independence Day — markets closed Saturday |
-| [FULL-CALENDAR] | |
 | 21-Aug | RBI Forex Reserves (weekly) — confirm |
 
 *You can explore our Events calendar feature on the home page & set
