@@ -15,8 +15,8 @@ market spent its pre-Independence Day week doing what markets do when
 two comfortable assumptions break at once: stepping carefully
 backwards.
 
-Foreign investors told the story in miniature: buyers on Monday, sellers
-every session after the CPI landed. Domestic institutions, as ever,
+Foreign investors told the story in miniature: buyers on Monday,
+sellers once the CPI landed, and only a tentative return on Friday. Domestic institutions, as ever,
 stood on the other side of the trade — nearly ₹9,000 crore of buying,
 their heaviest lifting coming precisely on the inflation-shock days.
 
@@ -66,7 +66,7 @@ accumulation.
 | Godrej Consumer Products | -11.02% | 12.6X |
 | Power Finance Corporation | -10.48% | *(evening)* |
 | REC | -8.72% | *(evening)* |
-| Hindustan Zinc | -6.82% | *(evening)* |
+| Hindustan Zinc | -6.82% | 1.3X |
 | Max Healthcare | -5.74% | 1.4X |
 
 **Godrej Consumer Products** suffered the week's steepest fall after
@@ -199,35 +199,37 @@ purposes and are not recommendations.*
 
 ## FIIs vs DIIs
 
-Foreign investors began the week as buyers and ended it in retreat —
-nearly ₹2,000 crore bought on Monday, then steady selling from the
-moment Wednesday's inflation print landed, leaving them barely ₹720
-crore positive for the four sessions to Thursday. The three-week buying
-streak survives, but only just, and the CPI surprise is plainly the
-reason.
+Foreign investors began the week as buyers, turned sellers the moment
+Wednesday's inflation print landed, and crept back only on Friday —
+nearly ₹2,000 crore bought on Monday, two straight sessions of selling
+after the CPI, then a tentative ₹508 crore return before the long
+weekend, leaving them ₹1,228 crore positive for the week. The
+three-week buying streak survives, but the conviction has clearly
+thinned, and the CPI surprise is plainly the reason.
 
 Domestic institutions did their heaviest work on exactly the days
 foreign money left: over ₹5,800 crore of buying on CPI day itself and
-₹4,350 crore more on Thursday, closing the four sessions nearly ₹9,000
-crore net positive — the year's familiar pattern, holding firm under
+₹4,350 crore more on Thursday, closing the week ₹9,286 crore net
+positive — the year's familiar pattern, holding firm under
 pressure.
 
 **Last week**
 
 | (In ₹ crore) | Cash (provisional) | Index Futures | Stock Futures | Index Options | Stock Options |
 |---|---|---|---|---|---|
-| FIIs | 720.12 | -3,771.57 | -249.39 | -40,378.32 | -2,956.38 |
-| DIIs | 8,929.23 | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
+| FIIs | 1,228.24 | -3,771.57 | -249.39 | -40,378.32 | -2,956.38 |
+| DIIs | 9,285.63 | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
 
 **Year-to-date**
 
 | (In ₹ crore) | Cash | Index Futures | Stock Futures | Index Options | Stock Options |
 |---|---|---|---|---|---|
-| FIIs | -3,47,915.01 | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
-| DIIs | 5,21,932.97 | [FILL IN] | [FILL IN] | [FILL IN] | [FILL IN] |
+| FIIs | -3,47,406.89 | [FILL IN: Trendlyne] | [FILL IN] | [FILL IN] | [FILL IN] |
+| DIIs | 5,22,289.37 | [FILL IN] | [FILL IN] | [FILL IN] | [FILL IN] |
 
-*Note: FII/DII cash and F&O data as of 13th August; year-to-date cash
-carried forward from the previous issue with official daily flows.*
+*Note: FII/DII cash data covers the full week to 14th August; F&O data
+as of 13th August. Year-to-date cash carried forward from the previous
+issue with official daily flows.*
 
 **Wondering why FIIs and DIIs generally move in opposite directions?**
 
