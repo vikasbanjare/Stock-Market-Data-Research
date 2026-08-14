@@ -49,23 +49,24 @@ indication of how sticky the price moves could be in the future.
 | Solar Industries | 7.07% | 1.3X |
 | Tata Motors | 4.68% | 1.2X |
 | Avenue Supermarts (DMart) | 4.10% | 0.9X |
-| DLF | 3.58% | *(evening)* |
+| DLF | 3.58% | 0.5X |
 
 **Bosch** extended its post-results momentum to the top of the board,
 **Solar Industries** rode the defence-order cycle to fresh highs, and —
 in the week's neatest irony — **Tata Motors**, the commercial-vehicle
 parent, gained nearly 5% even as its passenger-vehicle sibling slid on
 results. **Avenue Supermarts** found buyers as investors reached for
-defensive retail, and **DLF** led realty's quiet week of
-accumulation.
+defensive retail, and **DLF** rose on noticeably thin delivery — at
+half its monthly average, that is a trader's move, not yet an
+investor's.
 
 ### Losers
 
 | Stock Name | % weekly change | Rise in delivery volumes in past week vs previous month |
 |---|---|---|
 | Godrej Consumer Products | -11.02% | 12.6X |
-| Power Finance Corporation | -10.48% | *(evening)* |
-| REC | -8.72% | *(evening)* |
+| Power Finance Corporation | -10.48% | 2.3X |
+| REC | -8.72% | 2.4X |
 | Hindustan Zinc | -6.82% | 1.3X |
 | Max Healthcare | -5.74% | 1.4X |
 
@@ -73,7 +74,9 @@ accumulation.
 MD & CEO Sudhir Sitapati's surprise resignation — leadership uncertainty
 in a stock the street had backed for its turnaround story. The power
 financiers **PFC** and **REC** sold off hard after their results met a
-market newly nervous about the rate cycle, **Hindustan Zinc** gave back
+market newly nervous about the rate cycle — both on delivery volumes
+more than double their monthly run-rate, conviction selling rather than
+mere profit-taking — **Hindustan Zinc** gave back
 a chunk of its metals-week surge, and **Max Healthcare** slid through
 its results window.
 
