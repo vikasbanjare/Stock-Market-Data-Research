@@ -303,6 +303,9 @@ def main() -> int:
         moves.sort(key=lambda m: m["weekly_pct"], reverse=True)
         report["sections"]["nifty100_top_gainers"] = moves[:5]
         report["sections"]["nifty100_top_losers"] = sorted(moves[-5:], key=lambda m: m["weekly_pct"])
+        # Full N100 lookup so the completion pass can fill ratio cells for
+        # flash-table names that rank differently in this run's window.
+        report["sections"]["nifty100_all_moves"] = moves
     except Exception as exc:
         report["errors"].append(f"nifty100: {type(exc).__name__}: {exc}")
 

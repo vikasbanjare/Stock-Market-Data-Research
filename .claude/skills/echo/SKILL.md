@@ -37,9 +37,13 @@ If any of these are missing, insert a clearly marked
 
 ## 2. Data fetching (token-frugal order — follow strictly)
 
-Timing context: the market closes 15:30 IST, but NSE publishes delivery
-volumes and FII/DII figures only around 18:30–19:30 IST. Data fetched
-before that silently describes the PREVIOUS session.
+**HARD DEADLINE: the complete issue ships by 16:30 IST on Friday.**
+Market closes 15:30; the flash data lands ~15:40; Trendlyne's engine and
+NSE's published files carry data through THURSDAY at this hour — that is
+the product's standard vintage. Publish Friday-live prices with
+Thursday-vintage delivery/FII data and the standard cutoff note ("data
+as of <Thursday's date>"). Never hold the issue for evening data: the
+18:45 IST and Saturday runs are silent verification passes only.
 
 **Friday freshness check (mandatory on live runs):** the repo's
 `data/raw/<today>/nse_data.json` must have `latest_session` == today's
@@ -113,8 +117,13 @@ and computation rules are in `reference/data_sources.md`.
    movers (bold the stock names), researched and fact-checked via web
    search. Mention notable IPO listings of the week here if any.
 4. **Year high / year low (Nifty 200)** — list all 52-week-high stocks
-   and all 52-week-low stocks from the screeners. Call out lifetime highs
-   and add a short note on the most interesting name(s).
+   and all 52-week-low stocks from the screeners. **Use the full-run
+   nse_data.json lists (7-day window including the previous Friday) —
+   NEVER the flash lists, whose Mon–Fri window under-counts.** Call out
+   lifetime highs and add a short note on the most interesting name(s).
+   (Known source gap: Yahoo's Sensex close can differ ~10-15 pts from
+   the official BSE close — cross-check the Sensex cell against a
+   news-reported official close before publishing.)
 5. **Stocks & Sectors in the News** — run the sector rewrite command
    (below, §4a).
 6. **Top Delivery-volume Movers (Nifty 500)** — 5 rising and 5 falling
@@ -127,7 +136,11 @@ and computation rules are in `reference/data_sources.md`.
    (provisional) + index futures + stock futures + index options + stock
    options, for FIIs and DIIs, in ₹ crore. Add the data-cutoff note
    (e.g. "FII F&O data is up to <date> and DII F&O data till <date>
-   only."). Add 1–2 sentences on the week's pattern.
+   only."). Add 1–2 sentences on the week's pattern (story format per
+   §4a2). **YTD cash cells: chain the previous issue's YTD base forward
+   with the official daily flows in data/fii_dii/ (base + all captured
+   sessions since the previous issue's cutoff), and say "as of <date>".
+   F&O YTD cells: Trendlyne screenshot only — never chain or estimate.**
 9. **Research Calls** — format user-uploaded data into the two tables.
    Keep the `Disclaimer` line.
 10. **Commodity Moves** — Brent Crude, Gold, Silver, Natural Gas (NYMEX),
