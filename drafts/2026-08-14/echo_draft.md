@@ -48,7 +48,7 @@ indication of how sticky the price moves could be in the future.
 | Bosch | 9.66% | *(evening)* |
 | Solar Industries | 7.07% | *(evening)* |
 | Tata Motors | 4.68% | *(evening)* |
-| Avenue Supermarts (DMart) | 4.10% | *(evening)* |
+| Avenue Supermarts (DMart) | 4.10% | 0.9X |
 | DLF | 3.58% | *(evening)* |
 
 **Bosch** extended its post-results momentum to the top of the board,
