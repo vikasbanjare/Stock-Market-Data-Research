@@ -1,0 +1,47 @@
+{
+ "run_date": "2026-08-19",
+ "method": "playwright-chromium",
+ "pages": {
+  "cash_week": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  },
+  "fii_fno_index_week": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  },
+  "fii_fno_stock_week": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  },
+  "dii_fno_index_week": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  },
+  "dii_fno_stock_week": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  },
+  "cash_ytd": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  },
+  "fii_fno_index_ytd": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  },
+  "fii_fno_stock_ytd": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  },
+  "dii_fno_index_ytd": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  },
+  "dii_fno_stock_ytd": {
+   "title": "ERROR: The request could not be satisfied",
+   "tables": "no tables found"
+  }
+ },
+ "errors": []
+}
