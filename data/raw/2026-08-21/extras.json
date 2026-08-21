@@ -1,0 +1,18 @@
+{
+ "run_date": "2026-08-21",
+ "trendlyne": {},
+ "macro_calendar": null,
+ "errors": [
+  "trendlyne cash_week: HTTP 405",
+  "trendlyne fii_fno_index_week: HTTP 405",
+  "trendlyne fii_fno_stock_week: HTTP 405",
+  "trendlyne dii_fno_index_week: HTTP 405",
+  "trendlyne dii_fno_stock_week: HTTP 405",
+  "trendlyne cash_ytd: HTTP 405",
+  "trendlyne fii_fno_index_ytd: HTTP 405",
+  "trendlyne fii_fno_stock_ytd: HTTP 405",
+  "trendlyne dii_fno_index_ytd: HTTP 405",
+  "trendlyne dii_fno_stock_ytd: HTTP 405",
+  "macro_calendar ff_calendar_nextweek.json: HTTPError"
+ ]
+}
