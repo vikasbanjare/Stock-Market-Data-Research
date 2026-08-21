@@ -1,0 +1,100 @@
+{
+ "run_date": "2026-08-21",
+ "mode": "flash-15:35-IST",
+ "sections": {
+  "breadth_n500_weekly": {
+   "gainers": 213,
+   "losers": 284,
+   "note": "Nifty 500 universe at 15:35 IST; the evening run computes all-NSE breadth"
+  },
+  "nifty100_top_gainers": [
+   {
+    "symbol": "MUTHOOTFIN",
+    "name": "Muthoot Finance Ltd.",
+    "weekly_pct": 6.33,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "HINDZINC",
+    "name": "Hindustan Zinc Ltd.",
+    "weekly_pct": 5.87,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "HDFCAMC",
+    "name": "HDFC Asset Management Company Ltd.",
+    "weekly_pct": 5.03,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "VEDL",
+    "name": "Vedanta Ltd.",
+    "weekly_pct": 4.3,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "HDFCLIFE",
+    "name": "HDFC Life Insurance Company Ltd.",
+    "weekly_pct": 3.54,
+    "deliv_week_vs_month": "evening run"
+   }
+  ],
+  "nifty100_top_losers": [
+   {
+    "symbol": "CUMMINSIND",
+    "name": "Cummins India Ltd.",
+    "weekly_pct": -5.42,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "TMPV",
+    "name": "Tata Motors Passenger Vehicles Ltd.",
+    "weekly_pct": -4.96,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "LTM",
+    "name": "LTM Ltd.",
+    "weekly_pct": -4.82,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "ADANIENSOL",
+    "name": "Adani Energy Solutions Ltd.",
+    "weekly_pct": -4.59,
+    "deliv_week_vs_month": "evening run"
+   },
+   {
+    "symbol": "HCLTECH",
+    "name": "HCL Technologies Ltd.",
+    "weekly_pct": -4.23,
+    "deliv_week_vs_month": "evening run"
+   }
+  ],
+  "week_52w_highs_nifty200": [
+   "AU Small Finance Bank Ltd.",
+   "Bosch Ltd.",
+   "Hindustan Aeronautics Ltd.",
+   "KEI Industries Ltd.",
+   "LG Electronics India Ltd.",
+   "Lenskart Solutions Ltd.",
+   "Radico Khaitan Ltd",
+   "Samvardhana Motherson International Ltd.",
+   "Solar Industries India Ltd.",
+   "United Spirits Ltd."
+  ],
+  "week_52w_lows_nifty200": [
+   "Dabur India Ltd.",
+   "HDFC Bank Ltd.",
+   "Hindustan Unilever Ltd.",
+   "ITC Ltd.",
+   "Indian Railway Catering And Tourism Corporation Ltd.",
+   "Indian Railway Finance Corporation Ltd.",
+   "UPL Ltd."
+  ]
+ },
+ "errors": [],
+ "base_day": "2026-08-14",
+ "sessions_loaded": 250,
+ "live_quotes": 500
+}
