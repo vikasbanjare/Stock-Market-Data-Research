@@ -1,0 +1,16 @@
+[
+ {
+  "buyValue": "17063.65",
+  "category": "DII",
+  "date": "03-Sep-2026",
+  "netValue": "4977.46",
+  "sellValue": "12086.19"
+ },
+ {
+  "buyValue": "13596.04",
+  "category": "FII/FPI",
+  "date": "03-Sep-2026",
+  "netValue": "-2345.87",
+  "sellValue": "15941.91"
+ }
+]
