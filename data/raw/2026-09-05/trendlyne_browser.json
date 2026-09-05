@@ -1,0 +1,17 @@
+{
+ "run_date": "2026-09-05",
+ "method": "playwright-chromium",
+ "pages": {},
+ "errors": [
+  "cash_week: bot challenge (Human Verification)",
+  "fii_fno_index_week: bot challenge (Human Verification)",
+  "fii_fno_stock_week: bot challenge (Human Verification)",
+  "dii_fno_index_week: bot challenge (Human Verification)",
+  "dii_fno_stock_week: bot challenge (Human Verification)",
+  "cash_ytd: bot challenge (Human Verification)",
+  "fii_fno_index_ytd: bot challenge (Human Verification)",
+  "fii_fno_stock_ytd: bot challenge (Human Verification)",
+  "dii_fno_index_ytd: bot challenge (Human Verification)",
+  "dii_fno_stock_ytd: bot challenge (Human Verification)"
+ ]
+}
