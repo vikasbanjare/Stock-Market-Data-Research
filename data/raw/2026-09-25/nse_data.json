@@ -1,0 +1,538 @@
+{
+ "run_date": "2026-09-25",
+ "week_ending": "2026-09-25",
+ "sections": {
+  "market_breadth": {
+   "total_gainers": 1047,
+   "total_losers": 1566,
+   "universe": "all NSE EQ-series stocks, weekly close vs close"
+  },
+  "nifty100_top_gainers": [
+   {
+    "symbol": "ZYDUSLIFE",
+    "name": "Zydus Lifesciences Ltd.",
+    "weekly_pct": 3.7,
+    "weekly_pct_fri_to_fri": 3.78,
+    "deliv_week_vs_month": 1.1
+   },
+   {
+    "symbol": "DLF",
+    "name": "DLF Ltd.",
+    "weekly_pct": 3.45,
+    "weekly_pct_fri_to_fri": 6.0,
+    "deliv_week_vs_month": 1.2
+   },
+   {
+    "symbol": "ENRIN",
+    "name": "Siemens Energy India Ltd.",
+    "weekly_pct": 3.06,
+    "weekly_pct_fri_to_fri": 2.63,
+    "deliv_week_vs_month": 0.7
+   },
+   {
+    "symbol": "JINDALSTEL",
+    "name": "Jindal Steel Ltd.",
+    "weekly_pct": 3.02,
+    "weekly_pct_fri_to_fri": 4.05,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "COALINDIA",
+    "name": "Coal India Ltd.",
+    "weekly_pct": 2.75,
+    "weekly_pct_fri_to_fri": 3.95,
+    "deliv_week_vs_month": 0.7
+   }
+  ],
+  "nifty100_top_losers": [
+   {
+    "symbol": "CHOLAFIN",
+    "name": "Cholamandalam Investment and Finance Company Ltd.",
+    "weekly_pct": -5.74,
+    "weekly_pct_fri_to_fri": -7.63,
+    "deliv_week_vs_month": 1.7
+   },
+   {
+    "symbol": "TRENT",
+    "name": "Trent Ltd.",
+    "weekly_pct": -5.19,
+    "weekly_pct_fri_to_fri": -5.48,
+    "deliv_week_vs_month": 1.2
+   },
+   {
+    "symbol": "HDFCLIFE",
+    "name": "HDFC Life Insurance Company Ltd.",
+    "weekly_pct": -5.08,
+    "weekly_pct_fri_to_fri": -3.62,
+    "deliv_week_vs_month": 1.1
+   },
+   {
+    "symbol": "MAXHEALTH",
+    "name": "Max Healthcare Institute Ltd.",
+    "weekly_pct": -4.93,
+    "weekly_pct_fri_to_fri": -3.36,
+    "deliv_week_vs_month": 0.8
+   },
+   {
+    "symbol": "LTM",
+    "name": "LTM Ltd.",
+    "weekly_pct": -4.6,
+    "weekly_pct_fri_to_fri": -4.49,
+    "deliv_week_vs_month": 1.0
+   }
+  ],
+  "delivery_rising": [
+   {
+    "symbol": "PWL",
+    "name": "Physicswallah Ltd.",
+    "week_avg_pct": 44.5,
+    "month_avg_pct": 28.84,
+    "six_month_avg_pct": 29.29,
+    "ratio": 1.54,
+    "recent_listing": false
+   },
+   {
+    "symbol": "BALRAMCHIN",
+    "name": "Balrampur Chini Mills Ltd.",
+    "week_avg_pct": 24.17,
+    "month_avg_pct": 17.09,
+    "six_month_avg_pct": 36.38,
+    "ratio": 1.41,
+    "recent_listing": false
+   },
+   {
+    "symbol": "CGCL",
+    "name": "Capri Global Capital Ltd.",
+    "week_avg_pct": 43.96,
+    "month_avg_pct": 33.1,
+    "six_month_avg_pct": 35.63,
+    "ratio": 1.33,
+    "recent_listing": false
+   },
+   {
+    "symbol": "MUTHOOTFIN",
+    "name": "Muthoot Finance Ltd.",
+    "week_avg_pct": 56.99,
+    "month_avg_pct": 42.75,
+    "six_month_avg_pct": 47.62,
+    "ratio": 1.33,
+    "recent_listing": false
+   },
+   {
+    "symbol": "CHENNPETRO",
+    "name": "Chennai Petroleum Corporation Ltd.",
+    "week_avg_pct": 32.92,
+    "month_avg_pct": 25.23,
+    "six_month_avg_pct": 29.59,
+    "ratio": 1.3,
+    "recent_listing": false
+   }
+  ],
+  "delivery_falling": [
+   {
+    "symbol": "PFOCUS",
+    "name": "Prime Focus Ltd.",
+    "week_avg_pct": 15.74,
+    "month_avg_pct": 40.03,
+    "six_month_avg_pct": 39.71,
+    "ratio": 0.39,
+    "recent_listing": true
+   },
+   {
+    "symbol": "PATANJALI",
+    "name": "Patanjali Foods Ltd.",
+    "week_avg_pct": 21.45,
+    "month_avg_pct": 42.26,
+    "six_month_avg_pct": 36.5,
+    "ratio": 0.51,
+    "recent_listing": false
+   },
+   {
+    "symbol": "WHIRLPOOL",
+    "name": "Whirlpool of India Ltd.",
+    "week_avg_pct": 24.5,
+    "month_avg_pct": 48.1,
+    "six_month_avg_pct": 50.48,
+    "ratio": 0.51,
+    "recent_listing": false
+   },
+   {
+    "symbol": "CARBORUNIV",
+    "name": "Carborundum Universal Ltd.",
+    "week_avg_pct": 26.23,
+    "month_avg_pct": 50.59,
+    "six_month_avg_pct": 48.98,
+    "ratio": 0.52,
+    "recent_listing": false
+   },
+   {
+    "symbol": "TEGA",
+    "name": "Tega Industries Ltd.",
+    "week_avg_pct": 26.75,
+    "month_avg_pct": 46.81,
+    "six_month_avg_pct": 51.11,
+    "ratio": 0.57,
+    "recent_listing": false
+   }
+  ],
+  "delivery_rising_candidates": [
+   {
+    "symbol": "PWL",
+    "name": "Physicswallah Ltd.",
+    "week_avg_pct": 44.5,
+    "month_avg_pct": 28.84,
+    "six_month_avg_pct": 29.29,
+    "ratio": 1.54,
+    "recent_listing": false
+   },
+   {
+    "symbol": "BALRAMCHIN",
+    "name": "Balrampur Chini Mills Ltd.",
+    "week_avg_pct": 24.17,
+    "month_avg_pct": 17.09,
+    "six_month_avg_pct": 36.38,
+    "ratio": 1.41,
+    "recent_listing": false
+   },
+   {
+    "symbol": "CGCL",
+    "name": "Capri Global Capital Ltd.",
+    "week_avg_pct": 43.96,
+    "month_avg_pct": 33.1,
+    "six_month_avg_pct": 35.63,
+    "ratio": 1.33,
+    "recent_listing": false
+   },
+   {
+    "symbol": "MUTHOOTFIN",
+    "name": "Muthoot Finance Ltd.",
+    "week_avg_pct": 56.99,
+    "month_avg_pct": 42.75,
+    "six_month_avg_pct": 47.62,
+    "ratio": 1.33,
+    "recent_listing": false
+   },
+   {
+    "symbol": "CHENNPETRO",
+    "name": "Chennai Petroleum Corporation Ltd.",
+    "week_avg_pct": 32.92,
+    "month_avg_pct": 25.23,
+    "six_month_avg_pct": 29.59,
+    "ratio": 1.3,
+    "recent_listing": false
+   },
+   {
+    "symbol": "JMFINANCIL",
+    "name": "JM Financial Ltd.",
+    "week_avg_pct": 58.14,
+    "month_avg_pct": 44.99,
+    "six_month_avg_pct": 44.53,
+    "ratio": 1.29,
+    "recent_listing": false
+   },
+   {
+    "symbol": "NETWEB",
+    "name": "Netweb Technologies India Ltd.",
+    "week_avg_pct": 25.5,
+    "month_avg_pct": 19.82,
+    "six_month_avg_pct": 20.57,
+    "ratio": 1.29,
+    "recent_listing": false
+   },
+   {
+    "symbol": "BRIGADE",
+    "name": "Brigade Enterprises Ltd.",
+    "week_avg_pct": 46.31,
+    "month_avg_pct": 36.51,
+    "six_month_avg_pct": 43.78,
+    "ratio": 1.27,
+    "recent_listing": false
+   },
+   {
+    "symbol": "HEXT",
+    "name": "Hexaware Technologies Ltd.",
+    "week_avg_pct": 52.15,
+    "month_avg_pct": 41.08,
+    "six_month_avg_pct": 45.94,
+    "ratio": 1.27,
+    "recent_listing": false
+   },
+   {
+    "symbol": "POWERINDIA",
+    "name": "Hitachi Energy India Ltd.",
+    "week_avg_pct": 46.09,
+    "month_avg_pct": 37.73,
+    "six_month_avg_pct": 35.26,
+    "ratio": 1.22,
+    "recent_listing": false
+   },
+   {
+    "symbol": "SBFC",
+    "name": "SBFC Finance Ltd.",
+    "week_avg_pct": 58.99,
+    "month_avg_pct": 48.45,
+    "six_month_avg_pct": 51.61,
+    "ratio": 1.22,
+    "recent_listing": false
+   },
+   {
+    "symbol": "GLENMARK",
+    "name": "Glenmark Pharmaceuticals Ltd.",
+    "week_avg_pct": 57.81,
+    "month_avg_pct": 47.85,
+    "six_month_avg_pct": 46.93,
+    "ratio": 1.21,
+    "recent_listing": false
+   },
+   {
+    "symbol": "ONESOURCE",
+    "name": "Onesource Specialty Pharma Ltd.",
+    "week_avg_pct": 58.66,
+    "month_avg_pct": 48.4,
+    "six_month_avg_pct": 48.42,
+    "ratio": 1.21,
+    "recent_listing": false
+   },
+   {
+    "symbol": "LATENTVIEW",
+    "name": "Latent View Analytics Ltd.",
+    "week_avg_pct": 54.59,
+    "month_avg_pct": 45.62,
+    "six_month_avg_pct": 40.34,
+    "ratio": 1.2,
+    "recent_listing": false
+   },
+   {
+    "symbol": "NUVAMA",
+    "name": "Nuvama Wealth Management Ltd.",
+    "week_avg_pct": 61.31,
+    "month_avg_pct": 51.39,
+    "six_month_avg_pct": 47.63,
+    "ratio": 1.19,
+    "recent_listing": false
+   }
+  ],
+  "delivery_falling_candidates": [
+   {
+    "symbol": "PFOCUS",
+    "name": "Prime Focus Ltd.",
+    "week_avg_pct": 15.74,
+    "month_avg_pct": 40.03,
+    "six_month_avg_pct": 39.71,
+    "ratio": 0.39,
+    "recent_listing": true
+   },
+   {
+    "symbol": "PATANJALI",
+    "name": "Patanjali Foods Ltd.",
+    "week_avg_pct": 21.45,
+    "month_avg_pct": 42.26,
+    "six_month_avg_pct": 36.5,
+    "ratio": 0.51,
+    "recent_listing": false
+   },
+   {
+    "symbol": "WHIRLPOOL",
+    "name": "Whirlpool of India Ltd.",
+    "week_avg_pct": 24.5,
+    "month_avg_pct": 48.1,
+    "six_month_avg_pct": 50.48,
+    "ratio": 0.51,
+    "recent_listing": false
+   },
+   {
+    "symbol": "CARBORUNIV",
+    "name": "Carborundum Universal Ltd.",
+    "week_avg_pct": 26.23,
+    "month_avg_pct": 50.59,
+    "six_month_avg_pct": 48.98,
+    "ratio": 0.52,
+    "recent_listing": false
+   },
+   {
+    "symbol": "TEGA",
+    "name": "Tega Industries Ltd.",
+    "week_avg_pct": 26.75,
+    "month_avg_pct": 46.81,
+    "six_month_avg_pct": 51.11,
+    "ratio": 0.57,
+    "recent_listing": false
+   },
+   {
+    "symbol": "PAGEIND",
+    "name": "Page Industries Ltd.",
+    "week_avg_pct": 30.2,
+    "month_avg_pct": 50.5,
+    "six_month_avg_pct": 47.12,
+    "ratio": 0.6,
+    "recent_listing": false
+   },
+   {
+    "symbol": "ENGINERSIN",
+    "name": "Engineers India Ltd.",
+    "week_avg_pct": 24.43,
+    "month_avg_pct": 40.13,
+    "six_month_avg_pct": 39.05,
+    "ratio": 0.61,
+    "recent_listing": false
+   },
+   {
+    "symbol": "RHIM",
+    "name": "RHI MAGNESITA INDIA LTD.",
+    "week_avg_pct": 32.65,
+    "month_avg_pct": 52.49,
+    "six_month_avg_pct": 43.33,
+    "ratio": 0.62,
+    "recent_listing": false
+   },
+   {
+    "symbol": "GABRIEL",
+    "name": "Gabriel India Ltd.",
+    "week_avg_pct": 28.2,
+    "month_avg_pct": 43.11,
+    "six_month_avg_pct": 41.49,
+    "ratio": 0.65,
+    "recent_listing": false
+   },
+   {
+    "symbol": "MEESHO",
+    "name": "Meesho Ltd.",
+    "week_avg_pct": 30.57,
+    "month_avg_pct": 47.12,
+    "six_month_avg_pct": 39.02,
+    "ratio": 0.65,
+    "recent_listing": false
+   },
+   {
+    "symbol": "ELECON",
+    "name": "Elecon Engineering Co. Ltd.",
+    "week_avg_pct": 27.67,
+    "month_avg_pct": 41.05,
+    "six_month_avg_pct": 41.15,
+    "ratio": 0.67,
+    "recent_listing": false
+   },
+   {
+    "symbol": "ATGL",
+    "name": "Adani Total Gas Ltd.",
+    "week_avg_pct": 22.1,
+    "month_avg_pct": 32.6,
+    "six_month_avg_pct": 24.9,
+    "ratio": 0.68,
+    "recent_listing": false
+   },
+   {
+    "symbol": "JPPOWER",
+    "name": "Jaiprakash Power Ventures Ltd.",
+    "week_avg_pct": 25.98,
+    "month_avg_pct": 38.2,
+    "six_month_avg_pct": 32.75,
+    "ratio": 0.68,
+    "recent_listing": false
+   },
+   {
+    "symbol": "ABDL",
+    "name": "Allied Blenders and Distillers Ltd.",
+    "week_avg_pct": 33.5,
+    "month_avg_pct": 48.74,
+    "six_month_avg_pct": 46.94,
+    "ratio": 0.69,
+    "recent_listing": false
+   },
+   {
+    "symbol": "SYRMA",
+    "name": "Syrma SGS Technology Ltd.",
+    "week_avg_pct": 24.25,
+    "month_avg_pct": 34.85,
+    "six_month_avg_pct": 34.99,
+    "ratio": 0.7,
+    "recent_listing": false
+   }
+  ],
+  "benchmark_indices_official": {
+   "Nifty 50": {
+    "close": 23140.5,
+    "close_date": "2026-09-25",
+    "weekly_pct": -0.88
+   },
+   "Nifty Bank": {
+    "close": 55580.4,
+    "close_date": "2026-09-25",
+    "weekly_pct": -1.38
+   }
+  },
+  "week_52w_highs_nifty200": [
+   "Apollo Hospitals Enterprise Ltd.",
+   "Aurobindo Pharma Ltd.",
+   "Divi's Laboratories Ltd.",
+   "IDFC First Bank Ltd.",
+   "Laurus Labs Ltd.",
+   "Lenskart Solutions Ltd.",
+   "Zydus Lifesciences Ltd."
+  ],
+  "week_52w_lows_nifty200": [
+   "Bank of Baroda",
+   "Britannia Industries Ltd.",
+   "Hindustan Unilever Ltd.",
+   "KPIT Technologies Ltd.",
+   "Maruti Suzuki India Ltd.",
+   "Max Financial Services Ltd.",
+   "PB Fintech Ltd.",
+   "Reliance Industries Ltd.",
+   "Tata Consumer Products Ltd.",
+   "Tata Elxsi Ltd.",
+   "Tata Motors Passenger Vehicles Ltd.",
+   "Trent Ltd.",
+   "UPL Ltd.",
+   "Voltas Ltd.",
+   "Wipro Ltd."
+  ],
+  "fii_fno_week": {
+   "index futures": -3778.0,
+   "index options": -12917.39,
+   "stock futures": -546.06,
+   "stock options": -606.81
+  },
+  "fii_fno_days_covered": [
+   "2026-09-25",
+   "2026-09-24",
+   "2026-09-23",
+   "2026-09-22",
+   "2026-09-21"
+  ],
+  "fii_fno_note": "Net buy-sell per segment from NSE daily fii_stats files. DII F&O and YTD splits still come from Trendlyne or user upload.",
+  "upcoming_nifty50_results": [],
+  "fii_dii_daily_raw": [
+   {
+    "buyValue": "14035.77",
+    "category": "DII",
+    "date": "25-Sep-2026",
+    "netValue": "2838.17",
+    "sellValue": "11197.6"
+   },
+   {
+    "buyValue": "12327.36",
+    "category": "FII/FPI",
+    "date": "25-Sep-2026",
+    "netValue": "-3693.93",
+    "sellValue": "16021.29"
+   }
+  ],
+  "fii_dii_week_cash": {
+   "fii_net_cr": -11490.03,
+   "dii_net_cr": 16398.15,
+   "days_covered": [
+    "2026-09-25",
+    "2026-09-24",
+    "2026-09-23",
+    "2026-09-22",
+    "2026-09-21"
+   ],
+   "note": "Complete only if all 5 sessions are covered by daily captures"
+  }
+ },
+ "errors": [],
+ "sessions_loaded": 250,
+ "latest_session": "2026-09-25",
+ "window_base_day": "2026-09-21"
+}
