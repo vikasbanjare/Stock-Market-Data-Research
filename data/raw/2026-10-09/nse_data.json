@@ -598,7 +598,7 @@
   }
  },
  "errors": [
-  "index closes: ind_close_all unavailable for 2026-10-09 or 2026-10-02 (older files may be purged; Yahoo covers this)"
+  "index closes: ReadTimeout: HTTPSConnectionPool(host='nsearchives.nseindia.com', port=443): Read timed out. (read timeout=30)"
  ],
  "sessions_loaded": 250,
  "latest_session": "2026-10-09",
