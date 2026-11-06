@@ -515,6 +515,32 @@
    "2026-11-02"
   ],
   "fii_fno_note": "Net buy-sell per segment from NSE daily fii_stats files. DII F&O and YTD splits still come from Trendlyne or user upload.",
+  "upcoming_nifty50_results": [
+   {
+    "date": "07-Nov-2026",
+    "symbol": "TATASTEEL",
+    "company": "Tata Steel Ltd.",
+    "purpose": "Financial Results/Other business matters"
+   },
+   {
+    "date": "13-Nov-2026",
+    "symbol": "EICHERMOT",
+    "company": "Eicher Motors Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "13-Nov-2026",
+    "symbol": "GRASIM",
+    "company": "Grasim Industries Ltd.",
+    "purpose": "Financial Results"
+   },
+   {
+    "date": "13-Nov-2026",
+    "symbol": "TMPV",
+    "company": "Tata Motors Passenger Vehicles Ltd.",
+    "purpose": "Financial Results"
+   }
+  ],
   "fii_dii_daily_raw": [
    {
     "buyValue": "18084.32",
@@ -544,9 +570,7 @@
    "note": "Complete only if all 5 sessions are covered by daily captures"
   }
  },
- "errors": [
-  "event_calendar: ReadTimeout: HTTPSConnectionPool(host='www.nseindia.com', port=443): Read timed out. (read timeout=30)"
- ],
+ "errors": [],
  "sessions_loaded": 250,
  "latest_session": "2026-11-06",
  "window_base_day": "2026-11-02"
