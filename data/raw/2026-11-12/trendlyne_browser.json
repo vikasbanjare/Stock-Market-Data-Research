@@ -1,0 +1,47 @@
+{
+ "run_date": "2026-11-12",
+ "method": "playwright-chromium",
+ "pages": {
+  "cash_week": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  },
+  "fii_fno_index_week": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  },
+  "fii_fno_stock_week": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  },
+  "dii_fno_index_week": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  },
+  "dii_fno_stock_week": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  },
+  "cash_ytd": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  },
+  "fii_fno_index_ytd": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  },
+  "fii_fno_stock_ytd": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  },
+  "dii_fno_index_ytd": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  },
+  "dii_fno_stock_ytd": {
+   "title": "Let's confirm you are human",
+   "tables": "no tables found"
+  }
+ },
+ "errors": []
+}
