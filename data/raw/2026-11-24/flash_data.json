@@ -1,0 +1,46 @@
+{
+ "run_date": "2026-11-24",
+ "mode": "flash-15:35-IST",
+ "sections": {
+  "breadth_n500_weekly": {
+   "gainers": 0,
+   "losers": 0,
+   "note": "Nifty 500 universe at 15:35 IST; the evening run computes all-NSE breadth"
+  },
+  "nifty100_top_gainers": [],
+  "nifty100_top_losers": [],
+  "week_52w_highs_nifty200": [
+   "Apollo Hospitals Enterprise Ltd.",
+   "Axis Bank Ltd.",
+   "Bajaj Holdings & Investment Ltd.",
+   "Bank of Maharashtra",
+   "Bharti Airtel Ltd.",
+   "Coforge Ltd.",
+   "DLF Ltd.",
+   "Eicher Motors Ltd.",
+   "Federal Bank Ltd.",
+   "GAIL (India) Ltd.",
+   "ICICI Bank Ltd.",
+   "Indian Hotels Co. Ltd.",
+   "LIC Housing Finance Ltd.",
+   "Meesho Ltd.",
+   "Phoenix Mills Ltd.",
+   "Punjab National Bank",
+   "Union Bank of India"
+  ],
+  "week_52w_lows_nifty200": [
+   "APL Apollo Tubes Ltd.",
+   "Cochin Shipyard Ltd.",
+   "KEI Industries Ltd.",
+   "PI Industries Ltd.",
+   "Tata Motors Passenger Vehicles Ltd.",
+   "Tata Power Co. Ltd."
+  ]
+ },
+ "errors": [
+  "only 0/501 live quotes \u2014 Yahoo throttling? treat results as partial"
+ ],
+ "base_day": "2026-11-17",
+ "sessions_loaded": 250,
+ "live_quotes": 0
+}
